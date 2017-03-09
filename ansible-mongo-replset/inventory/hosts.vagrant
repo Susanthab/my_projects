@@ -1,0 +1,15 @@
+[primary]
+192.168.56.202
+
+[secondary]
+192.168.56.203
+192.168.56.205
+
+[primary:vars]
+db_user_admin_username=mongo_admin
+db_user_admin_password=pssw0rd
+db_cluster_admin_username=mongo_cl_admin
+db_cluster_admin_password=pssw0rd
+db_user_name=susa
+db_user_password=susa123
+db_name=test
