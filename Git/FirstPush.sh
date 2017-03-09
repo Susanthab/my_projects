@@ -32,3 +32,5 @@ cp -r ~/ansible-mongodb-replset-copy/ ansible-mongo-replset
 git add --all ansible-mongo-replset/*
 
 rm -rf .git/
+
+## New change to test git
