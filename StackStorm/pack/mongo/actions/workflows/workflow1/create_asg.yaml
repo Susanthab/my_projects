@@ -1,0 +1,99 @@
+---
+version: '2.0'
+
+mongo.create_asg:
+    description: A Generic workflow that creates an asg in AWS.
+    type: direct
+    input:
+        - asg_name
+        - environment
+        - app_type
+        - keyfile
+        - LaunchConfigurationName
+        - AvailabilityZones
+        - MinSize
+        - MaxSize
+        - DesiredCapacity
+        - team_id
+    output:
+        instance_id: <% $.instance_id %>
+    tasks:
+        create_auto_scaling_group:
+            action: aws.autoscaling_create_auto_scaling_group
+            input:
+              LaunchConfigurationName: <% $.LaunchConfigurationName %>
+              AutoScalingGroupName: <% $.asg_name[0] %>
+              AvailabilityZones: <% $.AvailabilityZones %>
+              MinSize: <% $.MinSize %>
+              MaxSize: <% $.MaxSize %>
+              DesiredCapacity: <% $.DesiredCapacity %>
+            wait-after: 10
+            on-error: 
+              - notify_on_error
+            on-success:
+              - describe_auto_scaling_groups
+        describe_auto_scaling_groups:
+            action: aws.autoscaling_describe_auto_scaling_groups
+            input: 
+              AutoScalingGroupNames: <% $.asg_name %>
+            publish:
+                instance_id: <% task(describe_auto_scaling_groups).result.result[0].AutoScalingGroups.Instances.InstanceId %>
+            wait-after: 10
+            on-error:
+              - notify_on_error
+            on-success:
+              - wait_for_instance
+        wait_for_instance:
+            with-items: inst_id in <% $.instance_id[0] %>
+            action: aws.ec2_wait_for_state instance_id="<% $.inst_id %>" state="running"
+            wait-after: 10
+            on-error:
+              - notify_on_error
+            on-success:
+              - ec2_get_all_instances
+        ec2_get_all_instances:
+            with-items: inst_id in <% $.instance_id[0] %>
+            action: aws.ec2_get_all_instances 
+            input: 
+              instance_ids: <% $.inst_id %>
+            publish:
+               public_ips: <% task(ec2_get_all_instances).result.result.ip_address %>
+               private_ips: <% task(ec2_get_all_instances).result.result.private_ip_address %>
+            wait-after: 10
+            on-error:
+              - notify_on_error
+            on-success:
+              - wait_for_ssh
+        wait_for_ssh:
+            with-items: public_ip in <% $.public_ips %>
+            action: linux.wait_for_ssh
+            input:
+              hostname: <% str($.public_ip[0][0]) %> 
+              username: "stanley" 
+              keyfile: <% $.keyfile %> 
+              timeout: 40 
+              retries: 30
+              sleep_delay: 30
+            wait-before: 15
+            retry: count=2 delay=5 
+            on-error:
+              - notify_on_error
+            on-success:
+              - add_name_tags
+        add_name_tags:
+            with-items: 
+              inst_id in <% $.instance_id[0] %>
+            action: aws.ec2_create_tags 
+            input: 
+              tags: "Name=<% $.environment %>-<% $.app_type %>-<% $.team_id %>,environment=<% $.environment %>,team_id=<% $.team_id %>" 
+              resource_ids: ["<% $.inst_id %>"]
+            on-error:
+              - notify_on_error
+            on-success:
+              - notify_success
+        notify_on_error:
+            action: core.local cmd="echo Failed to complete entire auto scaling group workflow."
+            on-complete:
+              - fail
+        notify_success:
+            action: core.local cmd="echo Auto scaling group <% $.asg_name[0] %> created successfully!"

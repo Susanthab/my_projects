@@ -3,6 +3,10 @@
   stat: path=/usr/bin/mongo
   register: mongo_bin
 
+- name: End the play if the mongo already installed
+  action: fail msg="MongoDB is already installed and Replica set is created. Exiting the playbook."
+  when: mongo_bin.stat.exists == True
+
 - name: MongoDB | Fetch 10Gen signing key
   command: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
   when: mongo_bin.stat.exists == False

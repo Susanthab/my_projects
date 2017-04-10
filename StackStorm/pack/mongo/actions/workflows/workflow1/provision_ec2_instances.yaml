@@ -1,0 +1,33 @@
+---
+  chain:
+    -
+      name: "create_auto_scaling_group"
+      ref: "aws.autoscaling_create_auto_scaling_group"
+      params:
+        LaunchConfigurationName: "{{LaunchConfigurationName}}"
+        AutoScalingGroupName: "{{AutoScalingGroupName}}"
+        AvailabilityZones: "{{AvailabilityZones}}"
+        MinSize: "{{MinSize}}"
+        MaxSize: "{{MaxSize }}"
+        DesiredCapacity: "{{DesiredCapacity}}"
+      on-success: asg_wait
+
+    -
+      name: asg_wait
+      ref: "mongo.wait_for_asg"
+      on-success: describe_auto_scaling_groups
+
+    -
+      name: describe_auto_scaling_groups
+      ref: "aws.autoscaling_describe_auto_scaling_groups"
+      params:
+        AutoScalingGroupNames: ["{{AutoScalingGroupName}}"]
+#        state: "running" 
+      on-success: say_wow
+
+    -
+      name: say_wow
+      description: Print something.
+      ref: "core.local"
+      params:
+        cmd: "echo say_wow {{describe_auto_scaling_groups.result[0].AutoScalingGroups[0].Instances[0].InstanceId}}"

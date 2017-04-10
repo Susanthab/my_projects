@@ -1,0 +1,17 @@
+---
+  chain
+    -
+      name: "create auto scaling group"
+      ref: "aws.autoscaling_create_auto_scaling_group"
+      params: 
+        LaunchConfigurationName: "{{LaunchConfigurationName}}"
+        AutoScalingGroupName: "{{AutoScalingGroupName}}"
+        AvailabilityZones: "{{AvailabilityZones}}"
+        MinSize: "{{MinSize}}"
+        MaxSize: "{{MaxSize }}"
+        DesiredCapacity: "{{DesiredCapacity}}"
+      on-success: 
+
+
+
+st2 action create /opt/stackstorm/packs/mongo/actions/create-mongo-replset-meta.yaml
