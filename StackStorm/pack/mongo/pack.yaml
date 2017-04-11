@@ -1,6 +1,0 @@
----
-name: mongo
-description: Test pack to create mongo db replica set.
-version: 0.1.0
-author : st2-dev
-email : bathige@hotmail.com

@@ -1,7 +1,0 @@
----
-name: wait_for_asg
-description: ''
-pack: mongo
-runner_type: "local-shell-cmd"
-enabled: true
-entry_point: wait_for_asg.sh

@@ -1,9 +1,0 @@
----
-name: create_hosts_file
-runner_type: "python-script"
-description: Create Inventory file which will consume by Ansible.
-enabled: true
-entry_point: "scripts/create_hostsfile.py"
-parameters:
-  hosts_list:
-    type: array
