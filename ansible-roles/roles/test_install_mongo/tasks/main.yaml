@@ -1,3 +1,10 @@
+---
+# This will be executed as Cloud-ini task when luanching EC2 instance.
+
+- name: check if mongo already installed
+  stat: path=/usr/bin/mongo
+  register: mongo_bin
+
 - name: MongoDB | Fetch 10Gen signing key
   command: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
   when: mongo_bin.stat.exists == False
@@ -7,3 +14,31 @@
     echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
     creates=/etc/apt/sources.list.d/mongodb-org-3.2.list
   when: mongo_bin.stat.exists == False
+
+- name: install mongodb
+  apt: name={{ item }} state=latest update_cache=yes
+  with_items:
+    - mongodb-org-server
+    - mongodb-org-mongos
+    - mongodb-org-shell
+    - mongodb-org-tools
+  when: mongo_bin.stat.exists == False
+
+- name: MongoDB - stop server
+  service: name=mongod state=stopped
+  when: mongo_bin.stat.exists == False
+
+- name: Create the data directory
+  file: path={{ mongodb_datadir_prefix }} owner=mongodb state=directory
+
+#- name: copy configuration file with authentication parameters
+#  copy: src=mongod.conf dest=/etc/mongod.conf mode=0644
+
+#- name: copy security key file to nodes
+#  copy: src=/tmp/mongodb-keyfile dest=/etc/mongodb-keyfile mode=0400
+
+#- name: change access right of key file
+#  file: path=/etc/mongodb-keyfile state=file owner=mongodb group=mongodb
+
+- name: MongoDB | Ensure deamon is running correctly
+  service: name=mongod state=restarted 
