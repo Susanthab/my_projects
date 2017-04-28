@@ -6,4 +6,4 @@
     mongodb_datadir_prefix: /data/mongodb/
 
   roles: 
-    - test-install-mongo
+    - test_install_mongo
