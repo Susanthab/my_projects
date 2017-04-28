@@ -4,7 +4,7 @@
   register: mongo_bin
 
 - name: End the play if the mongo already installed
-  action: fail msg="MongoDB is already installed and Replica set is created. Exiting the playbook."
+  action: fail msg="MongoDB is already installed."
   when: mongo_bin.stat.exists == True
 
 - name: MongoDB | Fetch 10Gen signing key

@@ -1,0 +1,9 @@
+- name: install MongoDB
+  hosts: all
+  become: yes
+  become_method: sudo
+  vars:
+    mongodb_datadir_prefix: /data/mongodb/
+
+  roles: 
+    - test-install-mongo
