@@ -130,3 +130,11 @@ db.employee.findOne()
 rs.slaveOk()
 use HR
 db.employee.findOne()
+
+# Installing a pack using a git URL
+
+cd /opt/stackstorm/packs
+git clone https://github.com/StackStorm-Exchange/stackstorm-cloudflare.git cloudflare
+chown -R root:st2packs cloudflare
+st2 run packs.setup_virtualenv packs=cloudflare
+st2ctl reload
