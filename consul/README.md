@@ -30,3 +30,4 @@ verify: false
 
 # For the token, I copy and paste the Unige ID of consul agent. 
 # Host ip is the IP of the vagrant box. 
+consul agent -dev -ui -client 192.168.16.21

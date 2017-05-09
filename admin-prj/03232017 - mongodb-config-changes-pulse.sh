@@ -4,7 +4,7 @@
 # mongo  10.253.6.242:27017/pulsedevmongo-pulse-dev
 # mongo  10.253.6.210:27017/pulseauthdevmongo-pulseauth-dev
 
-mongo -usiteRootAdmin -ppassw0rd admin
+mongo -u<username> -p<pwd> admin
 
 db.runCommand({buildInfo:1})
 
@@ -18,6 +18,8 @@ db.runCommand({buildInfo:1})
       cacheSizeGB: 4
 
 # all below nodes are in version "v2.6.12""
+
+cat /etc/hosts
 
 # 10.253.6.73 mongo1 (secondary)
 # 10.253.6.156 mongo2 (secondary)

@@ -79,7 +79,7 @@ sudo cp -r /usr/share/doc/st2/examples/ /opt/stackstorm/packs/
 sudo cp -r /home/ubuntu/mongo/ /opt/stackstorm/packs/
 
 # Run setup
-st2 run packs.setup_virtualenv packs=mongo
+st2 run packs.setup_virtualenv packs=nibiru
 
 # Reload stackstorm context
 st2ctl reload --register-all
