@@ -2,3 +2,4 @@
 # How to shutdown a vagrant box
 cd <vagrant env>
 vagrant halt <box>
+

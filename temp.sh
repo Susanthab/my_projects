@@ -1,23 +1,77 @@
-#!/bin/sh
-set -x
-
-SYSTEMUSER="stanley"
-PUBKEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDNy+pqZENzoWjZFoSb5ckc1ZaYPGLnBcoyFeUa1pSXFGT84/blA/gIDtKL73SWFjAn0ALE+Q+Z6xaxtXeAS6bRiPIzYYm+GC2Sez+KrmgklyV3oL3Tto9lZWF9hcnSajU/bpdQuWOMES/8ARZ+06g156lzg8Znq0OwTZHRsIQ/3FvC0GKAUa3/yxEnBXMfldtgZUxnHZqOWOFCjeEbKl9s7f8bukpGZdRAkWMbur5j9CHwInz/faxpwHLRTaC4MDr6bWvlV6jBYE6iKJVMZeSNsHCEPnYeXr0602ziBkzQvUaicHV+jBmnk503/ZhFyw/wLvWHx3wT8y9RmyOCB0qT root@st2vagrant2"
-
-echo "########## Creating system user: ${SYSTEMUSER} ##########"
-useradd ${SYSTEMUSER}
-mkdir -p /home/${SYSTEMUSER}/.ssh
-echo ${PUBKEY} > /home/${SYSTEMUSER}/.ssh/authorized_keys
-chmod 0700 /home/${SYSTEMUSER}/.ssh
-chmod 0600 /home/${SYSTEMUSER}/.ssh/authorized_keys
-chown -R ${SYSTEMUSER}:${SYSTEMUSER} /home/${SYSTEMUSER}
-if [ $(grep ${SYSTEMUSER} /etc/sudoers.d/* &> /dev/null; echo $?) = 0 ]
- then
-   echo "${SYSTEMUSER}    ALL=(ALL)       NOPASSWD: ALL" >> /etc/sudoers.d/st2
- fi
-
-cd /root
-git clone https://github.com/Susanthab/my_projects.git mongo
-cd /root
-pip install -q -r ./mongo/ansible-roles/requirements.txt
-ansible-playbook -i "localhost," -c local /root/mongo/ansible-roles/test_install_mongo.yaml
+parameters:
+  Region:
+    type: string
+    required: true
+    position: 0
+    default: "us-east-1"
+  AvailabilityZones:
+    type: array
+    required: true
+    position: 1
+    default: ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1e"]
+  LaunchConfigurationName:
+    type: string
+    required: true
+    position: 2
+  Asg_name:
+    required: true
+    type: string
+    position: 3
+  Environment:
+    required: true
+    type: string
+    position: 4
+  App_type:
+    required: true
+    type: string
+    position: 5
+  Team: 
+    type: string
+    required: true
+    position: 6
+  MinSize:
+    type: integer
+    required: true
+    position: 7
+    default: 3
+  DesiredCapacity:
+    type: integer
+    required: true
+    position: 8
+    default: 2
+  MaxSize:
+    type: integer
+    required: true
+    position: 9
+    default: 7
+  ImageId:
+    required: false
+    type: string
+    position: 10
+    default: "ami-47bc4c51"
+  KeyName:
+    required: false
+    type: string
+    position: 11
+    default: "susanthab"
+  SecurityGroups:
+    required: false
+    type: array
+    position: 12
+    default: "sg-06249479"
+  IamInstanceProfile:
+    required: false
+    type: string
+    position: 13
+    default: "MongoDBRole"
+  EbsOptimized:
+    required: false
+    type: string
+    position: 14
+    default: false
+  InstanceType:
+    required: false
+    type: string
+    position: 15
+    default: "t2.micro"
+runner_type: mistral-v2

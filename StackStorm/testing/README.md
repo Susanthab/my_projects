@@ -133,8 +133,13 @@ db.employee.findOne()
 
 # Installing a pack using a git URL
 
+## Method 1.
 cd /opt/stackstorm/packs
 git clone https://github.com/StackStorm-Exchange/stackstorm-cloudflare.git cloudflare
 chown -R root:st2packs cloudflare
 st2 run packs.setup_virtualenv packs=cloudflare
 st2ctl reload
+
+## Method 2.
+st2 pack install https://github.com/xydinesh/stackstorm-boto3.git
+st2 pack install https://github.com/pearsontechnology/stackstorm-nibiru.git
