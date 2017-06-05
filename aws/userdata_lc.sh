@@ -6,10 +6,10 @@ set -x
 sleep 10
 
 echo "Pragramatically mount block device at EC2 startup..."
-P=`lsblk  --noheadings --raw | awk '{print substr($0,0,4)}' | uniq -c | grep 1 | awk '{print "/dev/"$2}'`
-mkfs -t ext4 $P
+umd=`lsblk --noheadings --raw | grep -v "/" | grep -v "xvda\|sda1" | awk '{print "/dev/"$1}'`
+mkfs -t ext4 $umd
 mkdir /data
-mount $P /data
+mount $umd /data
 
 pip install -q -r ./mongo/ansible-roles/requirements.txt
 ansible-playbook -i "localhost," -c local /root/mongo/ansible-roles/test_install_mongo.yaml
