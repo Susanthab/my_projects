@@ -3,13 +3,20 @@
 output: {all: '| tee -a /var/log/cloud-init-output.log'}
 set -x
 
-sleep 10
+sleep 5
 
 echo "Pragramatically mount block device at EC2 startup..."
+# http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
+cp /etc/fstab /etc/fstab.orig
 umd=`lsblk --noheadings --raw | grep -v "/" | grep -v "xvda\|sda1" | awk '{print "/dev/"$1}'`
 mkfs -t ext4 $umd
 mkdir /data
 mount $umd /data
+UUID=`file -s $umd | awk -F'UUID=' '{print $2}' | awk -F',' '{print $1}'`
+echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
+mount -a
+
+sleep 5
 
 pip install -q -r ./mongo/ansible-roles/requirements.txt
 ansible-playbook -i "localhost," -c local /root/mongo/ansible-roles/test_install_mongo.yaml
