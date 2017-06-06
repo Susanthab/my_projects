@@ -12,7 +12,7 @@ umd=`lsblk --noheadings --raw | grep -v "/" | grep -v "xvda\|sda1" | awk '{print
 mkfs -t ext4 $umd
 mkdir /data
 mount $umd /data
-UUID=`file -s $umd | awk -F'UUID=' '{print $2}' | awk -F',' '{print $1}'`
+UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
 echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
 mount -a
 
