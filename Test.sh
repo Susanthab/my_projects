@@ -174,3 +174,13 @@ BlockDeviceMappings => list(dict(DeviceName => "/dev/sdg", Ebs => dict(VolumeSiz
             'NoDevice': True|False
         },
     ],
+
+
+## Execute Mongo st2 workflow. 
+
+st2 run nibiru.create_mongo_asg \
+  LaunchConfigurationName="mongo-lc-1" \
+  Asg_name="mongo-asg-1" \
+  Environment="dev" \
+  App_type="epc" \
+  Team="nibiru-v3"
