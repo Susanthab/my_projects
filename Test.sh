@@ -181,6 +181,7 @@ BlockDeviceMappings => list(dict(DeviceName => "/dev/sdg", Ebs => dict(VolumeSiz
 st2 run nibiru.create_mongo_asg \
   LaunchConfigurationName="mongo-lc-1" \
   Asg_name="mongo-asg-1" \
+  VPCZoneIdentifier="subnet-cb3514f6,subnet-262c5643,subnet-e1c5b5cb,subnet-3983a04f,subnet-11d2ad49" \
   Environment="dev" \
-  App_type="epc" \
+  App_type="test-app" \
   Team="nibiru-v3"

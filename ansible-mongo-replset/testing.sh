@@ -26,3 +26,14 @@ mongo
 use test
 db.restaurants.count()
 
+# testing from Python
+# Install pymongo first.
+python -m pip install pymongo
+
+#!/usr/bin/python
+from pymongo import MongoClient
+client = MongoClient('ec2-54-146-47-17.compute-1.amazonaws.com', 27017)
+db = client.HR
+collection = db.employee
+collection.insert({'name':'Ryan Ritz','address':'Colorado'})
+print(collection.find_one())
