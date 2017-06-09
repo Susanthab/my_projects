@@ -185,3 +185,8 @@ st2 run nibiru.create_mongo_asg \
   Environment="dev" \
   App_type="test-app" \
   Team="nibiru-v3"
+
+
+
+
+{ _id: '"rs0"', members: [ { _id : 0, host : '"${CURRENT_NODE_IP}:27017"' } ] }
