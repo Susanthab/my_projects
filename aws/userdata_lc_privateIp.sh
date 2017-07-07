@@ -58,6 +58,29 @@ do
    fi
 done
 
+# Repeating the same loop above again to avoid random connetion timeouts. 
+for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+do
+   # Random sleep between 1 - 10 sec. 
+   sleep $[ ( $RANDOM % 10 )  + 1 ]s
+
+   IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+   echo $IP
+   echo "Checking for the Primary node IP."
+   P=`/usr/bin/mongo ${IP}:27017 --eval "printjson(rs.isMaster())" | grep "primary" | cut -d"\"" -f4`
+   echo $P
+   if [ -n "$P" ]; then
+      echo "Primary node found, record the PRIMARY node IP"
+      PRIMARY=${P}
+      echo $PRIMARY
+   fi
+
+   IS_SECONDARY=`/usr/bin/mongo ${IP}:27017 --eval "printjson(db.isMaster().secondary)" | grep true`
+   if [ "$IS_SECONDARY" = "true" ]; then
+     SECONDARY="true"
+   fi
+done
+
 # Random sleep between 1 - 10 sec. 
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
