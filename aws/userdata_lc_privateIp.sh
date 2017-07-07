@@ -22,7 +22,8 @@ sleep 5
 pip install -q -r ./mongo/ansible-roles/requirements.txt
 ansible-playbook -i "localhost," -c local /root/mongo/ansible-roles/test_install_mongo.yaml
 
-sleep 10
+# Random sleep between 1 - 10 sec. 
+sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 # Use below script is to initialize the replica set in ASG. 
 wget http://s3.amazonaws.com/ec2metadata/ec2-metadata
@@ -50,7 +51,8 @@ do
    fi
 done
 
-sleep 10
+# Random sleep between 1 - 10 sec. 
+sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 # check if the PRIMARY node exists
 if [ -n "$PRIMARY" ]; then
@@ -73,7 +75,7 @@ elif [ "$SECONDARY" = "false" ]; then
     # Initialize replica set
     echo "No primary, initialize the replica set."
     cfg="{_id: 'rs0', members: [{_id: 0, host: '${CURRENT_NODE_IP}:27017'}]}"
-    R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
+    # R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
     echo $cfg
     echo $R
 else
