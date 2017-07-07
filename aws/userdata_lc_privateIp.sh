@@ -38,6 +38,9 @@ AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTA
 SECONDARY="false"
 for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
 do
+   # Random sleep between 1 - 10 sec. 
+   sleep $[ ( $RANDOM % 10 )  + 1 ]s
+
    IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
    echo $IP
    echo "Checking for the Primary node IP."
@@ -75,7 +78,7 @@ if [ -n "$PRIMARY" ]; then
     echo "Join the new secondary to the existing replica set."
     R=`/usr/bin/mongo ${PRIMARY}/admin --eval "printjson(rs.add('${CURRENT_NODE_IP}:27017'))"`
     echo $R
-    
+
 elif [ "$SECONDARY" = "false" ]; then
     # Initialize replica set
     echo "No primary, initialize the replica set."
