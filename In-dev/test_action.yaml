@@ -1,0 +1,26 @@
+---
+description: Test action mistral workflow.
+enabled: true
+entry_point: workflows/test_action.yaml
+name: test_action
+pack: nibiru
+parameters:
+  Region:
+    position: 0
+    default: "us-east-1"
+    type: string
+  Role_name:
+    position: 1
+    default: "MongoDBRole"
+    type: string
+  Assume_role:
+    position: 2
+    type: "string"
+    description: "Role to be assumed when creating IAM instance profile."
+    default: "arn:aws:iam::410908411653:role/st2_role"
+  consul_endpoint:
+   position: 3
+    type: "string"
+    description: "Consul KV endpoint for retrieving configurations"
+    required: true 
+runner_type: mistral-v2

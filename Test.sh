@@ -190,3 +190,38 @@ st2 run nibiru.create_mongo_asg \
 
 
 { _id: '"rs0"', members: [ { _id : 0, host : '"${CURRENT_NODE_IP}:27017"' } ] }
+
+
+
+params: <% dict(LaunchConfigurationName => $.LaunchConfigurationName, 
+AutoScalingGroupName => $.Asg_name, 
+MinSize => $.MinSize, 
+MaxSize => $.MaxSize, 
+DesiredCapacity => $.DesiredCapacity, 
+AvailabilityZones => $.AvailabilityZones, 
+VPCZoneIdentifier => $.VPCZoneIdentifier, 
+Tags => list(
+    
+    dict(Key => "Project", Value => "Nibiru-V3"),
+    dict(Key => "t_environment", Value => $.Environment), 
+    dict(Key => "app_id", Value => $.App_id), 
+    dict(Key => "team_id", Value => $.Team_id), 
+    dict(Key => "t_role", Value => $.Role), 
+    dict(Key => "t_owner_individual", Value => $.t_owner_individual), 
+    dict(Key => "Name", Value => $.Environment + "-" + $.Team_id + "-" + $.Role + "-" + str($.App_id)) 
+    )
+    ) %>
+
+
+
+
+R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson( rs.initiate({_id: "rs0", members: [{"_id": 0, host: "$CURRENT_NODE_IP:27017"}]}) )"`
+
+
+rs.initiate({_id: "rs0", members: [{"_id": 0, host: "10.0.2.120:27017"}]})
+
+R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "rs.initiate({"_id": "rs0", "members" : [{"_id": 0, "host" : ""$CURRENT_NODE_IP":27017"}]})"`
+
+
+
+

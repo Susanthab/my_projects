@@ -70,7 +70,9 @@ if [ -n "$PRIMARY" ]; then
 elif [ "$SECONDARY" = "false" ]; then
     # Initialize replica set
     echo "No primary, initialize the replica set."
-    R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate())"`
+    cfg="{_id: 'rs0', members: [{_id: 0, host: '${CURRENT_NODE_IP}:27017'}]}"
+    R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
+    echo $cfg
     echo $R
 else
    echo "MongoDB Replica set has lost the Quorum. Please fix it manually."
