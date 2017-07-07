@@ -50,6 +50,8 @@ do
    fi
 done
 
+sleep 10
+
 # check if the PRIMARY node exists
 if [ -n "$PRIMARY" ]; then
     echo "Primary node exists."
