@@ -79,11 +79,28 @@ fi
 ## ***********************************************************************************************************************************
 
 ## ***********************************************************************************************************************************
-## Block-3: Add secondary nodes.
+## Block-3:
+# Get "not reachable/healthy" IP list.
+UH_NODE=`/usr/bin/mongo ${PRIMARY_IP_NODE}/admin --eval "printjson(rs.status())" | grep --before-context=5 "not reachable/healthy" | grep "name" | cut -d"\"" -f4 | head -n 1`
+echo "Below is the Unhealthy list."
+echo $UH_NODE
+while [ -n "$UH_NODE" ]; do
+  echo "About to remove below mentioned [not reachable/healthy] node."
+  echo $UH_NODE
+  R=`/usr/bin/mongo ${PRIMARY_IP_NODE}/admin --eval "printjson(rs.remove('${UH_NODE}'))"`
+  # Let the replica set to sync the changes.
+  sleep $[ ( $RANDOM % 10 )  + 1 ]s
+  UH_NODE=`/usr/bin/mongo ${PRIMARY_IP_NODE}/admin --eval "printjson(rs.status())" | grep --before-context=5 "not reachable/healthy" | grep "name" | cut -d"\"" -f4 | head -n 1`
+done
+## End of Block-3
+## ***********************************************************************************************************************************
+
+## ***********************************************************************************************************************************
+## Block-4: Add secondary nodes.
 if [ -n $PRIMARY_IP ] && [ $CURRENT_NODE_IP != $PRIMARY_IP ]; then
   echo "Ready to add secondary nodes."
   R=`/usr/bin/mongo ${PRIMARY_IP_NODE}/admin --eval "printjson(rs.add('${CURRENT_NODE_IP}:27017'))"`
   echo $R
 fi
-## End of Block-3
+## End of Block-4
 ## ***********************************************************************************************************************************
