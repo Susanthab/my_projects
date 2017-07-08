@@ -77,7 +77,7 @@ elif [ "$SECONDARY" = "false" ]; then
     # Initialize replica set
     echo "No primary, initialize the replica set."
     cfg="{_id: 'rs0', members: [{_id: 0, host: '${CURRENT_NODE_IP}:27017'}]}"
-    R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
+    #R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
     echo $cfg
     echo $R
 else
