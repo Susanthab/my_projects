@@ -3,9 +3,6 @@
 output: {all: '| tee -a /var/log/cloud-init-output.log'}
 set -x
 
-# Random sleep between 1 - 10 sec. 
-sleep $[ ( $RANDOM % 10 )  + 1 ]s
-
 echo "Pragramatically mount block device at EC2 startup..."
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
 # The following code is only to add one device. 
@@ -18,14 +15,8 @@ UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
 echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
 mount -a
 
-# Random sleep between 1 - 10 sec. 
-sleep $[ ( $RANDOM % 10 )  + 1 ]s
-
 pip install -q -r ./mongo/ansible-roles/requirements.txt
 ansible-playbook -i "localhost," -c local /root/mongo/ansible-roles/test_install_mongo.yaml
-
-# Random sleep between 1 - 10 sec. 
-sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 # Use below script is to initialize the replica set in ASG. 
 wget http://s3.amazonaws.com/ec2metadata/ec2-metadata
@@ -54,6 +45,9 @@ if [ $CURRENT_NODE_IP = $IP_0 ]; then
 fi
 ## End of Block-1
 ## ***********************************************************************************************************************************
+
+# Random sleep between 1 - 10 sec. 
+sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 ## ***********************************************************************************************************************************
 ## Block-2: Get the IP of the Primary node. 
