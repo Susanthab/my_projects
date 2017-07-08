@@ -4,22 +4,17 @@ import boto.utils
 import awscli
 
 data = boto.utils.get_instance_identity()
-
 region_name = data['document']['region']
-
 print(region_name)
 
 instanceId = data['document']['instanceId']
 
 client = boto3.client('autoscaling',region_name=region_name)
-
 AutoScalingGroupName = client.describe_auto_scaling_instances(
     InstanceIds=[
         instanceId,
     ],
 )['AutoScalingInstances'][0]['AutoScalingGroupName']
-
-
 print(AutoScalingGroupName)
 
 response = client.describe_auto_scaling_groups(

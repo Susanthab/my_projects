@@ -36,50 +36,54 @@ INSTANCE_ID=$(./ec2-metadata | grep instance-id | awk 'NR==1{print $2}')
 CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query AutoScalingInstances[].AutoScalingGroupName --output text)
 SECONDARY="false"
+
+INSTANCE_0=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[0].InstanceId --output text);
+IP_0=$(aws ec2 describe-instances --instance-ids $INSTANCE_0 --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+
+## ***********************************************************************************************************************************
+## Block-1: To initialize the replica set. 
+## Even this executes in multiple node in paralell, the block-1 execcutes only in 1 node due to the IF condition. (Assuming the result 
+## returns by AWSCLI is ordered. 
+if [ $CURRENT_NODE_IP = $IP_0 ]; then
+   echo "Replica set can be initialized."
+   echo $CURRENT_NODE_IP
+   echo $IP_0
+   cfg="{_id: 'rs0', members: [{_id: 0, host: '${CURRENT_NODE_IP}:27017'}]}"
+   R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
+   echo $R
+fi
+## End of Block-1
+## ***********************************************************************************************************************************
+
+## ***********************************************************************************************************************************
+## Block-2: Get the IP of the Primary node. 
 for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
 do
    IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
-   echo $IP
-   echo "Checking for the Primary node IP."
    P=`/usr/bin/mongo ${IP}:27017 --eval "printjson(rs.isMaster())" | grep "primary" | cut -d"\"" -f4`
-   echo $P
-   if [ -n "$P" ]; then
+   if [ -n $P ]; then
       echo "Primary node found, record the PRIMARY node IP"
-      PRIMARY=${P}
-      echo $PRIMARY
-   fi
-
-   IS_SECONDARY=`/usr/bin/mongo ${IP}:27017 --eval "printjson(db.isMaster().secondary)" | grep true`
-   if [ "$IS_SECONDARY" = "true" ]; then
-     SECONDARY="true"
-   fi
+      PRIMARY_IP=$IP
+      PRIMARY_IP_NODE=$P
+      echo $PRIMARY_IP_NODE
+      echo $PRIMARY_IP
+      break
+   fi 
 done
-
-# check if the PRIMARY node exists
-if [ -n "$PRIMARY" ]; then
-    echo "Primary node exists."
-    echo "checking un-healthy nodes and remove it from the replica set."
-
-    UH=`/usr/bin/mongo ${PRIMARY}/admin --eval "printjson(rs.status())" | grep --before-context=5 "not reachable/healthy" | grep "name" | cut -d"\"" -f4 | head -n 1`
-    while [ -n "$UH" ]; do
-        echo "Un-healthy node exists, removing the node."
-        echo $UH
-        R=`/usr/bin/mongo ${PRIMARY}/admin --eval "printjson(rs.remove('${UH}'))"`
-        echo $R
-        UH=`/usr/bin/mongo ${PRIMARY}/admin --eval "printjson(rs.status())" | grep --before-context=5 "not reachable/healthy" | grep "name" | cut -d"\"" -f4 | head -n 1`
-    done
-
-    echo "Join the new secondary to the existing replica set."
-    R=`/usr/bin/mongo ${PRIMARY}/admin --eval "printjson(rs.add('${CURRENT_NODE_IP}:27017'))"`
-    echo $R
-
-elif [ "$SECONDARY" = "false" ]; then
-    # Initialize replica set
-    echo "No primary, initialize the replica set."
-    cfg="{_id: 'rs0', members: [{_id: 0, host: '${CURRENT_NODE_IP}:27017'}]}"
-    #R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
-    echo $cfg
-    echo $R
-else
-   echo "MongoDB Replica set has lost the Quorum. Please fix it manually."
+  # Check to see the Block-2 has found the Primary Node. 
+  # By check the PRIMARY is unset or empty.
+if [ -z $PRIMARY_IP_NODE ]; then
+   echo "ERROR: Primary node could not be found. Something has gone wrong. Please debug the code."
 fi
+## End of Block-2
+## ***********************************************************************************************************************************
+
+## ***********************************************************************************************************************************
+## Block-3: Add secondary nodes.
+if [ -n $PRIMARY_IP ] && [ $CURRENT_NODE_IP != $PRIMARY_IP ]; then
+  echo "Ready to add secondary nodes."
+  R=`/usr/bin/mongo ${PRIMARY_IP_NODE}/admin --eval "printjson(rs.add('${CURRENT_NODE_IP}:27017'))"`
+  echo $R
+fi
+## End of Block-3
+## ***********************************************************************************************************************************
