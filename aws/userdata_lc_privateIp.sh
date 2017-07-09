@@ -40,7 +40,7 @@ if [ $CURRENT_NODE_IP = $IP_0 ]; then
    echo $CURRENT_NODE_IP
    echo $IP_0
    cfg="{_id: 'rs0', members: [{_id: 0, host: '${CURRENT_NODE_IP}:27017'}]}"
-   R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
+   #R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
    echo $R
 fi
 ## End of Block-1
