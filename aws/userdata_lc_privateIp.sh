@@ -35,19 +35,19 @@ IP_0=$(aws ec2 describe-instances --instance-ids $INSTANCE_0 --region ${EC2_REGI
 ## Block-1: To initialize the replica set. 
 ## Even this executes in multiple node in paralell, the block-1 execcutes only in 1 node due to the IF condition. (Assuming the result 
 ## returns by AWSCLI is ordered. 
-if [ $CURRENT_NODE_IP = $IP_0 ]; then
-   echo "Replica set can be initialized."
-   echo $CURRENT_NODE_IP
-   echo $IP_0
-   cfg="{_id: 'rs0', members: [{_id: 0, host: '${CURRENT_NODE_IP}:27017'}]}"
-   #R=`/usr/bin/mongo ${CURRENT_NODE_IP}/admin --eval "printjson(rs.initiate($cfg))"`
+rs_initiate () {
+IS_MASTER=`/usr/bin/mongo ${IP_0}:27017 --eval "printjson(rs.isMaster())" | grep "primary" | cut -d"\"" -f4`
+if [ -z $IS_MASTER ]; then
+   echo "Replica set is not yet initialized."
+   cfg="{_id: 'rs0', members: [{_id: 0, host: '${IP_0}:27017'}]}"
+   R=`/usr/bin/mongo ${IP_0}/admin --eval "printjson(rs.initiate($cfg))"`
    echo $R
 fi
+}
 ## End of Block-1
 ## ***********************************************************************************************************************************
 
-# Random sleep between 1 - 10 sec. 
-sleep $[ ( $RANDOM % 10 )  + 1 ]s
+rs_initiate
 
 ## ***********************************************************************************************************************************
 ## Block-2: Get the IP of the Primary node. 
