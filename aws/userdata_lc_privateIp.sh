@@ -51,6 +51,7 @@ sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 ## ***********************************************************************************************************************************
 ## Block-2: Get the IP of the Primary node. 
+get_primary () {
 for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
 do
    IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
@@ -62,16 +63,18 @@ do
       echo $PRIMARY_IP_NODE
       echo $PRIMARY_IP
       break
-   fi 
+   fi
 done
   # Check to see the Block-2 has found the Primary Node. 
   # By check the PRIMARY is unset or empty.
 if [ -z $PRIMARY_IP_NODE ]; then
    echo "ERROR: Primary node could not be found. Something has gone wrong. Please debug the code."
 fi
+}
 ## End of Block-2
 ## ***********************************************************************************************************************************
 
+get_primary
 ## ***********************************************************************************************************************************
 ## Block-3:
 # Get "not reachable/healthy" IP list.
@@ -89,6 +92,7 @@ done
 ## End of Block-3
 ## ***********************************************************************************************************************************
 
+get_primary
 ## ***********************************************************************************************************************************
 ## Block-4: Add secondary nodes.
 if [ -n $PRIMARY_IP ] && [ $CURRENT_NODE_IP != $PRIMARY_IP ]; then
