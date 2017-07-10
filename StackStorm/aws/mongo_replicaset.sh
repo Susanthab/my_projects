@@ -37,3 +37,15 @@ KeyName="nibiru-demo" \
 consul_endpoint="infrastructure/aws/us-west-1/vpc/nib1009/state/vpc/"
 
 
+st2 run nibiru.create_mongo_asg \
+LaunchConfigurationName="mongo_lc_2" \
+Asg_name="mongo_asg_2" \
+Environment="test" \
+App_id=50 \
+t_owner_individual="susantha.bathige@pearson.com" \
+InstanceType="t2.micro" \
+ImageId="ami-d7ecb7b7" \
+KeyName="nibiru-demo" \
+consul_endpoint="infrastructure/aws/us-west-1/vpc/nib1009/state/vpc/"
+
+

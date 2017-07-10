@@ -50,6 +50,8 @@ fi
 rs_initiate
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
 rs_initiate
+sleep $[ ( $RANDOM % 10 )  + 1 ]s
+rs_initiate
 
 ## ***********************************************************************************************************************************
 ## Block-2: Get the IP of the Primary node. 
