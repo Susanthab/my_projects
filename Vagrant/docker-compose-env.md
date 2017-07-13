@@ -67,3 +67,4 @@ st2ctl reload --register-all
 cp actions/create_mongo_asg.yaml /opt/stackstorm/packs/nibiru/actions/
 cp actions/workflows/create_mongo_asg.yaml /opt/stackstorm/packs/nibiru/actions/workflows/
 st2ctl reload --register-all
+

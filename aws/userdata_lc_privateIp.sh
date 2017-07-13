@@ -1,6 +1,6 @@
 #!/bin/sh
 #cloud-config
-output: {all: '| tee -a /var/log/cloud-init-output.log'}
+
 set -x
 
 echo "Pragramatically mount block device at EC2 startup..."
