@@ -86,32 +86,5 @@ aws ec2 attach-volume --volume-id vol-1234567890abcdef0 --instance-id i-01474ef6
 aws ec2 create-volume --size 80 --region us-east-1 --availability-zone us-east-1a --volume-type gp2
 
 
-
---block-device-mappings "[{\"DeviceName\": \"/dev/sdh\",\"Ebs\":{\"VolumeSize\":25}}]"
-
-DeviceName=/dev/sdg,"Ebs": {"VolumeSize": 25}
-
-{
-    "DeviceName": "/dev/sdh", {
-    "Ebs": {
-      "VolumeSize": 300
-    }
-    }
-}
-
-{"DeviceName": "/dev/sdh","Ebs": {"VolumeSize": 25}}
-
-"DeviceName=/dev/sdh","DeviceType=Ebs","VolumeSize=25"
-
-{'DeviceName':'/dev/sdh'}
-
-{a:1,b:2,c:3}
-
- BlockDeviceMappings=[
-        {
-            'DeviceName': '/dev/sdh',
-            'Ebs': {
-                'VolumeSize': 25,
-            },
-        },
-    ]
+## Installing a pack from git hub. 
+st2 pack install https://github.com/xydinesh/stackstorm-boto3.git

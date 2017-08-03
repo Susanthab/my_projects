@@ -15,3 +15,12 @@ st2 run aws.ec2_create_security_group name="MongoDBServerSecurityGroup" descript
 st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=28017 to_port=28017 cidr_ip="0.0.0.0/0"
 st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=22 to_port=22 cidr_ip="0.0.0.0/0"
 st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=27000 to_port=28000 cidr_ip="0.0.0.0/0"
+
+
+# Create IAM profile
+st2 run nibiru.create_mongo_iam_instance_profile \
+consul_endpoint="infrastructure/aws/us-west-1/vpc/nib1100/state/vpc/"
+
+# Delete IAM profile
+st2 run nibiru.delete_mongo_iam_instance_profile 
+
