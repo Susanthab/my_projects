@@ -121,10 +121,25 @@ db.restaurants.count()
 
 st2 run boto3.action service='autoscaling' region='us-east-1' action_name='create_auto_scaling_group' params='{AutoScalingGroupName = 'test-mongo-1',LaunchConfigurationName = 'launch-config-mongo-1',MaxSize = 3,MinSize = 2,DesiredCapacity = 2'
 
+--====================
 
 
+cp actions/create_cassandra_ring.yaml /opt/stackstorm/packs/nibiru/actions/
+cp actions/workflows/create_cassandra_ring.yaml /opt/stackstorm/packs/nibiru/actions/workflows/
+
+st2ctl reload --register-all
 
 
+st2 run nibiru.create_cassandra_ring \
+LaunchConfigurationName="cass-lc-test" \
+Asg_name="cass-asg-test" \
+Environment="test" \
+App_id=50 \
+t_owner_individual="susantha.bathige@pearson.com" \
+InstanceType="t2.micro" \
+ImageId="ami-d7ecb7b7" \
+KeyName="nibiru-demo" \
+consul_endpoint="infrastructure/aws/us-west-1/vpc/nib1009/state/vpc/"
 
 
 

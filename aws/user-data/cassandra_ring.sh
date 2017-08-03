@@ -14,7 +14,7 @@ echo "Pragramatically mount block device at EC2 startup..."
 # The following code is only to add one device. 
 cp /etc/fstab /etc/fstab.orig
 umd=`lsblk --noheadings --raw | grep -v "/" | grep -v "xvda\|sda1" | awk '{print "/dev/"$1}'`
-mkfs -t XFS $umd
+mkfs -t xfs $umd
 mkdir /data
 mount $umd /data
 UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`

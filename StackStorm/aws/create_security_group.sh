@@ -16,6 +16,14 @@ st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup"
 st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=22 to_port=22 cidr_ip="0.0.0.0/0"
 st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=27000 to_port=28000 cidr_ip="0.0.0.0/0"
 
+# Security Group rules for Apache Cassandra
+st2 run aws.ec2_create_security_group name="CassandraRingSecurityGroup" description="Security Group for Cassndra Ring" vpc_id="vpc-4b864f2c"
+st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=7000 cidr_ip="0.0.0.0/0"
+st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=22 to_port=22 cidr_ip="0.0.0.0/0"
+st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=8080 to_port=28000 cidr_ip="0.0.0.0/0"
+
+
+
 
 # Create IAM profile
 st2 run nibiru.create_mongo_iam_instance_profile \

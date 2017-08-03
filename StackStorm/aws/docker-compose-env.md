@@ -80,5 +80,4 @@ root@ip-10-240-1-186:~/stackstorm-nibiru/packs.dev/boto3# git pull origin master
 root@ip-10-240-1-186:~/stackstorm-nibiru# docker-compose down -v
 
 
-
 cp actions/workflows/create_mongo_asg.yaml /opt/stackstorm/packs/nibiru/actions/workflows/

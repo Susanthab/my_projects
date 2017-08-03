@@ -4,9 +4,10 @@
 https://gist.github.com/ianunruh/3908fb5eee4fe66c95b4
 
 I downloaded the version to 0.8.1_linux_amd64.zip
+curl -OL https://releases.hashicorp.com/consul/0.9.0/consul_0.9.0_linux_amd64.zip
 
 # To start the agent
-consul agent -dev -ui -client 192.168.16.21 
+consul agent -dev -ui -client 192.168.16.20
 # client ip is the IP of the vagrant box. 
 
 # To access the web UI
@@ -21,9 +22,9 @@ https://www.consul.io/intro/getting-started/kv.html
 --==============================================
 ### Place configuration data for your pack here.
 ---
-host: '192.168.16.21'
+host: '192.168.16.20'
 port: 8500
-token: 10408e42-1b76-193c-6a4d-f4016f8b9138
+token: e85aa14c-7f45-5fea-f869-ca4eb14caa47
 scheme: 'http'
 verify: false
 --==============================================
