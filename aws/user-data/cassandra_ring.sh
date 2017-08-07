@@ -20,3 +20,6 @@ mount $umd /data
 UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
 echo "UUID=$UUID       /data   XFS    defaults,nofail        0       2" >> /etc/fstab
 mount -a
+
+pip install -q -r ./cassandra/ansible-roles/requirements.txt
+#ansible-playbook -i "localhost," -c local /root/cassandra/ansible-roles/apache-cassandra-nibiru.yaml

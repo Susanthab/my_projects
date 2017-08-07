@@ -18,12 +18,15 @@ st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup"
 
 # Security Group rules for Apache Cassandra
 st2 run aws.ec2_create_security_group name="CassandraRingSecurityGroup" description="Security Group for Cassndra Ring" vpc_id="vpc-4b864f2c"
-st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=7000 cidr_ip="0.0.0.0/0"
-st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=22 to_port=22 cidr_ip="0.0.0.0/0"
-st2 run aws.ec2_authorize_security_group group_name="MongoDBServerSecurityGroup" ip_protocol="TCP" from_port=8080 to_port=28000 cidr_ip="0.0.0.0/0"
+st2 run aws.ec2_authorize_security_group group_name="CassandraRingSecurityGroup" ip_protocol="TCP" from_port=7000 cidr_ip="0.0.0.0/0"
+st2 run aws.ec2_authorize_security_group group_name="CassandraRingSecurityGroup" ip_protocol="TCP" from_port=22 to_port=22 cidr_ip="0.0.0.0/0"
+st2 run aws.ec2_authorize_security_group group_name="CassandraRingSecurityGroup" ip_protocol="TCP" from_port=8080 to_port=28000 cidr_ip="0.0.0.0/0"
 
-
-
+# Security group for Cassandra - "CassandraRingSecurityGroup"
+# Custom TCP Rule - TCP - 8080 0.0.0.0/0
+# Custom TCP Rule - TCP - 9160 0.0.0.0/0
+# Custom TCP Rule - TCP - 7000 0.0.0.0/0
+# SSH - TCP - 22 - 0.0.0.0/0
 
 # Create IAM profile
 st2 run nibiru.create_mongo_iam_instance_profile \
