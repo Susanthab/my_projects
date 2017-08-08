@@ -1,4 +1,4 @@
 # file: cassandra/tasks/main.yml
 
-- include: source.yml
+- include: package.yml
   when: cassandra_install_method == "package"

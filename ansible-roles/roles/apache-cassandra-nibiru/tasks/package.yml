@@ -4,10 +4,10 @@
 
 - include_vars: "package.yml"
 
-- name: Cassandra | Make sure the ansible required dependencies are installed
-  apt:
-    pkg: "python-pycurl"
-    state: present
+#- name: Cassandra | Make sure the ansible required dependencies are installed
+#  apt:
+#    pkg: "python-pycurl"
+#    state: present
 
 - name: Cassandra | Add the Apache Cassandra repository keys
   apt_key:
