@@ -17,10 +17,4 @@
     mode: 0644
   with_items:
     - "cassandra-env.sh"
-    - "cassandra-rackdc.properties"
-    - "cassandra-topology.properties"
-    - "cassandra-topology.yaml"
     - "cassandra.yaml"
-    - "commitlog_archiving.properties"
-    - "log4j-server.properties"
-- "log4j-tools.properties"
