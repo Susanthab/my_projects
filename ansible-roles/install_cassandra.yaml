@@ -1,6 +1,0 @@
-- name: install apache cassandra
-  hosts: all
-  become: yes
-  become_method: sudo
-  roles:
-    - role: apache-cassandra-nibiru
