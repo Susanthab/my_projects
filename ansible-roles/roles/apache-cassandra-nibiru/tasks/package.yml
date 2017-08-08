@@ -1,0 +1,28 @@
+# file: cassandra/tasks/package.yml
+
+- include: user.yml
+
+- include_vars: "package.yml"
+
+- name: Cassandra | Make sure the ansible required dependencies are installed
+  apt:
+    pkg: "python-pycurl"
+    state: present
+
+- name: Cassandra | Add the Apache Cassandra repository keys
+  apt_key:
+    url: "https://www.apache.org/dist/cassandra/KEYS"
+    state: present
+
+- name: Cassandra | Add the Apache repository of Cassandra
+  apt_repository:
+    repo: "deb http://www.apache.org/dist/cassandra/debian 311x main"
+    state: present
+
+- name: Cassandra | Install the cassandra package
+  apt:
+    name: "cassandra"
+    state: present
+    update_cache: yes
+
+- include: package_configure.yml

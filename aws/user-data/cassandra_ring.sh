@@ -23,3 +23,4 @@ mount -a
 
 pip install -q -r ./cassandra/ansible-roles/requirements.txt
 #ansible-playbook -i "localhost," -c local /root/cassandra/ansible-roles/install_cassandra.yaml
+#ansible-playbook -i "localhost," --become --ask-become-pass test.yml
