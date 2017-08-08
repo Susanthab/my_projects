@@ -1,2 +1,6 @@
----
-# handlers file for cassandra-cluster
+# file: cassandra/handlers/main.yml
+
+- name: restart cassandra
+  service:
+    name: cassandra
+state: restarted
