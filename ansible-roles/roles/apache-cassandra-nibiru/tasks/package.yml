@@ -15,13 +15,12 @@
     state: present
 
 - name: Updates apt cache
-  action: apt update_cache=true
+  command: "apt-get update"
 
 - name: Cassandra | Install the cassandra package
   apt:
     name: "cassandra"
     state: present
-  retries: 3
   delay: 30
 
 - name: stop cassandra immediately after installing
