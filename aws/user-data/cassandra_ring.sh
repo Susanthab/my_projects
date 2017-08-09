@@ -22,5 +22,5 @@ echo "UUID=$UUID       /data   XFS    defaults,nofail        0       2" >> /etc/
 mount -a
 
 pip install -q -r ./cassandra/ansible-roles/requirements.txt
-#ansible-playbook -i "localhost," -c local /root/cassandra/ansible-roles/install_cassandra.yaml
+ansible-playbook -i "localhost," -c local /root/cassandra/ansible-roles/roles/apache-cassandra-nibiru/test.yml
 #ansible-playbook -i "localhost," -c local test.yml
