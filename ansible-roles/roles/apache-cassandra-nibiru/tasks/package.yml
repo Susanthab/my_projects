@@ -14,9 +14,25 @@
     repo: "deb http://www.apache.org/dist/cassandra/debian 311x main"
     state: present
 
+- name: wait for lock release
+  shell: |
+          while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+               sleep 1;
+          done
+  args:
+    executable: /bin/bash
+
 - name: Updates apt cache
   apt: update_cache=yes
-  delay: 20
+  delay: 10
+
+- name: wait for lock release
+  shell: |
+          while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+               sleep 1;
+          done
+  args:
+    executable: /bin/bash
 
 - name: Cassandra | Install the cassandra package
   apt:
