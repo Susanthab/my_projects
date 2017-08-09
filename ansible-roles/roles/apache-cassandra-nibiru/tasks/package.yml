@@ -15,13 +15,14 @@
     state: present
 
 - name: Updates apt cache
-  command: "apt-get update"
+  apt: update_cache=yes
+  delay: 20
 
 - name: Cassandra | Install the cassandra package
   apt:
     name: "cassandra"
     state: present
-  delay: 30
+  delay: 10
 
 - name: stop cassandra immediately after installing
   service: name=cassandra state=stopped
