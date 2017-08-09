@@ -4,11 +4,6 @@
 
 - include_vars: "package.yml"
 
-#- name: Cassandra | Make sure the ansible required dependencies are installed
-#  apt:
-#    pkg: "python-pycurl"
-#    state: present
-
 - name: Cassandra | Add the Apache Cassandra repository keys
   apt_key:
     url: "https://www.apache.org/dist/cassandra/KEYS"
@@ -24,5 +19,7 @@
     name: "cassandra"
     state: present
     update_cache: yes
+  register: cassandra
+    RUNLEVEL: 1
 
 - include: package_configure.yml
