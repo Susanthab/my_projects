@@ -1,6 +1,2 @@
 # file: cassandra/handlers/main.yml
-
-- name: restart cassandra
-  service:
-    name: cassandra
-    state: restarted
+# Handlers did not work for me. So decided not to use them. 

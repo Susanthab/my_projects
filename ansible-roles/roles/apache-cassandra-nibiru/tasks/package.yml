@@ -19,7 +19,8 @@
     name: "cassandra"
     state: present
     update_cache: yes
-  register: cassandra
-    RUNLEVEL: 1
+
+- name: stop cassandra immediately after installing
+  service: name=cassandra state=stopped
 
 - include: package_configure.yml
