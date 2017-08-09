@@ -11,5 +11,5 @@
     - "cassandra-env.sh"
     - "cassandra.yaml"
 
-- name: start_cassandra
-  service: name=cassandra state=started
+#- name: start_cassandra
+#  service: name=cassandra state=started

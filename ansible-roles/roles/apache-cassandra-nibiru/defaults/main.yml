@@ -20,8 +20,8 @@ cassandra_heap_newsize: null
 # cassandra.yaml basic configuration parameters
 cassandra_cluster_name: "Test Cluster"
 cassandra_num_tokens: "256"
+cassandra_default_net_interface: eth0
 cassandra_initial_token: null
-cassandra_listen_address: "localhost"
 cassandra_seeds: ["localhost"]
 cassandra_endpoint_snitch: "Ec2Snitch"                               # in case of cluster: RackInferringSnitch
 
