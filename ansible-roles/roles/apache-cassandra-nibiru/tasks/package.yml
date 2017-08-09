@@ -22,7 +22,8 @@
     name: "cassandra"
     state: present
     update_cache: yes
-    retries: 3
+  retries: 3
+  delay: 1
 
 - name: stop cassandra immediately after installing
   service: name=cassandra state=stopped
