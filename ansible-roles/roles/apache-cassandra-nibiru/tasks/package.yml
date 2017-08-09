@@ -14,16 +14,15 @@
     repo: "deb http://www.apache.org/dist/cassandra/debian 311x main"
     state: present
 
-#- name: Updates apt cache
-#  action: apt update_cache=true
+- name: Updates apt cache
+  action: apt update_cache=true
 
 - name: Cassandra | Install the cassandra package
   apt:
     name: "cassandra"
     state: present
-    update_cache: yes
   retries: 3
-  delay: 1
+  delay: 30
 
 - name: stop cassandra immediately after installing
   service: name=cassandra state=stopped
