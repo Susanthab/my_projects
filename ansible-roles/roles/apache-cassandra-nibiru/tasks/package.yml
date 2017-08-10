@@ -24,7 +24,6 @@
 
 - name: Updates apt cache
   apt: update_cache=yes
-  delay: 10
 
 - name: wait for lock release
   shell: |
@@ -38,7 +37,7 @@
   apt:
     name: "cassandra"
     state: present
-  delay: 10
+  retries: 3
 
 - name: stop cassandra immediately after installing
   service: name=cassandra state=stopped

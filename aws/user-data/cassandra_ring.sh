@@ -37,3 +37,5 @@ AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTA
 #update Cassandra.yaml
 #1. Listen_address to private IP of the local host. 
 sed -i "s/listen_address: localhost/listen_address: $CURRENT_NODE_IP/g" /etc/cassandra/cassandra.yaml
+
+
