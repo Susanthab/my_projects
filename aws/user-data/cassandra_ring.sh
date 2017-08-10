@@ -77,3 +77,5 @@ update_seed_list_on_seedasg () {
 ## ***************************************************************************************************
 update_seed_list_on_seedasg
 
+#start cassandra
+service cassandra start
