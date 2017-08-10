@@ -38,6 +38,12 @@ AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTA
 #update Cassandra.yaml
 ## ***************************************************************************************************
 
+get_seed_asgname () {
+    Result=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`asg_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    seed_asg="$Result-seed"
+    echo $seed_asg
+}
+
 # Cassandra.yaml file location should be as follows. 
 # DO NOT change this location anywhere in the workflow. 
 cassandra_yaml='/etc/cassandra/cassandra.yaml'
@@ -51,12 +57,10 @@ update_listen_address () {
 update_listen_address
 
 ## ***************************************************************************************************
-update_seed_list () {
-    # Check whether the ASG type is seed.
-    Result=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`node_type` && Value==`seed`]' --output text);
-    echo $Result
-    if [ -n "$Result" ]; then
-    for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+get_seed_asgname
+
+update_seed_list_on_seedasg () {
+    for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
     do
         IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
         echo $IP
@@ -67,9 +71,9 @@ update_seed_list () {
     REPLACE="seeds: $DQ${seed_list:1}$DQ"
     echo $SEARCH
     echo $REPLACE
-    fi
     sed -i "s/$SEARCH/$REPLACE/g" $cassandra_yaml
     cat $cassandra_yaml | grep seeds:
 }
 ## ***************************************************************************************************
-update_seed_list
+update_seed_list_on_seedasg
+
