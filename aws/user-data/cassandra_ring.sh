@@ -34,8 +34,42 @@ INSTANCE_ID=$(./ec2-metadata | grep instance-id | awk 'NR==1{print $2}')
 CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query AutoScalingInstances[].AutoScalingGroupName --output text)
 
+## ***************************************************************************************************
 #update Cassandra.yaml
-#1. Listen_address to private IP of the local host. 
-sed -i "s/listen_address: localhost/listen_address: $CURRENT_NODE_IP/g" /etc/cassandra/cassandra.yaml
+## ***************************************************************************************************
 
+# Cassandra.yaml file location should be as follows. 
+# DO NOT change this location anywhere in the workflow. 
+cassandra_yaml='/etc/cassandra/cassandra.yaml'
 
+update_listen_address () {
+    #1. Listen_address to private IP of the local host. 
+    SEARCH='listen_address: localhost'
+    sed -i "s/$SEARCH/listen_address: $CURRENT_NODE_IP/g" $cassandra_yaml
+    cat $cassandra_yaml | grep listen_address:
+}
+update_listen_address
+
+## ***************************************************************************************************
+update_seed_list () {
+    # Check whether the ASG type is seed.
+    Result=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`node_type` && Value==`seed`]' --output text);
+    echo $Result
+    if [ -n "$Result" ]; then
+    for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+    do
+        IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+        echo $IP
+        seed_list="$seed_list,$IP"
+    done
+    DQ='"'
+    SEARCH='seeds: "127.0.0.1"'
+    REPLACE="seeds: $DQ${seed_list:1}$DQ"
+    echo $SEARCH
+    echo $REPLACE
+    fi
+    sed -i "s/$SEARCH/$REPLACE/g" $cassandra_yaml
+    cat $cassandra_yaml | grep seeds:
+}
+## ***************************************************************************************************
+update_seed_list
