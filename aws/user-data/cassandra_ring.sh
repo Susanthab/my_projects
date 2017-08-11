@@ -43,6 +43,14 @@ get_seed_asgname () {
     seed_asg="$Result-seed"
     echo $seed_asg
 }
+get_seed_asgname
+
+seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+
+wait_for_ec2 () {
+    aws ec2 wait instance-running --region $EC2_REGION --instance-ids $seed_instances
+}
+wait_for_ec2
 
 # Cassandra.yaml file location should be as follows. 
 # DO NOT change this location anywhere in the workflow. 
@@ -57,8 +65,6 @@ update_listen_address () {
 update_listen_address
 
 ## ***************************************************************************************************
-get_seed_asgname
-
 update_seed_list_on_seedasg () {
     for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
     do
@@ -77,7 +83,8 @@ update_seed_list_on_seedasg () {
 ## ***************************************************************************************************
 update_seed_list_on_seedasg
 
-#start cassandra
-sleep 10
+# Random sleep between 1 - 10 sec. 
+sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
+#start cassandra
 service cassandra start
