@@ -46,12 +46,14 @@ get_seed_asgname () {
 get_seed_asgname
 
 seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
-
+## ***************************************************************************************************
+# wait for ec2
 wait_for_ec2 () {
     aws ec2 wait instance-running --region $EC2_REGION --instance-ids $seed_instances
 }
 wait_for_ec2
-
+sleep 20s
+## ***************************************************************************************************
 
 ## ***************************************************************************************************
 # update Cassandra.yaml
