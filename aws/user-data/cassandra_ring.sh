@@ -78,4 +78,6 @@ update_seed_list_on_seedasg () {
 update_seed_list_on_seedasg
 
 #start cassandra
+sleep 10
+
 service cassandra start
