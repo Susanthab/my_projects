@@ -46,13 +46,29 @@ get_seed_asgname () {
 get_seed_asgname
 
 seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+
 ## ***************************************************************************************************
 # wait for ec2
 wait_for_ec2 () {
     aws ec2 wait instance-running --region $EC2_REGION --instance-ids $seed_instances
 }
+## ***************************************************************************************************
 wait_for_ec2
-sleep 20s
+
+## ***************************************************************************************************
+# wait for ping. 
+wait_for_network () {
+    for ID in $seed_instances
+    do
+        IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+        echo $IP
+        while ! ping -c 1 -W 1 $IP; do
+            echo "Waiting for $IP - network interface might be down..."
+            sleep 1
+        done
+    done
+}
+wait_for_network
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
