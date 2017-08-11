@@ -90,6 +90,7 @@ update_rpc_address () {
    cat $cassandra_yaml | grep -w rpc_address:
 }
 ## ***************************************************************************************************
+update_rpc_address
 
 # Random sleep between 1 - 10 sec. 
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
