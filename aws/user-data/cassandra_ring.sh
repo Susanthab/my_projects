@@ -121,8 +121,6 @@ update_rpc_address
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 #start cassandra
-service cassandra stop
-sleep 5s
 service cassandra start
 
 # Check to see any issues to establish the gossiping protocol. 
