@@ -83,6 +83,14 @@ update_seed_list_on_seedasg () {
 ## ***************************************************************************************************
 update_seed_list_on_seedasg
 
+## ***************************************************************************************************
+update_rpc_address () {
+   SEARCH='rpc_address: localhost'
+   sed -i "s/$SEARCH/rpc_address: $CURRENT_NODE_IP/g" $cassandra_yaml
+   cat $cassandra_yaml | grep -w rpc_address:
+}
+## ***************************************************************************************************
+
 # Random sleep between 1 - 10 sec. 
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
