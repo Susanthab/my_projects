@@ -120,6 +120,12 @@ update_rpc_address
 # Random sleep between 1 - 10 sec. 
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
+# Check current node can ping itself before starting Cassandra.
+while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
+    echo "Waiting for $CURRENT_NODE_IP - network interface might be down..."
+    sleep 1
+done
+
 #start cassandra
 service cassandra start
 
