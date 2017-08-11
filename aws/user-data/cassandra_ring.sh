@@ -35,7 +35,7 @@ CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --reg
 AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query AutoScalingInstances[].AutoScalingGroupName --output text)
 
 ## ***************************************************************************************************
-#update Cassandra.yaml
+# get some meta data
 ## ***************************************************************************************************
 
 get_seed_asgname () {
@@ -52,16 +52,23 @@ wait_for_ec2 () {
 }
 wait_for_ec2
 
+
+## ***************************************************************************************************
+# update Cassandra.yaml
+## ***************************************************************************************************
+
 # Cassandra.yaml file location should be as follows. 
 # DO NOT change this location anywhere in the workflow. 
 cassandra_yaml='/etc/cassandra/cassandra.yaml'
 
+## ***************************************************************************************************
 update_listen_address () {
     #1. Listen_address to private IP of the local host. 
     SEARCH='listen_address: localhost'
     sed -i "s/$SEARCH/listen_address: $CURRENT_NODE_IP/g" $cassandra_yaml
     cat $cassandra_yaml | grep listen_address:
 }
+## ***************************************************************************************************
 update_listen_address
 
 ## ***************************************************************************************************
