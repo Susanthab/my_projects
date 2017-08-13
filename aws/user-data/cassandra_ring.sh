@@ -150,7 +150,7 @@ bootstrap_cassandra () {
  do
     IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 
-    if [ $ID==$CURRENT_NODE_IP ]; then
+    if [ "$IP"=="$CURRENT_NODE_IP" ]; then
         echo "Current node IP is $IP"
         # start cassandra
         service cassandra start
@@ -169,7 +169,7 @@ bootstrap_cassandra () {
         sleep 5s
         UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
 
-        if [ $cnt==$max_retries -a "$ID"=="$CURRENT_NODE_IP" ]; then
+        if [ $cnt==$max_retries -a "$IP"=="$CURRENT_NODE_IP" ]; then
            service cassandra stop
            service cassandra start
            sleep 5s
@@ -177,7 +177,7 @@ bootstrap_cassandra () {
         cnt=cnt+1
     done
 
-    if [ "$ID"=="$CURRENT_NODE_IP" ]; then
+    if [ "$IP"=="$CURRENT_NODE_IP" ]; then
         break
     fi 
 
