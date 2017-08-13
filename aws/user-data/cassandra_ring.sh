@@ -174,7 +174,7 @@ bootstrap_cassandra () {
            service cassandra start
            sleep 5s
         fi
-        cnt=cnt+1
+        cnt=$cnt+1
     done
 
     if [ "$IP"=="$CURRENT_NODE_IP" ]; then
