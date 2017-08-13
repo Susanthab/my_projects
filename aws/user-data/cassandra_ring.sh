@@ -133,36 +133,39 @@ update_rpc_address
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 # Check current node can ping itself before starting Cassandra.
-while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
-    echo "Waiting for $CURRENT_NODE_IP - network interface might be down..."
-    sleep 1
-done
+#while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
+#    echo "Waiting for $CURRENT_NODE_IP - network interface might be down..."
+#    sleep 1
+#done
 
 ## ***************************************************************************************************
 bootstrap_cassandra () {
  loop_cnt=1
  for ID in $seed_instances
  do
-   IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+    IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 
-     # check the status
-     UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
-     echo $UN
+    if [ $ID==$CURRENT_NODE_IP ]; then
+        echo "Current node IP is $IP"
+        # start cassandra
+        service cassandra start
+        sleep 10s
+    fi
 
-     # check until node Up (U) and Normal (N).
-     while [ "$UN" != "UN" ]; do
-       echo "The node probably still bootstrapping..."
-       sleep 5is
-       UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
-     done
+    # check the status
+    UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+    echo $UN
 
-   if [ $ID==$CURRENT_NODE_IP ]; then
-     echo "Current node IP is $IP"
-     # start cassandra
-     service cassandra start
-     sleep 10s
-     break
-   fi
+    # check until node Up (U) and Normal (N).
+    while [ "$UN" != "UN" ]; do
+        echo "The node probably still bootstrapping..."
+        sleep 5s
+        UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+    done
+
+    if [ $ID==$CURRENT_NODE_IP ]; then
+        break
+    fi 
 
  done
 
