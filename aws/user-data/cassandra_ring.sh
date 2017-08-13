@@ -150,7 +150,7 @@ bootstrap_cassandra () {
      echo $UN
 
      # check until node Up (U) and Normal (N).
-     while [ $UN != "UN" ]; do
+     while [ "$UN" != "UN" ]; do
        echo "The node probably still bootstrapping..."
        sleep 5is
        UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
