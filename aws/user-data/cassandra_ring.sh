@@ -169,11 +169,12 @@ bootstrap_cassandra () {
         sleep 5s
         UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
 
-        if [ "$cnt"==6 -a "$ID"=="$CURRENT_NODE_IP" ]; then
+        if [ $cnt==$max_retries -a "$ID"=="$CURRENT_NODE_IP" ]; then
            service cassandra stop
            service cassandra start
            sleep 5s
         fi
+        cnt=cnt+1
     done
 
     if [ "$ID"=="$CURRENT_NODE_IP" ]; then
