@@ -71,6 +71,18 @@ wait_for_network () {
 wait_for_network
 ## ***************************************************************************************************
 
+
+## ***************************************************************************************************
+# update Cassandra.yaml
+## ***************************************************************************************************
+
+## ***************************************************************************************************
+# Enable remote access and disable autherization. 
+SEARCH='# JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"'
+REPLACE='JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname='$CURRENT_NODE_IP'"'
+sed -i "s/$SEARCH/$REPLACE/g" /etc/cassandra/cassandra-env.sh
+## ***************************************************************************************************
+
 ## ***************************************************************************************************
 # update Cassandra.yaml
 ## ***************************************************************************************************
@@ -126,7 +138,36 @@ while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
     sleep 1
 done
 
-#start cassandra
-service cassandra start
+## ***************************************************************************************************
+bootstrap_cassandra () {
+ loop_cnt=1
+ for ID in $seed_instances
+ do
+   IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+
+     # check the status
+     UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+     echo $UN
+
+     # check until node Up (U) and Normal (N).
+     while [ $UN != "UN" ]; do
+       echo "The node probably still bootstrapping..."
+       sleep 5is
+       UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+     done
+
+   if [ $ID==$CURRENT_NODE_IP ]; then
+     echo "Current node IP is $IP"
+     # start cassandra
+     service cassandra start
+     sleep 10s
+     break
+   fi
+
+ done
+
+}
+## ***************************************************************************************************
+bootstrap_cassandra
 
 # Check to see any issues to establish the gossiping protocol. 
