@@ -56,6 +56,17 @@ wait_for_ec2 () {
 wait_for_ec2
 
 ## ***************************************************************************************************
+# Check current node can ping itself before starting Cassandra.
+wait_current_node_ping_itself () {
+    while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
+        echo "Waiting for $CURRENT_NODE_IP - network interface might be down..."
+        sleep 1
+    done
+}
+## ***************************************************************************************************
+wait_current_node_ping_itself
+
+## ***************************************************************************************************
 # wait for ping. 
 wait_for_network () {
     for ID in $seed_instances
@@ -132,12 +143,6 @@ update_rpc_address
 # Random sleep between 1 - 10 sec. 
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
-# Check current node can ping itself before starting Cassandra.
-#while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
-#    echo "Waiting for $CURRENT_NODE_IP - network interface might be down..."
-#    sleep 1
-#done
-
 ## ***************************************************************************************************
 bootstrap_cassandra () {
  loop_cnt=1
@@ -157,13 +162,21 @@ bootstrap_cassandra () {
     echo $UN
 
     # check until node Up (U) and Normal (N).
+    max_retries=6
+    cnt=1
     while [ "$UN" != "UN" ]; do
         echo "The node probably still bootstrapping..."
         sleep 5s
         UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+
+        if [ "$cnt"==6 -a "$ID"=="$CURRENT_NODE_IP" ]; then
+           service cassandra stop
+           service cassandra start
+           sleep 5s
+        fi
     done
 
-    if [ $ID==$CURRENT_NODE_IP ]; then
+    if [ "$ID"=="$CURRENT_NODE_IP" ]; then
         break
     fi 
 
