@@ -167,6 +167,8 @@ stop_start_cassandra () {
 
 echo "Seed instances: $seed_instances"
 
+sleep 10s
+
 ## ***************************************************************************************************
 bootstrap_cassandra_seeds () {
  echo ""
