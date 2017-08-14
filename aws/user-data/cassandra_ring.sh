@@ -35,6 +35,7 @@ AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTA
 # get some meta data
 ## ***************************************************************************************************
 
+## ***************************************************************************************************
 get_seed_and_nonseed_asgname () {
     Result=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`asg_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     seed_asg="$Result-seed"
@@ -42,10 +43,14 @@ get_seed_and_nonseed_asgname () {
     echo "Seed asg name: $seed_asg"
     echo "Non-seed asg name: $nonseed_asg"
 }
-get_seed_and_nonseed_asgname
+## ***************************************************************************************************
 
-seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
-nonseed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${nonseed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+## ***************************************************************************************************
+get_seed_nonseed_instances () {
+    seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+    nonseed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${nonseed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+}
+## ***************************************************************************************************
 
 ## ***************************************************************************************************
 # wait for ec2
@@ -53,18 +58,16 @@ wait_for_ec2 () {
     aws ec2 wait instance-running --region $EC2_REGION --instance-ids $seed_instances
 }
 ## ***************************************************************************************************
-wait_for_ec2
 
 ## ***************************************************************************************************
 # Check current node can ping itself before starting Cassandra.
-wait_current_node_ping_itself () {
+wait_for_current_node_ping_itself () {
     while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
         echo "Waiting for $CURRENT_NODE_IP - network interface might be down..."
         sleep 1
     done
 }
 ## ***************************************************************************************************
-wait_current_node_ping_itself
 
 ## ***************************************************************************************************
 # wait for ping. 
@@ -79,7 +82,6 @@ wait_for_network () {
         done
     done
 }
-wait_for_network
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
@@ -87,33 +89,35 @@ wait_for_network
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
-# Enable remote access and disable autherization. 
-SEARCH='# JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"'
-REPLACE='JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname='$CURRENT_NODE_IP'"'
-sed -i "s/$SEARCH/$REPLACE/g" /etc/cassandra/cassandra-env.sh
+update_cassandra_env_config_file () {
+    cassandra_env="/etc/cassandra/cassandra-env.sh"
+    # Enable remote access and disable autherization. 
+    SEARCH='# JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"'
+    REPLACE='JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname='$CURRENT_NODE_IP'"'
+    sed -i "s/$SEARCH/$REPLACE/g" $cassandra_env
+}
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
 # update Cassandra.yaml
 ## ***************************************************************************************************
 
-# Cassandra.yaml file location should be as follows. 
-# DO NOT change this location anywhere in the workflow. 
-cassandra_yaml='/etc/cassandra/cassandra.yaml'
+update_cassandra_yaml_config_file () {
+    # Cassandra.yaml file location should be as follows. 
+    # DO NOT change this location anywhere in the workflow. 
+    cassandra_yaml='/etc/cassandra/cassandra.yaml'
 
-## ***************************************************************************************************
-update_listen_address () {
     #1. Listen_address to private IP of the local host. 
+    echo ""
+    echo "update Listen_address..."
     SEARCH='listen_address: localhost'
     sed -i "s/$SEARCH/listen_address: $CURRENT_NODE_IP/g" $cassandra_yaml
     cat $cassandra_yaml | grep listen_address:
-}
-## ***************************************************************************************************
-update_listen_address
 
-## ***************************************************************************************************
-update_seed_list_on_seedasg () {
-    for ID in $(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+    #2. update seed list. 
+    echo ""
+    echo "update seed list..."
+    for ID in $seed_instances
     do
         IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
         echo $IP
@@ -126,18 +130,14 @@ update_seed_list_on_seedasg () {
     echo $REPLACE
     sed -i "s/$SEARCH/$REPLACE/g" $cassandra_yaml
     cat $cassandra_yaml | grep seeds:
-}
-## ***************************************************************************************************
-update_seed_list_on_seedasg
 
-## ***************************************************************************************************
-update_rpc_address () {
-   SEARCH='rpc_address: localhost'
-   sed -i "s/$SEARCH/rpc_address: $CURRENT_NODE_IP/g" $cassandra_yaml
-   cat $cassandra_yaml | grep -w rpc_address:
+    echo ""
+    echo "update rpc_address..."
+    SEARCH='rpc_address: localhost'
+    sed -i "s/$SEARCH/rpc_address: $CURRENT_NODE_IP/g" $cassandra_yaml
+    cat $cassandra_yaml | grep -w rpc_address:
+
 }
-## ***************************************************************************************************
-update_rpc_address
 
 ## ***************************************************************************************************
 start_cassandra () {
@@ -166,10 +166,6 @@ stop_start_cassandra () {
     sleep 5s
 }
 ## ***************************************************************************************************
-
-echo "Seed instances: $seed_instances"
-
-sleep 10s
 
 ## ***************************************************************************************************
 bootstrap_cassandra_seeds () {
@@ -219,10 +215,6 @@ bootstrap_cassandra_seeds () {
  done
 }
 ## ***************************************************************************************************
-bootstrap_cassandra_seeds
-
-echo "Non seed nodes: $nonseed_instances"
-sleep 5s
 
 ## ***************************************************************************************************
 bootstrap_cassandra_nonseeds () {
@@ -272,7 +264,55 @@ bootstrap_cassandra_nonseeds () {
  done
 }
 ## ***************************************************************************************************
+
+
+## ***************************************************************************************************
+current_date_time="`date +%Y%m%d%H%M%S`";
+echo ""
+echo $current_date_time;
+echo ""
+echo "01. get seed and non-seed autoscaling groups..."
+echo "*****************************************************"
+get_seed_and_nonseed_asgname
+sleep 5s
+echo ""
+echo "02. get seed and non-seed instances..."
+echo "*****************************************************"
+get_seed_nonseed_instances
+echo ""
+echo "03. wait for EC2..."
+echo "*****************************************************"
+wait_for_ec2
+echo ""
+echo "04. wait for current node to ping itself..."
+echo "*****************************************************"
+wait_for_current_node_ping_itself
+echo ""
+echo "05. wait for ping to other nodes..."
+echo "*****************************************************"
+wait_for_network
+echo ""
+echo "06. update cassandra-env.sh file..."
+echo "*****************************************************"
+update_cassandra_env_config_file
+echo ""
+echo "07. update cassandra.yaml file..."
+echo "*****************************************************"
+update_cassandra_yaml_config_file
+echo ""
+echo "08. bootstrap seed nodes..."
+echo "*****************************************************"
+sleep 10s
+bootstrap_cassandra_seeds
+echo ""
+echo "09. bootstrap non-seed nodes..."
+echo "*****************************************************"
+sleep 5s
 if [ "$AG_NAME" == "$nonseed_asg" ]; then
   bootstrap_cassandra_nonseeds
 fi
-
+current_date_time="`date +%Y%m%d%H%M%S`";
+echo ""
+echo $current_date_time;
+echo "************End of execution*************************"
+## ***************************************************************************************************
