@@ -147,7 +147,6 @@ sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 ## ***************************************************************************************************
 bootstrap_cassandra_seeds () {
- loop_cnt=1
  for ID in $seed_instances
  do
     IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
@@ -176,7 +175,7 @@ bootstrap_cassandra_seeds () {
            service cassandra start
            sleep 5s
         fi
-        cnt=$cnt+1
+        cnt=$((cnt + 1))
     done
 
     if [ "$IP"=="$CURRENT_NODE_IP" ]; then
@@ -219,7 +218,7 @@ bootstrap_cassandra_nonseeds () {
            service cassandra start
            sleep 5s
         fi
-        cnt=$cnt+1
+        cnt=$((cnt + 1))
     done
 
     if [ "$IP"=="$CURRENT_NODE_IP" ]; then
