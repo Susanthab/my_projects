@@ -47,7 +47,7 @@ get_seed_and_nonseed_asgname () {
 get_seed_and_nonseed_asgname
 
 seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
-non_seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${nonseed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+nonseed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${nonseed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
 
 ## ***************************************************************************************************
 # wait for ec2
@@ -141,19 +141,34 @@ update_rpc_address () {
 ## ***************************************************************************************************
 update_rpc_address
 
-# Random sleep between 1 - 10 sec. 
-sleep $[ ( $RANDOM % 10 )  + 1 ]s
+## ***************************************************************************************************
+start_cassandra () {
+service=cassandra
+
+if (( $(ps -ef | grep -v grep | grep $service | wc -l) > 0 ))
+then
+  echo "$service is running!!!"
+else
+  service cassandra start
+fi
+}
+## ***************************************************************************************************
+
+echo "Seed instances: $seed_instances"
 
 ## ***************************************************************************************************
 bootstrap_cassandra_seeds () {
+ echo ""
+ echo "***************************"
+ echo "bootstraping seed nodes..."
+ echo "***************************"
  for ID in $seed_instances
  do
     IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
-
-    if [ "$IP"=="$CURRENT_NODE_IP" ]; then
-        echo "Current node IP is $IP"
-        # start cassandra
-        service cassandra start
+    echo "Currently bootstraping node: $IP"
+    if [  "$IP" == "$CURRENT_NODE_IP" ]; then
+        echo "Start cassandra on Current node: $IP"
+        start_cassandra
         sleep 10s
     fi
 
@@ -162,71 +177,90 @@ bootstrap_cassandra_seeds () {
     echo $UN
 
     # check until node Up (U) and Normal (N).
-    max_retries=6
+    max_retries=12
     cnt=1
     while [ "$UN" != "UN" ]; do
         echo "The node probably still bootstrapping..."
         sleep 5s
+        echo "Retry count: $cnt"
         UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
 
-        if [ $cnt -eq $max_retries -a "$IP"=="$CURRENT_NODE_IP" ]; then
+        if [ $cnt -eq 6 -a "$IP" == "$CURRENT_NODE_IP" ]; then
+           echo "max retries reached halfway. Stop and start cassandra on $IP"
            service cassandra stop
            service cassandra start
            sleep 5s
         fi
         cnt=$((cnt + 1))
+        
+        if [ $cnt -eq $max_retries ]; then
+          echo "Max retries reached. Something has gone wrong. Please investigate. Exiting..."
+          break
+        fi
     done
 
-    if [ "$IP"=="$CURRENT_NODE_IP" ]; then
+    if [ "$IP" == "$CURRENT_NODE_IP" ]; then
         break
     fi 
 
  done
 }
 ## ***************************************************************************************************
-#bootstrap_cassandra_seeds
+bootstrap_cassandra_seeds
+
+echo "Non seed nodes: $nonseed_instances"
 
 ## ***************************************************************************************************
 bootstrap_cassandra_nonseeds () {
- for ID in $non_seed_instances
+ echo ""
+ echo "******************************"
+ echo "bootstraping non-seed nodes..."
+ echo "******************************"
+ for ID in $nonseed_instances
  do
     IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
-
-    if [ "$IP"=="$CURRENT_NODE_IP" ]; then
-        echo "Starting cassandra on: $IP"
-        # start cassandra
-        service cassandra start
+    echo "Currently bootstraping node (non-seed): $IP"
+    if [  "$IP" == "$CURRENT_NODE_IP" ]; then
+        echo "Start cassandra on Current node: $IP"
+        start_cassandra
         sleep 10s
     fi
 
     # check the status
     UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
-    echo "Node status is: $UN"
+    echo $UN
 
-    # check until node is Up (U) and Normal (N).
-    max_retries=6
+    # check until node Up (U) and Normal (N).
+    max_retries=12
     cnt=1
     while [ "$UN" != "UN" ]; do
         echo "The node probably still bootstrapping..."
         sleep 5s
+        echo "Retry count: $cnt"
         UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
 
-        if [ $cnt -eq $max_retries -a "$IP"=="$CURRENT_NODE_IP" ]; then
-           echo "Maximum retries reached. Stop and start cassandra on $IP"
+        if [ $cnt -eq 6 -a "$IP" == "$CURRENT_NODE_IP" ]; then
+           echo "max retries reached halfway. Stop and start cassandra on $IP"
            service cassandra stop
            service cassandra start
            sleep 5s
         fi
         cnt=$((cnt + 1))
+        
+        if [ $cnt -eq $max_retries ]; then
+          echo "Max retries reached. Something has gone wrong. Please investigate. Exiting..."
+          break
+        fi
     done
 
-    if [ "$IP"=="$CURRENT_NODE_IP" ]; then
+    if [ "$IP" == "$CURRENT_NODE_IP" ]; then
         break
     fi 
 
  done
-
 }
 ## ***************************************************************************************************
-#bootstrap_cassandra_nonseeds
+if [ "$AG_NAME" == "$nonseed_asg" ]; then
+  bootstrap_cassandra_nonseeds
+fi
 
