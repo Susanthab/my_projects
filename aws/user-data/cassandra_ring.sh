@@ -85,7 +85,7 @@ wait_for_network
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
-# update Cassandra.yaml
+# update cassandra-env.sh
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
@@ -189,7 +189,8 @@ bootstrap_cassandra_seeds () {
     echo "Currently bootstraping node: $IP"
     if [  "$IP" == "$CURRENT_NODE_IP" ]; then
         echo "Start cassandra on Current node: $IP"
-        start_cassandra
+        #start_cassandra
+        stop_start_cassandra
         sleep 10s
     fi
 
