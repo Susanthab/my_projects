@@ -6,8 +6,6 @@
 #Purpose: Install & configure Cassandra ring on AWS. 
 #=============================================================
 
-set -x
-
 echo "Pragramatically mount block device at EC2 startup..."
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
 # The following code is only to add one device. 
@@ -143,35 +141,27 @@ update_rpc_address
 
 ## ***************************************************************************************************
 start_cassandra () {
-service=cassandra
+    service=cassandra
 
-status=$(service $service status | grep "running" | awk '{print$3}')
+    status=$(service $service status | grep "running" | awk '{print$3}')
 
-if [ "$status" == "(running)" ]
-then
-  echo "$service is running!!!"
-else
-  echo "Starting $service..."
-  service $service start
-fi
+    if [ "$status" == "(running)" ]
+    then
+    echo "$service is running!!!"
+    else
+    echo "Starting $service..."
+    service $service start
+    fi
 }
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
 stop_start_cassandra () {
-service=cassandra
-
-status=$(service $service status | grep "running" | awk '{print$3}')
-
-if [ "$status" == "(running)" ]
-then
-  echo "$service is running!!!"
-else
-  echo "$service is not running..."
-  echo "Stop and start cassandra..."
-  service $service stop
-  service $service start
-fi
+    service=cassandra
+    status=$(service $service status | grep "running" | awk '{print$3}')
+    echo "Stop and start cassandra..."
+    service $service stop
+    service $service start
 }
 ## ***************************************************************************************************
 
