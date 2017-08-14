@@ -154,6 +154,20 @@ fi
 }
 ## ***************************************************************************************************
 
+## ***************************************************************************************************
+stop_start_cassandra () {
+service=cassandra
+
+if (( $(ps -ef | grep -v grep | grep $service | wc -l) > 0 ))
+then
+  echo "$service is running!!!"
+else
+  service cassandra stop
+  service cassandra start
+fi
+}
+## ***************************************************************************************************
+
 echo "Seed instances: $seed_instances"
 
 ## ***************************************************************************************************
@@ -187,8 +201,7 @@ bootstrap_cassandra_seeds () {
 
         if [ $cnt -eq 6 -a "$IP" == "$CURRENT_NODE_IP" ]; then
            echo "max retries reached halfway. Stop and start cassandra on $IP"
-           service cassandra stop
-           service cassandra start
+           stop_start_cassandra
            sleep 5s
         fi
         cnt=$((cnt + 1))
@@ -241,8 +254,7 @@ bootstrap_cassandra_nonseeds () {
 
         if [ $cnt -eq 6 -a "$IP" == "$CURRENT_NODE_IP" ]; then
            echo "max retries reached halfway. Stop and start cassandra on $IP"
-           service cassandra stop
-           service cassandra start
+           stop_start_cassandra
            sleep 5s
         fi
         cnt=$((cnt + 1))
