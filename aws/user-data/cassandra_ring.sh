@@ -38,14 +38,17 @@ AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTA
 # get some meta data
 ## ***************************************************************************************************
 
-get_seed_asgname () {
+get_seed_and_nonseed_asgname () {
     Result=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`asg_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     seed_asg="$Result-seed"
-    echo $seed_asg
+    nonseed_asg="$Result-nonseed"
+    echo "Seed asg name: $seed_asg"
+    echo "Non-seed asg name: $nonseed_asg"
 }
-get_seed_asgname
+get_seed_and_nonseed_asgname
 
 seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+non_seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${nonseed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
 
 ## ***************************************************************************************************
 # wait for ec2
@@ -81,7 +84,6 @@ wait_for_network () {
 }
 wait_for_network
 ## ***************************************************************************************************
-
 
 ## ***************************************************************************************************
 # update Cassandra.yaml
@@ -144,7 +146,7 @@ update_rpc_address
 sleep $[ ( $RANDOM % 10 )  + 1 ]s
 
 ## ***************************************************************************************************
-bootstrap_cassandra () {
+bootstrap_cassandra_seeds () {
  loop_cnt=1
  for ID in $seed_instances
  do
@@ -184,6 +186,49 @@ bootstrap_cassandra () {
  done
 }
 ## ***************************************************************************************************
-bootstrap_cassandra
+bootstrap_cassandra_seeds
 
-# Check to see any issues to establish the gossiping protocol. 
+## ***************************************************************************************************
+bootstrap_cassandra_nonseeds () {
+ for ID in $non_seed_instances
+ do
+    IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+
+    if [ "$IP"=="$CURRENT_NODE_IP" ]; then
+        echo "Starting cassandra on: $IP"
+        # start cassandra
+        service cassandra start
+        sleep 10s
+    fi
+
+    # check the status
+    UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+    echo "Node status is: $UN"
+
+    # check until node is Up (U) and Normal (N).
+    max_retries=6
+    cnt=1
+    while [ "$UN" != "UN" ]; do
+        echo "The node probably still bootstrapping..."
+        sleep 5s
+        UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+
+        if [ $cnt==$max_retries -a "$IP"=="$CURRENT_NODE_IP" ]; then
+           echo "Maximum retries reached. Stop and start cassandra on $IP"
+           service cassandra stop
+           service cassandra start
+           sleep 5s
+        fi
+        cnt=$cnt+1
+    done
+
+    if [ "$IP"=="$CURRENT_NODE_IP" ]; then
+        break
+    fi 
+
+ done
+
+}
+## ***************************************************************************************************
+bootstrap_cassandra_nonseeds
+
