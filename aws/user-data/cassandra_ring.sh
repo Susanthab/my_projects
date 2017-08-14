@@ -1,5 +1,4 @@
 #!/bin/sh
-#cloud-config
 
 #=============================================================
 #Author: Susantha B
@@ -185,7 +184,7 @@ bootstrap_cassandra_seeds () {
  done
 }
 ## ***************************************************************************************************
-bootstrap_cassandra_seeds
+#bootstrap_cassandra_seeds
 
 ## ***************************************************************************************************
 bootstrap_cassandra_nonseeds () {
@@ -229,5 +228,5 @@ bootstrap_cassandra_nonseeds () {
 
 }
 ## ***************************************************************************************************
-bootstrap_cassandra_nonseeds
+#bootstrap_cassandra_nonseeds
 
