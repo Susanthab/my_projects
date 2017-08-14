@@ -145,11 +145,14 @@ update_rpc_address
 start_cassandra () {
 service=cassandra
 
-if (( $(ps -ef | grep -v grep | grep $service | wc -l) > 0 ))
+status=$(service $service status | grep "running" | awk '{print$3}')
+
+if [ "$status" == "(running)" ]
 then
   echo "$service is running!!!"
 else
-  service cassandra start
+  echo "Starting $service..."
+  service $service start
 fi
 }
 ## ***************************************************************************************************
@@ -158,12 +161,16 @@ fi
 stop_start_cassandra () {
 service=cassandra
 
-if (( $(ps -ef | grep -v grep | grep $service | wc -l) > 0 ))
+status=$(service $service status | grep "running" | awk '{print$3}')
+
+if [ "$status" == "(running)" ]
 then
   echo "$service is running!!!"
 else
-  service cassandra stop
-  service cassandra start
+  echo "$service is not running..."
+  echo "Stop and start cassandra..."
+  service $service stop
+  service $service start
 fi
 }
 ## ***************************************************************************************************
