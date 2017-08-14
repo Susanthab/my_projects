@@ -169,7 +169,7 @@ bootstrap_cassandra_seeds () {
         sleep 5s
         UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
 
-        if [ $cnt==$max_retries -a "$IP"=="$CURRENT_NODE_IP" ]; then
+        if [ $cnt -eq $max_retries -a "$IP"=="$CURRENT_NODE_IP" ]; then
            service cassandra stop
            service cassandra start
            sleep 5s
@@ -211,7 +211,7 @@ bootstrap_cassandra_nonseeds () {
         sleep 5s
         UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
 
-        if [ $cnt==$max_retries -a "$IP"=="$CURRENT_NODE_IP" ]; then
+        if [ $cnt -eq $max_retries -a "$IP"=="$CURRENT_NODE_IP" ]; then
            echo "Maximum retries reached. Stop and start cassandra on $IP"
            service cassandra stop
            service cassandra start
