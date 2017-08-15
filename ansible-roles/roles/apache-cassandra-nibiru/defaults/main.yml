@@ -28,7 +28,7 @@ cassandra_cluster_name: "Test Cluster"
 cassandra_num_tokens: "256"
 cassandra_initial_token: null
 cassandra_seeds: ["localhost"]
-cassandra_endpoint_snitch: "Ec2Snitch"                               # in case of cluster: RackInferringSnitch
+cassandra_endpoint_snitch: "Ec2Snitch"                               
 
 cassandra_rpc_address: "localhost"
 cassandra_concurrent_reads: "32"
