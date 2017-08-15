@@ -21,7 +21,7 @@
     shell: /bin/bash
     state: present
 
-- name: Cassandra | Make sure the cassandra user directory
+- name: Cassandra | Make sure the cassandra data directory exists
   file:
     path: "{{cassandra_data_dir}}"
     owner: "{{cassandra_user}}"

@@ -9,6 +9,7 @@ cassandra_group: "cassandra"
 cassandra_uid: 3455
 cassandra_gid: 3455
 
+cassandra_data_dir: "/data/cassandra/data"           # yaml updated.
 cassandra_user_dir: "/app/home/{{cassandra_user}}"
 cassandra_source_data_dir: "/app/cassandra"
 
@@ -16,11 +17,11 @@ cassandra_source_data_dir: "/app/cassandra"
 cassandra_max_heap_size: null
 cassandra_heap_newsize: null
 # enable remote connections - Susantha
-LOCAL_JMX: no
+LOCAL_JMX: no           # env.sh updated. 
 # even connecting from remotely, do not authenticate meaning you do not need user name and pwd to connect
 # to cassandra from remote nodes. But for actual prod deployments this needs to be true and there are 
 # additional spets required then. - Susantha
-authenticate: false
+authenticate: false     # cassandra-env.sh
 
 
 # cassandra.yaml basic configuration parameters

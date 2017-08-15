@@ -2,7 +2,7 @@
 
 - include: user.yml
 
-- include_vars: "package.yml"
+- include_vars: package.yml
 
 - name: Cassandra | Add the Apache Cassandra repository keys
   apt_key:
@@ -14,7 +14,7 @@
     repo: "deb http://www.apache.org/dist/cassandra/debian 311x main"
     state: present
   retries: 3
-  
+
 - name: wait for lock release
   shell: |
           while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
