@@ -9,6 +9,9 @@ cassandra_group: "cassandra"
 cassandra_uid: 3455
 cassandra_gid: 3455
 
+# /var/lib/cassandra/commitlog
+# /var/lib/cassandra/saved_caches
+# /var/lib/cassandra/hints
 cassandra_data_dir: "/data/cassandra/data"           # yaml updated.
 cassandra_user_dir: "/app/home/{{cassandra_user}}"
 cassandra_source_data_dir: "/app/cassandra"

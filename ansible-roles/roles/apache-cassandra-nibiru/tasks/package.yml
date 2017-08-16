@@ -13,7 +13,8 @@
   apt_repository:
     repo: "deb http://www.apache.org/dist/cassandra/debian 311x main"
     state: present
-  retries: 3
+  retries: 10
+  delay: 2
 
 - name: wait for lock release
   shell: |
