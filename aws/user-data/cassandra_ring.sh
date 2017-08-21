@@ -37,9 +37,9 @@ AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTA
 
 ## ***************************************************************************************************
 get_seed_and_nonseed_asgname () {
-    Result=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`asg_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
-    seed_asg="$Result-seed"
-    nonseed_asg="$Result-nonseed"
+    asg_name_nosuffix=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`asg_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    seed_asg="$asg_name_nosuffix-seed"
+    nonseed_asg="$asg_name_nosuffix-nonseed"
     echo "Seed asg name: $seed_asg"
     echo "Non-seed asg name: $nonseed_asg"
 }
@@ -107,16 +107,24 @@ update_cassandra_yaml_config_file () {
     # DO NOT change this location anywhere in the workflow. 
     cassandra_yaml='/etc/cassandra/cassandra.yaml'
 
-    #1. Listen_address to private IP of the local host. 
+    #1. Change the cluster name. 
     echo ""
-    echo "update Listen_address..."
+    echo "1. update Cluster name..."
+    SEARCH="cluster_name:"
+    REPLACE="cluster_name: '$asg_name_nosuffix'"
+    sed -i "s/$SEARCH/$REPLACE/g" $cassandra_yaml
+    cat $cassandra_yaml | grep $SEARCH
+
+    #2. Listen_address to private IP of the local host. 
+    echo ""
+    echo "2. update Listen_address..."
     SEARCH='listen_address: localhost'
     sed -i "s/$SEARCH/listen_address: $CURRENT_NODE_IP/g" $cassandra_yaml
     cat $cassandra_yaml | grep listen_address:
 
-    #2. update seed list. 
+    #3. update seed list. 
     echo ""
-    echo "update seed list..."
+    echo "3. update seed list..."
     for ID in $seed_instances
     do
         IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
@@ -131,8 +139,9 @@ update_cassandra_yaml_config_file () {
     sed -i "s/$SEARCH/$REPLACE/g" $cassandra_yaml
     cat $cassandra_yaml | grep seeds:
 
+    #4. update rpc_address.
     echo ""
-    echo "update rpc_address..."
+    echo "4. update rpc_address..."
     SEARCH='rpc_address: localhost'
     sed -i "s/$SEARCH/rpc_address: $CURRENT_NODE_IP/g" $cassandra_yaml
     cat $cassandra_yaml | grep -w rpc_address:

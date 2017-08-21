@@ -31,6 +31,7 @@ export TRAVIS_BUILD_NUMBER=1009
 cd stackstorm-nibiru/
 git branch
 git checkout <branch-name>
+#.data/write.sh 
 ./data/compose.sh
 
 # Log into the container
@@ -81,3 +82,7 @@ root@ip-10-240-1-186:~/stackstorm-nibiru# docker-compose down -v
 
 
 cp actions/workflows/create_mongo_asg.yaml /opt/stackstorm/packs/nibiru/actions/workflows/
+
+docker-compose rm -v
+
+docker pull pearsontechnology/stackstorm

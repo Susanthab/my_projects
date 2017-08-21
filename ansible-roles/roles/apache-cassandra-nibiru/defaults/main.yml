@@ -28,7 +28,7 @@ authenticate: false     # cassandra-env.sh
 
 
 # cassandra.yaml basic configuration parameters
-cassandra_cluster_name: "Test Cluster"
+# cassandra_cluster_name: "Test Cluster"
 cassandra_num_tokens: "256"
 cassandra_initial_token: null
 cassandra_seeds: ["localhost"]
