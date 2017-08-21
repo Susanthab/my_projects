@@ -110,7 +110,7 @@ update_cassandra_yaml_config_file () {
     #1. Change the cluster name. 
     echo ""
     echo "1. update Cluster name..."
-    SEARCH="cluster_name:"
+    SEARCH="cluster_name: 'Test Cluster'"
     REPLACE="cluster_name: '$asg_name_nosuffix'"
     sed -i "s/$SEARCH/$REPLACE/g" $cassandra_yaml
     cat $cassandra_yaml | grep $SEARCH
