@@ -113,7 +113,7 @@ update_cassandra_yaml_config_file () {
     SEARCH="cluster_name: 'Test Cluster'"
     REPLACE="cluster_name: '$asg_name_nosuffix'"
     sed -i "s/$SEARCH/$REPLACE/g" $cassandra_yaml
-    cat $cassandra_yaml | grep $SEARCH
+    cat $cassandra_yaml | grep "cluster_name:"
 
     #2. Listen_address to private IP of the local host. 
     echo ""
