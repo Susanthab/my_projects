@@ -25,12 +25,14 @@
   file:
     path: "{{cassandra_data_dir}}"
     owner: "{{cassandra_user}}"
+    group: "{{cassandra_group}}"
     state: directory
 
 - name: Cassandra | Make sure the cassandra commitlog directory exists
   file:
     path: "{{cassandra_commitlog}}"
     owner: "{{cassandra_user}}"
+    group: "{{cassandra_group}}"
     state: directory
   
 - name: Cassandra | Set the right directory permissions for the www directory
