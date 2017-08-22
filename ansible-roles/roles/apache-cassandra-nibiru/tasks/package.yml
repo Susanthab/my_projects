@@ -39,7 +39,8 @@
   apt:
     name: "cassandra"
     state: present
-  retries: 3
+  retries: 20
+  delay: 5
 
 - name: stop cassandra immediately after installing
   service: name=cassandra state=stopped
