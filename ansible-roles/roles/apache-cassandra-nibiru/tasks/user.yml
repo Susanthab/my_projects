@@ -30,7 +30,7 @@
 
 - name: Cassandra | Make sure the cassandra commitlog directory exists
   file:
-    path: "{{cassandra_commitlog}}"
+    path: "{{cassandra_commitlog_dir}}"
     owner: "{{cassandra_user}}"
     group: "{{cassandra_group}}"
     state: directory

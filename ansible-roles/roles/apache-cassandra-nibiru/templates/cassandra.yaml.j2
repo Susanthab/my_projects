@@ -193,7 +193,7 @@ data_file_directories:
 # commit log.  when running on magnetic HDD, this should be a
 # separate spindle than the data directories.
 # If not set, the default directory is $CASSANDRA_HOME/data/commitlog.
-commitlog_directory: /var/lib/cassandra/commitlog
+commitlog_directory: {{cassandra_commitlog_dir}}
 
 # Enable / disable CDC functionality on a per-node basis. This modifies the logic used
 # for write path allocation rejection (standard: never reject. cdc: reject Mutation
