@@ -99,6 +99,21 @@ update_cassandra_env_config_file () {
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
+# check Ephemeral storage exists. 
+# Assuming Ephemeral storage always comes as /mnt 
+check_ephemeral_storage () {
+    mnt=`df -h | grep /mnt | head -n 1 | awk '{print$6}'`
+
+    if [ -n "$mnt"  ]; then
+    echo "Ephemeral storage found."
+    echo "Create directory for cassandra commit log."
+    mkdir -p /mnt/cassandra/commit_log/
+    fi
+}
+## ***************************************************************************************************
+
+
+## ***************************************************************************************************
 # update Cassandra.yaml
 ## ***************************************************************************************************
 

@@ -1,5 +1,6 @@
 
 
+cqlsh 172.31.61.2
 
 CREATE KEYSPACE hr
   WITH REPLICATION = { 
@@ -22,4 +23,4 @@ DESCRIBE tables
 
 select * from employee;
 
-INSERT INTO hr.employee  (id, emp_name, emp_city) VALUES (1, 'Susantha Bathige', 'Colorado') USING TTL 86400;
+INSERT INTO hr.employee  (id, emp_name, emp_city) VALUES (1, 'Susantha Bathige', 'Colorado');
