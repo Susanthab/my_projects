@@ -288,8 +288,8 @@ replace_dead_nonseed_node () {
     do
         IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 
-        DN=$(nodetool -h $IP status | grep DN | grep $IP | head -n1 | awk '{print$1;}')
-        if [ "$DN" == "DN" ];
+        dead_node_ip=$(nodetool -h $IP status | grep DN | head -n 1 | awk '{print$2;}')
+        if [ ! -z "$dead_node_ip" ];
             dead_node_ip=IP
             echo "Dead node, $dead_node_ip found..."
             break
