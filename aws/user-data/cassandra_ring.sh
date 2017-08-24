@@ -99,21 +99,6 @@ update_cassandra_env_config_file () {
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
-# check Ephemeral storage exists. 
-# Assuming Ephemeral storage always comes as /mnt 
-check_ephemeral_storage () {
-    mnt=`df -h | grep /mnt | head -n 1 | awk '{print$6}'`
-
-    if [ -n "$mnt"  ]; then
-    echo "Ephemeral storage found."
-    echo "Create directory for cassandra commit log."
-    mkdir -p /mnt/cassandra/commit_log/
-    fi
-}
-## ***************************************************************************************************
-
-
-## ***************************************************************************************************
 # update Cassandra.yaml
 ## ***************************************************************************************************
 
@@ -183,11 +168,17 @@ start_cassandra () {
 stop_start_cassandra () {
     service=cassandra
     status=$(service $service status | grep "running" | awk '{print$3}')
-    echo "Stop and start cassandra..."
-    service $service stop
-    sleep 5s
-    service $service start
-    sleep 5s
+
+    if [ "$status" == "(running)" ]
+    then
+        echo "$service is running!!!"
+    else
+        echo "Stop and start cassandra..."
+        service $service stop
+        sleep 5s
+        service $service start
+        sleep 5s
+    fi
 }
 ## ***************************************************************************************************
 
