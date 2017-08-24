@@ -283,7 +283,7 @@ bootstrap_cassandra_nonseeds () {
 ## ***************************************************************************************************
 replace_dead_nonseed_node () {
     echo ""
-    echo "Check dead nodes (DN) on the ring..."
+    echo "Checking dead non-seed nodes (DN) on the ring..."
     for ID in $seed_instances
     do
         IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
@@ -292,7 +292,8 @@ replace_dead_nonseed_node () {
         if [ ! -z "$dead_node_ip" ]; then
             echo "Dead node, $dead_node_ip found..."
             echo "update replace_address in cassandra-env.sh file..."
-            echo -e JVM_OPTS='"$JVM_OPTS'" -Dcassandra.replace_address=$dead_node_ip"'"' >> /etc/cassandra/cassandra-env.sh
+            str=JVM_OPTS='"$JVM_OPTS'" -Dcassandra.replace_address=$dead_node_ip"'"'
+            echo -e "$str"  >> /etc/cassandra/cassandra-env.sh
 
             stop_start_cassandra
 
