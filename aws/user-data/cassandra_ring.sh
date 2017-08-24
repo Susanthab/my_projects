@@ -293,7 +293,8 @@ replace_dead_nonseed_node () {
             echo "Dead node, $dead_node_ip found..."
             echo "update replace_address in cassandra-env.sh file..."
             str=JVM_OPTS='"$JVM_OPTS'" -Dcassandra.replace_address=$dead_node_ip"'"'
-            echo -e "$str"  >> /etc/cassandra/cassandra-env.sh
+            sed "$ a $str" /etc/cassandra/cassandra-env.sh
+            #echo -e "$str"  >> /etc/cassandra/cassandra-env.sh
 
             stop_start_cassandra
 
