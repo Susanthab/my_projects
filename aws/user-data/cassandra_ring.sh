@@ -287,20 +287,23 @@ replace_dead_nonseed_node () {
     for ID in $seed_instances
     do
         IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
-
         dead_node_ip=$(nodetool -h $IP status | grep DN | head -n 1 | awk '{print$2;}')
-        if [ ! -z "$dead_node_ip" ];
-            dead_node_ip=IP
+        echo $dead_node_ip
+        if [ ! -z "$dead_node_ip" ]; then
             echo "Dead node, $dead_node_ip found..."
+            echo "update replace_address in cassandra-env.sh file..."
+            echo -e JVM_OPTS='"$JVM_OPTS'" -Dcassandra.replace_address=$dead_node_ip"'"' >> /etc/cassandra/cassandra-env.sh
+
+            stop_start_cassandra
+
+            echo "wait till the new node finish bootstraping..."
+            UN=$(nodetool -h $CURRENT_NODE_IP status | grep UN | head -n 1 | awk '{print$1;}')
+            while [ "$UN" != "UN" ]; do
+                echo "The node probably still bootstrapping..."
+                UN=$(nodetool -h $CURRENT_NODE_IP status | grep UN | head -n 1 | awk '{print$1;}')
+            done
             break
         fi
-
-        echo "update cassandra-env.sh file..."
-        echo -n JVM_OPTS='"$JVM_OPTS'" -Dcassandra.replace_address=$dead_node_ip"'"' >> /etc/cassandra/cassandra-env.sh
-
-        stop_start_cassandra
-
-        echo "wait till the new node finish bootstraping..."
     done
 }
 ## ***************************************************************************************************
@@ -344,13 +347,13 @@ echo "*****************************************************"
 sleep 10s
 bootstrap_cassandra_seeds
 echo ""
-echo "09. bootstrap non-seed nodes..."
+echo "09. replace dead non-seed nodes and bootstrap non-seed nodes..."
 echo "*****************************************************"
 sleep 5s
 if [ "$AG_NAME" == "$nonseed_asg" ]; then
-  bootstrap_cassandra_nonseeds
-  sleep 30s
   replace_dead_nonseed_node
+  sleep 5s
+  bootstrap_cassandra_nonseeds
 fi
 current_date_time="`date +%Y%m%d%H%M%S`";
 echo ""
