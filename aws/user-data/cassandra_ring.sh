@@ -280,6 +280,30 @@ bootstrap_cassandra_nonseeds () {
 }
 ## ***************************************************************************************************
 
+## ***************************************************************************************************
+replace_dead_nonseed_node () {
+    echo ""
+    echo "Check dead nodes (DN) on the ring..."
+    for ID in $seed_instances
+    do
+        IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+
+        DN=$(nodetool -h $IP status | grep DN | grep $IP | head -n1 | awk '{print$1;}')
+        if [ "$DN" == "DN" ];
+            dead_node_ip=IP
+            echo "Dead node, $dead_node_ip found..."
+            break
+        fi
+
+        echo "update cassandra-env.sh file..."
+        echo -n JVM_OPTS='"$JVM_OPTS'" -Dcassandra.replace_address=$dead_node_ip"'"' >> /etc/cassandra/cassandra-env.sh
+
+        stop_start_cassandra
+
+        echo "wait till the new node finish bootstraping..."
+    done
+}
+## ***************************************************************************************************
 
 ## ***************************************************************************************************
 current_date_time="`date +%Y%m%d%H%M%S`";
@@ -325,6 +349,8 @@ echo "*****************************************************"
 sleep 5s
 if [ "$AG_NAME" == "$nonseed_asg" ]; then
   bootstrap_cassandra_nonseeds
+  sleep 30s
+  replace_dead_nonseed_node
 fi
 current_date_time="`date +%Y%m%d%H%M%S`";
 echo ""
