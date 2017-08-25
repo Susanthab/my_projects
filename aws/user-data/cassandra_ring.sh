@@ -171,7 +171,7 @@ start_cassandra () {
 
 ## ***************************************************************************************************
 force_stop_start_cassandra () {
-    echo "Stop and start cassandra..."
+    echo "Force stop and start cassandra..."
     service $service stop
     sleep 5s
     service $service start
@@ -329,7 +329,7 @@ replace_dead_nonseed_node () {
             while [ "$UN" != "UN" ]
             do
                 echo "The node probably still bootstrapping..."
-                sleep 5s
+                sleep 10s
                 UN=$(nodetool -h $IP status | grep $CURRENT_NODE_IP | awk '{print$1}')
                 echo "Current status of the node is: $UN..."
             done
