@@ -6,6 +6,15 @@
 #Purpose: Install & configure Cassandra ring on AWS. 
 #=============================================================
 
+## ***************************************************************************************************
+# install SSM agent
+mkdir /tmp/ssm
+wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+dpkg -i amazon-ssm-agent.deb
+echo "check to see whether SSM agent is running..."
+systemctl status amazon-ssm-agent
+## ***************************************************************************************************
+
 echo "Pragramatically mount block device at EC2 startup..."
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
 # The following code is only to add one device. 
@@ -396,6 +405,6 @@ if [ "$AG_NAME" == "$nonseed_asg" ]; then
 fi
 current_date_time="`date +%Y%m%d%H%M%S`";
 echo ""
-echo "End time: $current_date_time;""
+echo "End time: $current_date_time;"
 echo "************End of execution*************************"
 ## ***************************************************************************************************
