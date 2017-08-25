@@ -36,6 +36,13 @@ AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTA
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
+set_file_path () {
+    cassandra_yaml='/etc/cassandra/cassandra.yaml'
+    cassandra_env_sh='/etc/cassandra/cassandra-env.sh'
+}
+## ***************************************************************************************************
+
+## ***************************************************************************************************
 get_seed_and_nonseed_asgname () {
     asg_name_nosuffix=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`asg_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     seed_asg="$asg_name_nosuffix-seed"
@@ -90,11 +97,10 @@ wait_for_network () {
 
 ## ***************************************************************************************************
 update_cassandra_env_config_file () {
-    cassandra_env="/etc/cassandra/cassandra-env.sh"
     # Enable remote access and disable autherization. 
     SEARCH='# JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"'
     REPLACE='JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname='$CURRENT_NODE_IP'"'
-    sed -i "s/$SEARCH/$REPLACE/g" $cassandra_env
+    sed -i "s/$SEARCH/$REPLACE/g" $cassandra_env_sh
 }
 ## ***************************************************************************************************
 
@@ -105,8 +111,7 @@ update_cassandra_env_config_file () {
 update_cassandra_yaml_config_file () {
     # Cassandra.yaml file location should be as follows. 
     # DO NOT change this location anywhere in the workflow. 
-    cassandra_yaml='/etc/cassandra/cassandra.yaml'
-
+    
     #1. Change the cluster name. 
     echo ""
     echo "1. update Cluster name..."
@@ -298,23 +303,26 @@ replace_dead_nonseed_node () {
             echo "Dead node, $dead_node_ip found..."
             echo "update replace_address in cassandra-env.sh file..."
             str=JVM_OPTS='"$JVM_OPTS'" -Dcassandra.replace_address=$dead_node_ip"'"'
-            sed -i "$ a $str" /etc/cassandra/cassandra-env.sh
+            sed -i "$ a $str" $cassandra_env_sh
 
             stop_start_cassandra
 
             echo "wait till the new node finish bootstraping..."
-            echo "Current node is $CURRENT_NODE_IP"
+            echo "Current node is: $CURRENT_NODE_IP"
             UN=$(nodetool -h $IP status | grep $CURRENT_NODE_IP | awk '{print$1}')
             echo "Current status of the node is: $UN..."
             while [ "$UN" != "UN" ]
             do
                 echo "The node probably still bootstrapping..."
                 sleep 5s
-                nodetool -h $IP status 
                 UN=$(nodetool -h $IP status | grep $CURRENT_NODE_IP | awk '{print$1}')
                 echo "Current status of the node is: $UN..."
             done
             echo "The new node finished bootstraping..."
+
+            echo "remove the replace_address from cassandra-env.sh file..."
+            head -n -1 $cassandra_env_sh > temp.sh; mv temp.sh $cassandra_env_sh
+            stop_start_cassandra
             break
         fi
     done
@@ -324,8 +332,11 @@ replace_dead_nonseed_node () {
 ## ***************************************************************************************************
 current_date_time="`date +%Y%m%d%H%M%S`";
 echo ""
-echo $current_date_time;
+echo "Start time: $current_date_time;"
 echo ""
+echo "00. setting file path..."
+echo "*****************************************************"
+set_file_path
 echo "01. get seed and non-seed autoscaling groups..."
 echo "*****************************************************"
 get_seed_and_nonseed_asgname
@@ -370,6 +381,6 @@ if [ "$AG_NAME" == "$nonseed_asg" ]; then
 fi
 current_date_time="`date +%Y%m%d%H%M%S`";
 echo ""
-echo $current_date_time;
+echo "End time: $current_date_time;""
 echo "************End of execution*************************"
 ## ***************************************************************************************************
