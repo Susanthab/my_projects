@@ -171,13 +171,18 @@ stop_start_cassandra () {
 
     if [ "$status" == "(running)" ]
     then
-        echo "$service is running!!!"
+        echo "$service is already running!!!"
     else
         echo "Stop and start cassandra..."
         service $service stop
         sleep 5s
         service $service start
         sleep 5s
+
+        status=$(service $service status | grep "running" | awk '{print$3}')
+        if [ "$status" == "(running)" ]; then
+            echo "$service is now running!!!"
+        fi
     fi
 }
 ## ***************************************************************************************************
@@ -294,16 +299,16 @@ replace_dead_nonseed_node () {
             echo "update replace_address in cassandra-env.sh file..."
             str=JVM_OPTS='"$JVM_OPTS'" -Dcassandra.replace_address=$dead_node_ip"'"'
             sed -i "$ a $str" /etc/cassandra/cassandra-env.sh
-            #echo -e "$str"  >> /etc/cassandra/cassandra-env.sh
 
             stop_start_cassandra
 
             echo "wait till the new node finish bootstraping..."
+            echo "Current node is $CURRENT_NODE_IP"
             UN=$(nodetool -h $CURRENT_NODE_IP status | grep UN | head -n 1 | awk '{print$1;}')
             echo $UN
             while [ "$UN" != "UN" ]; do
                 echo "The node probably still bootstrapping..."
-                nodetool status 
+                nodetool -h $IP status 
                 UN=$(nodetool -h $CURRENT_NODE_IP status | grep UN | head -n 1 | awk '{print$1;}')
             done
             echo "The new node finished bootstraping..."
