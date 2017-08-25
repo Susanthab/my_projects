@@ -304,16 +304,15 @@ replace_dead_nonseed_node () {
 
             echo "wait till the new node finish bootstraping..."
             echo "Current node is $CURRENT_NODE_IP"
-            UN=$(nodetool -h $IP status | grep $CURRENT_NODE_IP | grep UN | awk '{print$1}')
-            #UN=$(nodetool -h $CURRENT_NODE_IP status | grep UN | head -n 1 | awk '{print$1;}')
-            echo $UN
+            UN=$(nodetool -h $IP status | grep $CURRENT_NODE_IP | awk '{print$1}')
+            echo "Current status of the node is: $UN..."
             while [ "$UN" != "UN" ]
             do
                 echo "The node probably still bootstrapping..."
                 sleep 5s
                 nodetool -h $IP status 
-                UN=$(nodetool -h $IP status | grep $CURRENT_NODE_IP | grep UN | awk '{print$1}')
-                echo $UN
+                UN=$(nodetool -h $IP status | grep $CURRENT_NODE_IP | awk '{print$1}')
+                echo "Current status of the node is: $UN..."
             done
             echo "The new node finished bootstraping..."
             break
