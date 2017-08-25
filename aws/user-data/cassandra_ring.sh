@@ -22,7 +22,7 @@ pip install -q -r ./cassandra/ansible-roles/requirements.txt
 ansible-playbook -i "localhost," -c local /root/cassandra/ansible-roles/roles/apache-cassandra-nibiru/test.yml
 #ansible-playbook -i "localhost," -c local test.yml
 
-# Use below script is to ASG meta data. 
+# Use below script is to get ASG meta data. 
 wget http://s3.amazonaws.com/ec2metadata/ec2-metadata
 chmod u+x ec2-metadata
 EC2_AVAIL_ZONE=$(./ec2-metadata -z | grep -Po "(us|sa|eu|ap)-(north|south|central)?(east|west)?-[0-9]+")
@@ -82,7 +82,7 @@ wait_for_network () {
     for ID in $seed_instances
     do
         IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
-        echo $IP
+        echo "Waiting network on $IP"
         while ! ping -c 1 -W 1 $IP; do
             echo "Waiting for $IP - network interface might be down..."
             sleep 1
@@ -133,7 +133,7 @@ update_cassandra_yaml_config_file () {
     for ID in $seed_instances
     do
         IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
-        echo $IP
+        echo "Adding $IP to the seed list..."
         seed_list="$seed_list,$IP"
     done
     DQ='"'
@@ -166,6 +166,21 @@ start_cassandra () {
     echo "Starting $service..."
     service $service start
     fi
+}
+## ***************************************************************************************************
+
+## ***************************************************************************************************
+force_stop_start_cassandra () {
+    echo "Stop and start cassandra..."
+    service $service stop
+    sleep 5s
+    service $service start
+    sleep 5s
+
+    status=$(service $service status | grep "running" | awk '{print$3}')
+    if [ "$status" == "(running)" ]; then
+        echo "$service is now running!!!"
+    fi   
 }
 ## ***************************************************************************************************
 
@@ -210,7 +225,7 @@ bootstrap_cassandra_seeds () {
 
     # check the status
     UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
-    echo $UN
+    echo "Current status of the node: $UN..."
 
     # check until node Up (U) and Normal (N).
     max_retries=12
@@ -259,7 +274,7 @@ bootstrap_cassandra_nonseeds () {
 
     # check the status
     UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
-    echo $UN
+    echo "Current status of the node: $UN..."
 
     # check until node Up (U) and Normal (N).
     max_retries=12
@@ -322,7 +337,7 @@ replace_dead_nonseed_node () {
 
             echo "remove the replace_address from cassandra-env.sh file..."
             head -n -1 $cassandra_env_sh > temp.sh; mv temp.sh $cassandra_env_sh
-            stop_start_cassandra
+            force_stop_start_cassandra
             break
         fi
     done
