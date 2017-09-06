@@ -23,3 +23,7 @@ sudo st2 pack install aws=boto3
 
 echo "Install cassandra pack..."
 st2 pack install cassandra
+
+echo "Install Travis CI..."
+sudo apt install ruby ruby-dev
+sudo gem install travis

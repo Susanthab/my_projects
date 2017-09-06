@@ -8,11 +8,19 @@
 
 ## ***************************************************************************************************
 # install SSM agent
+# ideally, this should install prior as custom data in AMI - future work. 
 mkdir /tmp/ssm
 wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
 dpkg -i amazon-ssm-agent.deb
 echo "check to see whether SSM agent is running..."
-systemctl status amazon-ssm-agent
+status=$(systemctl status amazon-ssm-agent | grep "running" | awk '{print$3}')
+if [ "$status" == "(running)" ]; then
+    echo "$service is running!!!"
+else
+    echo "Starting $service..."
+    systemctl enable amazon-ssm-agent
+    systemctl start amazon-ssm-agent
+fi
 ## ***************************************************************************************************
 
 echo "Pragramatically mount block device at EC2 startup..."
@@ -233,7 +241,8 @@ bootstrap_cassandra_seeds () {
     fi
 
     # check the status
-    UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+    #UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+    UN=$(get_node_status $arg1 $IP)
     echo "Current status of the node: $UN..."
 
     # check until node Up (U) and Normal (N).
@@ -243,7 +252,8 @@ bootstrap_cassandra_seeds () {
         echo "The node probably still bootstrapping..."
         sleep 5s
         echo "Retry count: $cnt"
-        UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+        #UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+        UN=$(get_node_status $arg1 $IP)
 
         if [ $cnt -eq 6 -a "$IP" == "$CURRENT_NODE_IP" ]; then
            echo "max retries reached halfway. Stop and start cassandra on $IP"
@@ -354,6 +364,16 @@ replace_dead_nonseed_node () {
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
+# This function will call from inside other functions.
+function get_node_status()
+{
+   IP=$1
+   UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
+   echo "$UN"
+}
+## ***************************************************************************************************
+
+## ***************************************************************************************************
 current_date_time="`date +%Y%m%d%H%M%S`";
 echo ""
 echo "Start time: $current_date_time;"
@@ -393,7 +413,9 @@ echo ""
 echo "08. bootstrap seed nodes..."
 echo "*****************************************************"
 sleep 10s
-bootstrap_cassandra_seeds
+if [ "$AG_NAME" == "$seed_asg" ]; then
+    bootstrap_cassandra_seeds
+fi
 echo ""
 echo "09. replace dead non-seed nodes and bootstrap non-seed nodes..."
 echo "*****************************************************"
@@ -403,6 +425,7 @@ if [ "$AG_NAME" == "$nonseed_asg" ]; then
   sleep 5s
   bootstrap_cassandra_nonseeds
 fi
+
 current_date_time="`date +%Y%m%d%H%M%S`";
 echo ""
 echo "End time: $current_date_time;"
