@@ -155,7 +155,8 @@ update_cassandra_yaml_config_file () {
     done
     DQ='"'
     SEARCH='seeds: "127.0.0.1"'
-    REPLACE="seeds: $DQ${seed_list:1}$DQ"
+    #REPLACE="seeds: $DQ${seed_list:1}$DQ"
+    REPLACE="seeds: ${seed_list:1}"
     echo $SEARCH
     echo $REPLACE
     sed -i "s/$SEARCH/$REPLACE/g" $cassandra_yaml
@@ -236,12 +237,10 @@ bootstrap_cassandra_seeds () {
     echo "Currently bootstraping node: $IP"
     if [  "$IP" == "$CURRENT_NODE_IP" ]; then
         echo "Start cassandra on Current node: $IP"
-        #start_cassandra
         stop_start_cassandra
     fi
 
     # check the status
-    #UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
     UN=$(get_node_status $arg1 $IP)
     echo "Current status of the node: $UN..."
 
@@ -252,7 +251,6 @@ bootstrap_cassandra_seeds () {
         echo "The node probably still bootstrapping..."
         sleep 5s
         echo "Retry count: $cnt"
-        #UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
         UN=$(get_node_status $arg1 $IP)
 
         if [ $cnt -eq 6 -a "$IP" == "$CURRENT_NODE_IP" ]; then
@@ -270,7 +268,6 @@ bootstrap_cassandra_seeds () {
     if [ "$IP" == "$CURRENT_NODE_IP" ]; then
         break
     fi 
-
  done
 }
 ## ***************************************************************************************************
@@ -370,6 +367,43 @@ function get_node_status()
    IP=$1
    UN=$(nodetool -h $IP status | grep UN | grep $IP | head -n1 | awk '{print$1;}')
    echo "$UN"
+}
+## ***************************************************************************************************
+
+## ***************************************************************************************************
+# check seed list in each seed node and update if it changed. 
+check_seed_list_and_update_if_changed () {
+cmd="cat /etc/cassandra/cassandra.yaml | grep seeds:"
+SEARCH="- seeds:.*"
+SQ="'"
+DQ='"'
+X="\'"
+for ID in $seed_instances
+do
+    if [ "$ID" == "$INSTANCE_ID" ]; then
+        CUR_NODE_SEED_LIST=$(cat /etc/cassandra/cassandra.yaml | grep seeds:)
+        echo "Current node seed list: $CUR_NODE_SEED_LIST"
+    else
+        send_cmdid=$(aws ssm send-command --region $EC2_REGION --instance-ids $ID --document-name "AWS-RunShellScript" --comment "cat" --parameters "commands=$cmd" --query Command.CommandId --output text)
+
+        sleep 5s
+
+        OTHER_NODE_SEED_LIST=$(aws ssm get-command-invocation --region $EC2_REGION --command-id $send_cmdid --instance-id $ID --query StandardOutputContent --output text)
+        echo $cmd_output
+
+        if [ "$CUR_NODE_SEED_LIST" != "$OTHER_NODE_SEED_LIST" ]; then
+             echo "Seed list needs to be updated on : $ID"
+             echo "Updating seed list on: $ID"
+             # trip the variable. 
+             REPLACE=`echo $CUR_NODE_SEED_LIST`
+             #CMD='sed -i '"$SQ"'s/'"$SEARCH/$REPLACE"'/g'"$SQ"' /etc/cassandra/cassandra.yaml'
+             CMD=`echo ${DQ}sed -i $SQ s/$SEARCH/$REPLACE/g $SQ /etc/cassandra/cassandra.yaml${DQ}`
+             echo $CMD
+             send_cmdid=$(aws ssm send-command --region $EC2_REGION --instance-ids $ID --document-name "AWS-RunShellScript" --comment "sed" --parameters "commands=$CMD")
+
+        fi
+    fi
+done
 }
 ## ***************************************************************************************************
 
