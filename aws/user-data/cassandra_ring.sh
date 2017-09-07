@@ -412,6 +412,7 @@ do
              IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
              UN=$(get_node_status $arg1 $IP)
              while [ "$UN" != "UN" ]; do
+                sleep 5s
                 UN=$(get_node_status $arg1 $IP)
                 echo "The node is being up..."
              done
