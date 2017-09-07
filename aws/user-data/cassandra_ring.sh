@@ -36,8 +36,9 @@ echo "UUID=$UUID       /data   XFS    defaults,nofail        0       2" >> /etc/
 mount -a
 
 pip install -q -r ./cassandra/ansible-roles/requirements.txt
+# upgrade awscli to get new features 
+pip install awscli --upgrade
 ansible-playbook -i "localhost," -c local /root/cassandra/ansible-roles/roles/apache-cassandra-nibiru/test.yml
-#ansible-playbook -i "localhost," -c local test.yml
 
 # Use below script is to get ASG meta data. 
 wget http://s3.amazonaws.com/ec2metadata/ec2-metadata
@@ -373,34 +374,39 @@ function get_node_status()
 ## ***************************************************************************************************
 # check seed list in each seed node and update if it changed. 
 check_seed_list_and_update_if_changed () {
-cmd="cat /etc/cassandra/cassandra.yaml | grep seeds:"
+cmd="cat $cassandra_yaml | grep seeds:"
 SEARCH="- seeds:.*"
 SQ="'"
 DQ='"'
-X="\'"
+
+CUR_NODE_SEED_LIST=$(cat $cassandra_yaml | grep seeds:)
+echo "Current node seed list: $CUR_NODE_SEED_LIST"
+
+echo ""
+echo "Start comparing seed node list in other nodes..."
 for ID in $seed_instances
 do
-    if [ "$ID" == "$INSTANCE_ID" ]; then
-        CUR_NODE_SEED_LIST=$(cat /etc/cassandra/cassandra.yaml | grep seeds:)
-        echo "Current node seed list: $CUR_NODE_SEED_LIST"
-    else
+    if [ "$ID" != "$INSTANCE_ID" ]; then
+        
         send_cmdid=$(aws ssm send-command --region $EC2_REGION --instance-ids $ID --document-name "AWS-RunShellScript" --comment "cat" --parameters "commands=$cmd" --query Command.CommandId --output text)
 
-        sleep 5s
+        sleep 10s
 
         OTHER_NODE_SEED_LIST=$(aws ssm get-command-invocation --region $EC2_REGION --command-id $send_cmdid --instance-id $ID --query StandardOutputContent --output text)
         echo $cmd_output
 
         if [ "$CUR_NODE_SEED_LIST" != "$OTHER_NODE_SEED_LIST" ]; then
+             echo ""
              echo "Seed list needs to be updated on : $ID"
              echo "Updating seed list on: $ID"
-             # trip the variable. 
+             # trim the variable. 
              REPLACE=`echo $CUR_NODE_SEED_LIST`
-             #CMD='sed -i '"$SQ"'s/'"$SEARCH/$REPLACE"'/g'"$SQ"' /etc/cassandra/cassandra.yaml'
              CMD=`echo ${DQ}sed -i $SQ s/$SEARCH/$REPLACE/g $SQ /etc/cassandra/cassandra.yaml${DQ}`
-             echo $CMD
-             send_cmdid=$(aws ssm send-command --region $EC2_REGION --instance-ids $ID --document-name "AWS-RunShellScript" --comment "sed" --parameters "commands=$CMD")
-
+             send_cmdid=$(aws ssm send-command --region $EC2_REGION --instance-ids $ID --document-name "AWS-RunShellScript" --comment "update the seed list in Cassandra.yaml" --parameters "commands=$CMD")
+             sleep 5s
+             echo "Restart Cassandra on : $ID to take effect the new seed list..."
+             send_cmdid=$(aws ssm send-command --region $EC2_REGION --instance-ids $ID --document-name "AWS-RunShellScript" --comment "restart cassandra" --parameters "commands=service cassandra restart")
+             # Confirm whether all seed nodes are in UN status. 
         fi
     fi
 done
@@ -458,6 +464,14 @@ if [ "$AG_NAME" == "$nonseed_asg" ]; then
   replace_dead_nonseed_node
   sleep 5s
   bootstrap_cassandra_nonseeds
+fi
+
+echo ""
+echo "10. Check seed list and update if necessary..."
+echo "*****************************************************"
+sleep 10s
+if [ "$AG_NAME" == "$seed_asg" ]; then
+    check_seed_list_and_update_if_changed
 fi
 
 current_date_time="`date +%Y%m%d%H%M%S`";
