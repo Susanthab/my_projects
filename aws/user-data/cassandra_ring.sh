@@ -379,12 +379,13 @@ SEARCH="- seeds:.*"
 SQ="'"
 DQ='"'
 
+seed_nonseed_instances="${seed_instances} ${nonseed_instances}"
 CUR_NODE_SEED_LIST=$(cat $cassandra_yaml | grep seeds:)
 echo "Current node seed list: $CUR_NODE_SEED_LIST"
 
 echo ""
-echo "Start comparing seed node list in other nodes..."
-for ID in $seed_instances
+echo "Start comparing seed node list in other seed nodes..."
+for ID in $seed_nonseed_instances
 do
     if [ "$ID" != "$INSTANCE_ID" ]; then
         
