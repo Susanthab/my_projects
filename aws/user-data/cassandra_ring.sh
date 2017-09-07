@@ -401,7 +401,7 @@ do
              echo "Updating seed list on: $ID"
              # trim the variable. 
              REPLACE=`echo $CUR_NODE_SEED_LIST`
-             CMD=`echo ${DQ}sed -i $SQ s/$SEARCH/$REPLACE/g $SQ /etc/cassandra/cassandra.yaml${DQ}`
+             CMD=`echo ${DQ}sed -i $SQ s/$SEARCH/$REPLACE/g $SQ $cassandra_yaml ${DQ}`
              send_cmdid=$(aws ssm send-command --region $EC2_REGION --instance-ids $ID --document-name "AWS-RunShellScript" --comment "update the seed list in Cassandra.yaml" --parameters "commands=$CMD")
              sleep 5s
              echo "Restart Cassandra on : $ID to take effect the new seed list..."
