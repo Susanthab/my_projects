@@ -406,7 +406,15 @@ do
              sleep 5s
              echo "Restart Cassandra on : $ID to take effect the new seed list..."
              send_cmdid=$(aws ssm send-command --region $EC2_REGION --instance-ids $ID --document-name "AWS-RunShellScript" --comment "restart cassandra" --parameters "commands=service cassandra restart")
+             
              # Confirm whether all seed nodes are in UN status. 
+             # This code might be able to move to a function. 
+             IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+             UN=$(get_node_status $arg1 $IP)
+             while [ "$UN" != "UN" ]; do
+                UN=$(get_node_status $arg1 $IP)
+                echo "The node is being up..."
+             done
         fi
     fi
 done
