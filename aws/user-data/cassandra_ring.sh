@@ -50,6 +50,16 @@ CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --reg
 AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query AutoScalingInstances[].AutoScalingGroupName --output text)
 
 ## ***************************************************************************************************
+# clear initial data
+clear_initial_data () {
+    rm -rf /data/cassandra/data/* 
+    rm -rf /var/lib/cassandra/system/* 
+    rm -rf /var/lib/cassandra/saved_caches/* 
+    rm -rf /mnt/cassandra/commitlog/* 
+}
+## ***************************************************************************************************
+
+## ***************************************************************************************************
 # get some meta data
 ## ***************************************************************************************************
 
@@ -428,46 +438,61 @@ current_date_time="`date +%Y%m%d%H%M%S`";
 echo ""
 echo "Start time: $current_date_time;"
 echo ""
-echo "00. setting file path..."
+echo "00. clear initial data..."
+echo "*****************************************************"
+clear_initial_data
+
+echo ""
+echo "01. setting file path..."
 echo "*****************************************************"
 set_file_path
-echo "01. get seed and non-seed autoscaling groups..."
+
+echo ""
+echo "02. get seed and non-seed autoscaling groups..."
 echo "*****************************************************"
 get_seed_and_nonseed_asgname
 sleep 5s
+
 echo ""
-echo "02. get seed and non-seed instances..."
+echo "03. get seed and non-seed instances..."
 echo "*****************************************************"
 get_seed_nonseed_instances
+
 echo ""
-echo "03. wait for EC2..."
+echo "04. wait for EC2..."
 echo "*****************************************************"
 wait_for_ec2
+
 echo ""
-echo "04. wait for current node to ping itself..."
+echo "05. wait for current node to ping itself..."
 echo "*****************************************************"
 wait_for_current_node_ping_itself
+
 echo ""
-echo "05. wait for ping to other nodes..."
+echo "06. wait for ping to other nodes..."
 echo "*****************************************************"
 wait_for_network
+
 echo ""
-echo "06. update cassandra-env.sh file..."
+echo "07. update cassandra-env.sh file..."
 echo "*****************************************************"
 update_cassandra_env_config_file
+
 echo ""
-echo "07. update cassandra.yaml file..."
+echo "08. update cassandra.yaml file..."
 echo "*****************************************************"
 update_cassandra_yaml_config_file
+
 echo ""
-echo "08. bootstrap seed nodes..."
+echo "09. bootstrap seed nodes..."
 echo "*****************************************************"
 sleep 10s
 if [ "$AG_NAME" == "$seed_asg" ]; then
     bootstrap_cassandra_seeds
 fi
+
 echo ""
-echo "09. replace dead non-seed nodes and bootstrap non-seed nodes..."
+echo "10. replace dead non-seed nodes and bootstrap non-seed nodes..."
 echo "*****************************************************"
 sleep 5s
 if [ "$AG_NAME" == "$nonseed_asg" ]; then
@@ -477,7 +502,7 @@ if [ "$AG_NAME" == "$nonseed_asg" ]; then
 fi
 
 echo ""
-echo "10. Check seed list and update if necessary..."
+echo "11. Check seed list and update if necessary..."
 echo "*****************************************************"
 sleep 10s
 if [ "$AG_NAME" == "$seed_asg" ]; then
