@@ -31,6 +31,43 @@ SECONDARY="false"
 INSTANCE_0=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[0].InstanceId --output text);
 IP_0=$(aws ec2 describe-instances --instance-ids $INSTANCE_0 --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 
+asg_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+
+## ***************************************************************************************************
+# wait for ec2
+wait_for_ec2 () {
+    aws ec2 wait instance-running --region $EC2_REGION --instance-ids $asg_instances
+}
+## ***************************************************************************************************
+wait_for_ec2
+
+## ***************************************************************************************************
+# Check current node can ping itself before starting Cassandra.
+wait_for_current_node_ping_itself () {
+    while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
+        echo "Waiting for $CURRENT_NODE_IP - network interface might be down..."
+        sleep 1
+    done
+}
+## ***************************************************************************************************
+wait_for_current_node_ping_itself
+
+## ***************************************************************************************************
+# wait for ping. 
+wait_for_network () {
+    for ID in $asg_instances
+    do
+        IP=$(aws ec2 describe-instances --instance-ids $ID --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
+        echo "Waiting network on $IP"
+        while ! ping -c 1 -W 1 $IP; do
+            echo "Waiting for $IP - network interface might be down..."
+            sleep 1
+        done
+    done
+}
+## ***************************************************************************************************
+wait_for_network
+
 ## ***********************************************************************************************************************************
 ## Block-1: To initialize the replica set. 
 ## Even this executes in multiple node in paralell, the block-1 execcutes only in 1 node due to the IF condition. (Assuming the result 

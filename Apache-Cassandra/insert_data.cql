@@ -45,7 +45,7 @@ CREATE TABLE test_data.real_estate (
 
 
 
-select * from test_data.traffic_vialations;
+select * from test_data.real_estate;
 
 curl -O http://samplecsvs.s3.amazonaws.com/Sacramentorealestatetransactions.csv 
 
@@ -58,5 +58,7 @@ COPY test_data.real_estate (street,city,zip,state,beds,baths,sq__ft,type,sale_da
 --=========================
 create table test_data.tab1 (id int primary key,email text, name text, phone text);
 
+
+select COUNT(*) from test_data.real_estate;
 
 COPY test_data.tab1 FROM 'test.csv';
