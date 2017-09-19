@@ -40,7 +40,7 @@ wait_for_ec2 () {
 wait_for_ec2
 
 ## ***************************************************************************************************
-# Check current node can ping itself before starting Cassandra.
+# Check current node can ping itself.
 wait_for_current_node_ping_itself () {
     while ! ping -c 1 -W 1 $CURRENT_NODE_IP; do
         echo "Waiting for $CURRENT_NODE_IP - network interface might be down..."
@@ -48,7 +48,6 @@ wait_for_current_node_ping_itself () {
     done
 }
 ## ***************************************************************************************************
-wait_for_current_node_ping_itself
 
 ## ***************************************************************************************************
 # wait for ping. 
