@@ -1,8 +1,6 @@
 #!/bin/sh
 #cloud-config
 
-set -x
-
 echo "Pragramatically mount block device at EC2 startup..."
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
 # The following code is only to add one device. 
