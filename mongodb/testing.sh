@@ -20,7 +20,7 @@ db.employee.findOne()
 # mongo db sample dataset.
 
 curl -O https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/primer-dataset.json
-mongoimport --db test --collection restaurants --drop --file ./primer-dataset.json
+mongoimport --db restaurants_db --collection restaurants --drop --file ./primer-dataset.json
 
 mongo
 use test

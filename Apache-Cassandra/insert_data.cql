@@ -2,11 +2,6 @@
 
 cqlsh 172.31.61.2
 
-CREATE KEYSPACE test_data
-  WITH REPLICATION = { 
-   'class' : 'SimpleStrategy', 
-   'replication_factor' : 2
-  };
 
 use system;
 DESCRIBE keyspaces
@@ -28,7 +23,23 @@ INSERT INTO hr.employee  (id, emp_name, emp_city) VALUES (1, 'Susantha Bathige',
 
 --==================================
 
-CREATE TABLE test_data.real_estate ( 
+>cqlsh 172.31.58.121
+
+CREATE KEYSPACE test_data
+  WITH REPLICATION = { 
+   'class' : 'SimpleStrategy', 
+   'replication_factor' : 2
+  };
+
+
+CREATE KEYSPACE kp_realstate
+  WITH REPLICATION = { 
+   'class' : 'SimpleStrategy', 
+   'replication_factor' : 2
+  };
+
+
+CREATE TABLE kp_realstate.realestate_data ( 
   street varchar,
   city varchar,
   zip varchar,
@@ -43,22 +54,20 @@ CREATE TABLE test_data.real_estate (
   longitude float
 );
 
-
-
 select * from test_data.real_estate;
 
-curl -O http://samplecsvs.s3.amazonaws.com/Sacramentorealestatetransactions.csv 
+#curl -O http://samplecsvs.s3.amazonaws.com/Sacramentorealestatetransactions.csv
 
-COPY test_data.real_estate (street,city,zip,state,beds,baths,sq__ft,type,sale_date,price,latitude,longitude) FROM '~/Sacramentorealestatetransactions.csv' WITH HEADER = TRUE AND DELIMITER = ';';
+#COPY test_data.real_estate (street,city,zip,state,beds,baths,sq__ft,type,sale_date,price,latitude,longitude) FROM '~/realstatesdata.csv' WITH HEADER = TRUE AND DELIMITER = ';';
+#COPY test_data.real_estate FROM '~/realstatesdata.csv' WITH HEADER = TRUE AND DELIMITER = ';';
 
-COPY test_data.real_estate FROM '~/Sacramentorealestatetransactions.csv' WITH HEADER = TRUE AND DELIMITER = ';';
-
-COPY test_data.real_estate (street,city,zip,state,beds,baths,sq__ft,type,sale_date,price,latitude,longitude) FROM 'test2.csv' WITH HEADER = TRUE;
+# The below one worked. 
+COPY kp_realstate.realestate_data (street,city,zip,state,beds,baths,sq__ft,type,sale_date,price,latitude,longitude) FROM 'realstatesdata.csv' WITH HEADER = TRUE;
 
 --=========================
 create table test_data.tab1 (id int primary key,email text, name text, phone text);
 
 
-select COUNT(*) from test_data.real_estate;
+select COUNT(*) from kp_realstate.realestate_data;
 
 COPY test_data.tab1 FROM 'test.csv';
