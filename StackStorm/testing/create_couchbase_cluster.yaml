@@ -1,0 +1,207 @@
+version: '2.0'
+name: couchbase.create_couchbase_cluster
+description: St2  workflow to create Couchbase cluster on EC2.
+
+workflows:
+
+  main:
+    type: direct
+    input: 
+      - region
+      - cluster_name
+      - storage_type
+      - image_id
+      - ebs_optimized
+      - instance_type
+      - volume_size
+      - volume_type      
+      - key_name
+      - security_group_id
+      - iam_role_couchbase
+      - service_offering_model
+      - min_nof_nodes
+      - max_nof_nodes
+      - desired_capacity_data
+      - desired_capacity_index
+      - desired_capacity_query
+      - desired_capacity_all_in_one
+      - environment
+      - app_id
+      - team_id
+      - role
+      - t_owner_individual
+      - assume_role
+      - subnets
+
+    output:
+      credentials: <% $.credentials %>
+
+    vars:
+
+      # Construct launch config names.
+      lc_couchbase_data: <% "lc-couchbase-data-" + $.cluster_name %>
+      lc_couchbase_index: <% "lc-couchbase-index-" + $.cluster_name %>
+      lc_couchbase_query: <% "lc-couchbase-query-" + $.cluster_name %> 
+
+      # Construct auto scaling group names. 
+      asg_couchbase_data: <% "asg-couchbase-data-" + $.cluster_name %>
+      asg_couchbase_index: <% "asg-couchbase-index-" + $.cluster_name %>
+      asg_couchbase_query: <% "asg-couchbase-query-" + $.cluster_name %>
+
+    tasks:
+      assume_role:
+        action: aws.assume_role
+        input:
+          role_arn: <% $.assume_role %>
+        publish:
+          credentials: <% task(assume_role).result.result %>
+        on-success:
+          - check_service_offering_model
+
+      check_service_offering_model:
+        action: core.local
+        input:
+          cmd: "printf <% $.service_offering_model %>"
+        publish:
+          path: <% task(check_service_offering_model).result.stdout %>
+          status_message: "Check for Couchbase service offering model."
+        on-success:
+          - manage_lc: <% $.path = 'AllServicesInOne' %>
+
+      manage_lc:
+        workflow: manage_lc
+        input:
+          region: <% $.region %>
+          lc_name: <% "lc-couchbase-all-services-" + $.cluster_name %>
+          storage_type: <% $.storage_type %>
+          image_id: <% $.image_id %>
+          ebs_optimized: <% $.ebs_optimized %>
+          instance_type: <% $.instance_type %>
+          volume_size: <% $.volume_size %>
+          volume_type: <% $.volume_type %>      
+          key_name: <% $.key_name %>
+          security_group_id: <% $.security_group_id %>
+          iam_role_couchbase: <% $.iam_role_couchbase %>
+          credentials: <% $.credentials %>
+        publish:
+          status_message: "Manage launch configuration."  
+        on-success:
+          - manage_asg
+
+      manage_asg:
+        workflow: manage_asg
+        input:
+          region: <% $.region %>
+          asg_name: <% "asg-couchbase-all-services-" + $.cluster_name %>
+          lc_name: <% "lc-couchbase-all-services-" + $.cluster_name %>
+          min_size: <% $.min_size %>
+          max_size: <% $.max_size %>
+          desired_capacity: <% $.desired_capacity %>
+          service_type: "AllServicesInOne"
+          subnets: <% $.subnets %>        
+        publish:
+          status_message: "Manage auto-scaling group."  
+
+  manage_lc:
+    type: direct
+    input:
+      - region
+      - lc_name
+      - storage_type
+      - image_id
+      - ebs_optimized
+      - instance_type
+      - volume_size
+      - volume_type      
+      - key_name
+      - security_group_id
+      - iam_role_couchbase
+      - credentials
+      
+    vars:
+      user_data: null
+
+    tasks:
+      check_lc:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: autoscaling
+          action_name: describe_launch_configurations
+          params: <% dict(LaunchConfigurationNames => list($.lc_name)) %>
+          credentials: <% $.credentials %>
+        publish:
+          lc_name_returned: <% task(check_lc).result.result.LaunchConfigurations %>
+          status_message: "Retrieve launch configuration for all services."
+        on-success:
+          - select_storage_type: <% len($.lc_name_returned)=0 %>
+
+      select_storage_type:
+        action: core.local
+        input:
+          cmd: "printf <% $.storage_type %>"
+        publish:
+          path: <% task(select_storage_type).result.stdout %>
+          status_message: "Selecting storage type between EBS and Ephemeral."
+        on-success:
+          - create_lc_ebs: <% $.path = 'EBS' %>
+          - create_lc_ephemeral: <% $.path = 'Ephemeral' %>        
+
+      create_lc_ebs:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: autoscaling
+          action_name: create_launch_configuration
+          params: <% dict(LaunchConfigurationName => $.lc_name , ImageId => $.image_id, InstanceType => $.instance_type, KeyName => $.key_name, SecurityGroups => list($.security_group_id), IamInstanceProfile => $.iam_role_couchbase, UserData => $.user_data, BlockDeviceMappings => list(dict(DeviceName => "/dev/sdg", Ebs => dict(VolumeSize => $.volume_size, VolumeType => $.volume_type ))), EbsOptimized => $.ebs_optimized ,AssociatePublicIpAddress => true) %>
+          credentials: <% $.credentials %>
+        publish:
+          status_message: "Create Launch Configuration with EBS as storage type."
+
+      create_lc_ephemeral:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: autoscaling
+          action_name: create_launch_configuration
+          params: <% dict(LaunchConfigurationName => $.lc_name , ImageId => $.image_id, InstanceType => $.instance_type, KeyName => $.key_name, SecurityGroups => list($.security_group_id), IamInstanceProfile => $.iam_role_couchbase, UserData => $.user_data, BlockDeviceMappings => list(dict(DeviceName => "/dev/sdc", VirtualName => "ephemeral1" )), AssociatePublicIpAddress => true) %>
+        publish:
+          status_message: "Create Launch Configuration with Ephemeral as storage type."
+
+  manage_asg:
+    type: direct
+    input:
+      - region
+      - asg_name
+      - lc_name
+      - min_size
+      - max_size
+      - desired_capacity
+      - service_type
+      - subnets
+
+    tasks:
+      check_asg:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: autoscaling
+          action_name: describe_auto_scaling_groups
+          params: <% dict(AutoScalingGroupNames => list($.asg_name) ) %>
+          credentials: <% $.credentials %>
+        publish:
+          asg_name_returned: <% task(asg_name).result.result.AutoScalingGroups %>
+          status_message: "Retrieve auto-scaling group data."
+        on-success:
+          - create_asg: <% len($.asg_name_returned)=0 %>
+
+      create_asg:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: autoscaling
+          action_name: create_auto_scaling_group
+          params: <% dict(LaunchConfigurationName => $.lc_name, AutoScalingGroupName => $.asg_name, MinSize => $.min_size, MaxSize => $.max_size, DesiredCapacity => $.desired_capacity, VPCZoneIdentifier => $.subnets, Tags => list(dict(Key => "Project", Value => "Bitesize"), dict(Key => "t_environment", Value => $.environment), dict(Key => "app_id", Value => str($.app_id)), dict(Key => "team_id", Value => $.team_id), dict(Key => "t_role", Value => $.role), dict(Key => "t_owner_individual", Value => $.t_owner_individual), dict(Key => "Name", Value => $.environment + "-" + $.team_id + "-" + $.role + "-" + str($.app_id)), dict(Key => "service_type", Value => $.service_type), dict(Key => "asg_name", Value => $.asg_name) )) %>
+          credentials: <% $.credentials %>
+        publish:
+          status_message: "Creating auto-scaling group for seed nodes."

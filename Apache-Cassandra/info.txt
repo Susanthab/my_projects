@@ -1,0 +1,2 @@
+#https://github.com/sharadchhetri/scripts/blob/master/cassandra-backup.sh
+#https://gist.github.com/JensRantil/a8150e998250edfcd1a3
