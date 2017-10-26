@@ -77,8 +77,6 @@ create_paths() {
     mkdir  $index_path -p
 }
 
-
-
 ## ***************************************************************************************************
 get_tags () {
     SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
@@ -119,8 +117,10 @@ cluster-init() {
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
 create_paths
-echo "02. Initializes the node, $CURRENT_NODE_IP"
+echo "02. Get tags..."
+get_tags
+echo "03. Initializes the node, $CURRENT_NODE_IP"
 node-init
-echo "03. Initializing the cluster..."
+echo "04. Initializing the cluster..."
 cluster-init
 ## ***********************END OF EXECUTION **********************************************************
