@@ -94,13 +94,11 @@ node-init() {
 }
 ## ***************************************************************************************************
 
+## ***************************************************************************************************
 cluster-init() {
-
     # Need to find a method to protect this password. Future work. 
     CLUSTER_USER_NAME="admin"
     CLUSTER_PASSWORD="12qwaszx@"
-
-    cluster-init() {
 
         if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
             output=null
@@ -109,9 +107,8 @@ cluster-init() {
             --cluster-ramsize 256 --cluster-index-ramsize 256 )
             echo "output: cluster-init: $output"
         fi
-    }
-
 }
+## ***************************************************************************************************
 
 
 ## ************************** EXECUTION *************************************************************
