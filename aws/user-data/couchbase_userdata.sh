@@ -70,7 +70,7 @@ dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 # The function code should come here. 
 
 # Create data and index directories
-create_paths() {
+create-paths () {
     data_path="/data/couchbase/data"
     index_path="/data/couchbase/index"
     mkdir  $data_path -p
@@ -78,7 +78,7 @@ create_paths() {
 }
 
 ## ***************************************************************************************************
-get_tags () {
+get-tags () {
     SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Node service type: $SERVICE_TYPE"
     CLUSTER_NAME=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
@@ -87,7 +87,7 @@ get_tags () {
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
-node-init() {
+node-init () {
     output=null
     output=$(/opt/couchbase/bin/couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path $data_path --node-init-index-path $index_path)
     echo "output: node-ninit: $output"
@@ -95,7 +95,7 @@ node-init() {
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
-cluster-init() {
+cluster-init () {
     # Need to find a method to protect this password. Future work. 
     CLUSTER_USER_NAME="admin"
     CLUSTER_PASSWORD="12qwaszx@"
@@ -112,9 +112,9 @@ cluster-init() {
 
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
-create_paths
+create-paths
 echo "02. Get tags..."
-get_tags
+get-tags
 echo "03. Initializes the node, $CURRENT_NODE_IP"
 node-init
 echo "04. Initializing the cluster..."
