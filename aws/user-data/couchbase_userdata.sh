@@ -84,16 +84,32 @@ create_paths () {
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
-get_tags () {
+get_tags_and_instances () {
     SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Node service type: $SERVICE_TYPE"
     CLUSTER_NAME=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Cluster name: $CLUSTER_NAME"
+
+    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+        ASG_ALLSERVICES_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+        --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+    fi
+
+    ALL_ASG_INST="$ASG_ALLSERVICES_INST"
+    echo "All the instances of the cluster: $ALL_ASG_INST"
+}
+## ***************************************************************************************************
+
+## ***************************************************************************************************
+# wait for ec2
+wait_for_ec2 () {
+    aws ec2 wait instance-running --region $EC2_REGION --instance-ids $ALL_ASG_INST
 }
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
 node_init () {
+    # for all the nodes in the cluster.
     output=null
     output=$(/opt/couchbase/bin/couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path "$DATA_PATH" \
     --node-init-index-path "$INDEX_PATH" -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD)
@@ -103,15 +119,26 @@ node_init () {
 
 ## ***************************************************************************************************
 cluster_init () {
+    # This should occur only for one node of the cluster and that node should be a data node. 
     # Need to find a method to protect this password. Future work. 
     echo "Server type of the node: $SERVICE_TYPE"
+    
     if [ "$SERVICE_TYPE" == "AllServicesInOne" ]
     then
-        output=null
-        output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
-        --cluster-password $CLUSTER_PASSWORD --cluster-name couchtest --services data,index,query \
-        --cluster-ramsize 256 --cluster-index-ramsize 256)
-        echo "output: cluster-init: $output"
+        ip=$ALL_ASG_INST[0]
+        if [ "$ip" == "$CURRENT_NODE_IP" ]
+            output=null
+            output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
+                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
+                    --cluster-ramsize 256 --cluster-index-ramsize 256)
+            echo "output: cluster-init: $output"
+            # Ideally the cluster name should be set with cluster-init method. However due to some reason it seems not working. 
+            #So setting cluster name in a different way.
+            output=null
+            output=$(/opt/couchbase/bin/couchbase-cli setting-cluster -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
+                    --cluster-name $CLUSTER_NAME)
+            echo "output: setting-cluster (cluster name): $output"
+        fi
     fi
 }
 ## ***************************************************************************************************
@@ -121,11 +148,14 @@ echo "01. Create data and index paths..."
 create_paths
 echo ""
 echo "02. Get tags..."
-get_tags
+get_tags_and_instances
 echo ""
-echo "03. Initializes the node, $CURRENT_NODE_IP"
+echo "03. Wait for all the EC2 instances..."
+wait_for_ec2
+echo ""
+echo "04. Initializes the node, $CURRENT_NODE_IP"
 node_init
 echo ""
-echo "04. Initializing the cluster..."
+echo "05. Initializing the cluster..."
 cluster_init
 ## ***********************END OF EXECUTION **********************************************************
