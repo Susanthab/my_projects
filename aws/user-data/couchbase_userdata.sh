@@ -45,6 +45,7 @@ pip install awscli --upgrade
 echo "Get AWS metadata..."
 wget http://s3.amazonaws.com/ec2metadata/ec2-metadata
 chmod u+x ec2-metadata
+AZ=$(./ec2-metadata -z)
 EC2_AVAIL_ZONE=$(./ec2-metadata -z | grep -Po "(us|sa|eu|ap)-(north|south|central)?(east|west)?-[0-9]+")
 EC2_REGION="`echo \"$EC2_AVAIL_ZONE\" | sed -e 's:\([0-9][0-9]*\)[a-z]*\$:\\1:'`"
 INSTANCE_ID=$(./ec2-metadata | grep instance-id | awk 'NR==1{print $2}')
@@ -156,6 +157,16 @@ cluster_init () {
             output=$(/opt/couchbase/bin/couchbase-cli setting-cluster -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
                     --cluster-name $CLUSTER_NAME)
             echo "output: setting-cluster (cluster name): $output"
+
+            # Move node to a proper group. 
+            # Create a group and then move the node because rename group did not work. 
+            group_name=`echo "rack-"${AZ:(-2)}`
+            output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME \
+                -p $CLUSTER_PASSWORD --create --group-name $group_name)
+            echo "output: create-group: $output"
+            output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME \
+                --move-servers $CURRENT_NODE_IP --from-group "Group 1" --to-group $group_name)
+            echo "output: move-group: $output"
         fi
     fi
 }
