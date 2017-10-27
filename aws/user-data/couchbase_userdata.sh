@@ -165,7 +165,7 @@ cluster_init () {
                 -p $CLUSTER_PASSWORD --create --group-name $group_name)
             echo "output: create-group: $output"
             output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME \
-                --move-servers $CURRENT_NODE_IP --from-group "Group 1" --to-group $group_name)
+                -p $CLUSTER_PASSWORD --move-servers $CURRENT_NODE_IP --from-group "Group 1" --to-group $group_name)
             echo "output: move-group: $output"
         fi
     fi
