@@ -172,6 +172,36 @@ cluster_init () {
 }
 ## ***************************************************************************************************
 
+## ***************************************************************************************************
+# This function will call from inside other functions.
+function get_node_ip ()
+{
+    id=$1
+    ip=$(aws ec2 describe-instances --instance-ids $id --region ${EC2_REGION} --query \
+        Reservations[].Instances[].PrivateIpAddress --output text)
+    echo "$ip"
+}
+## ***************************************************************************************************
+
+## ***************************************************************************************************
+wait_for_couchbase () {
+    
+    for id in $ALL_ASG_INST
+    do
+        ip=$(get_node_ip $arg1 $id)
+        server_status=$(/opt/couchbase/bin/couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+            grep status | awk '{print $2}' | tr -d '",')
+        echo "Status of the server, $ip: $server_status"
+        while [ "$server_status" != "healthy" ]; do
+            sleep 5
+            server_status=$(/opt/couchbase/bin/couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+        done
+
+    done
+    
+}
+## ***************************************************************************************************
+
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
 create_paths
@@ -184,6 +214,9 @@ wait_for_ec2
 echo ""
 echo "04. Wait for network..."
 wait_for_network
+echo ""
+echo "Wait for couchbase servers..."
+wait_for_couchbase
 echo ""
 echo "05. Initializes the node, $CURRENT_NODE_IP"
 node_init
