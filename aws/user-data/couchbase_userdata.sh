@@ -14,13 +14,12 @@ mkdir /tmp/ssm
 wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
 dpkg -i amazon-ssm-agent.deb
 echo "check to see whether SSM agent is running..."
-status=$(systemctl status amazon-ssm-agent | grep "running" | awk '{print$3}')
+status=$(service amazon-ssm-agent status | grep "running" | awk '{print$3}')
 if [ "$status" == "(running)" ]; then
     echo "$service is running!!!"
 else
     echo "Starting $service..."
-    systemctl enable amazon-ssm-agent
-    systemctl start amazon-ssm-agent
+    service amazon-ssm-agent start
 fi
 ## ***************************************************************************************************
 
