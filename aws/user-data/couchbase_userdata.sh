@@ -69,6 +69,9 @@ dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
 
+CLUSTER_USER_NAME="admin"
+CLUSTER_PASSWORD="12qwaszx@"
+
 # Create data and index directories
 ## ***************************************************************************************************
 create_paths () {
