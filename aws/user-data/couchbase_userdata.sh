@@ -106,7 +106,7 @@ node_init () {
 cluster_init () {
     # Need to find a method to protect this password. Future work. 
     echo "Server type of the node: $SERVICE_TYPE"
-    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]
+    if [ "$SERVICE_TYPE" == "ABC" ]
     then
         output=null
         output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
