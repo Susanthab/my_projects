@@ -119,10 +119,13 @@ cluster_init () {
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
 create_paths
+echo ""
 echo "02. Get tags..."
 get_tags
+echo ""
 echo "03. Initializes the node, $CURRENT_NODE_IP"
 node_init
+echo ""
 echo "04. Initializing the cluster..."
 cluster_init
 ## ***********************END OF EXECUTION **********************************************************
