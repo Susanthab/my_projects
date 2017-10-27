@@ -69,16 +69,21 @@ dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
 
+CLUSTER_USER_NAME="admin"
+CLUSTER_PASSWORD="12qwaszx@"
+
 # Create data and index directories
-create-paths () {
+## ***************************************************************************************************
+create_paths () {
     data_path="/data/couchbase/data"
     index_path="/data/couchbase/index"
     mkdir  $data_path -p
     mkdir  $index_path -p
 }
+## ***************************************************************************************************
 
 ## ***************************************************************************************************
-get-tags () {
+get_tags () {
     SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Node service type: $SERVICE_TYPE"
     CLUSTER_NAME=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
@@ -87,24 +92,23 @@ get-tags () {
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
-node-init () {
+node_init () {
     output=null
-    output=$(/opt/couchbase/bin/couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path $data_path --node-init-index-path $index_path)
+    output=$(/opt/couchbase/bin/couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path $data_path \
+    --node-init-index-path $index_path -u $CLUSTER_USER_NAME)
     echo "output: node-init: $output"
 }
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
-cluster-init () {
+cluster_init () {
     # Need to find a method to protect this password. Future work. 
-    CLUSTER_USER_NAME="admin"
-    CLUSTER_PASSWORD="12qwaszx@"
 
         if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
             output=null
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
             --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
-            --cluster-ramsize 256 --cluster-index-ramsize 256 )
+            --cluster-ramsize 256 --cluster-index-ramsize 256)
             echo "output: cluster-init: $output"
         fi
 }
@@ -112,9 +116,9 @@ cluster-init () {
 
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
-#create-paths
+create_paths
 echo "02. Get tags..."
-#get-tags
+get_tags
 echo "03. Initializes the node, $CURRENT_NODE_IP"
 #node-init
 echo "04. Initializing the cluster..."
