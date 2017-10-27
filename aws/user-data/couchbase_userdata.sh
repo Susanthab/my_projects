@@ -144,7 +144,8 @@ cluster_init () {
     
     if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
         id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
-        ip=$(aws ec2 describe-instances --instance-ids $id --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)        
+        ip=$(get_node_ip $arg1 $id)       
+        PRIMARY_SERVER_IP=$ip
         if [ "$ip" == "$CURRENT_NODE_IP" ]; then
             output=null
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
@@ -202,6 +203,21 @@ wait_for_couchbase () {
 }
 ## ***************************************************************************************************
 
+## ***************************************************************************************************
+server_add () {
+    if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" ]; then
+        group_name=`echo "rack-"${AZ:(-2)}`
+        output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME \
+                        -p $CLUSTER_PASSWORD --create --group-name $group_name)
+        echo "output: create-group: $output"
+        output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
+            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data","query","index" \
+            --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
+        echo "output: server-add: $output"        
+    fi
+}
+## ***************************************************************************************************
+
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
 create_paths
@@ -223,4 +239,7 @@ node_init
 echo ""
 echo "06. Initializing the cluster..."
 cluster_init
+echo ""
+echo "Add server..."
+server_add
 ## ***********************END OF EXECUTION **********************************************************
