@@ -85,9 +85,11 @@ create_paths () {
 
 ## ***************************************************************************************************
 get_tags_and_instances () {
-    SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+        --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Node service type: $SERVICE_TYPE"
-    CLUSTER_NAME=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    CLUSTER_NAME=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+        --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Cluster name: $CLUSTER_NAME"
 
     if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
@@ -108,6 +110,22 @@ wait_for_ec2 () {
 ## ***************************************************************************************************
 
 ## ***************************************************************************************************
+# wait for ping. 
+wait_for_network () {
+    for id in $ALL_ASG_INST
+    do
+        ip=$(aws ec2 describe-instances --instance-ids $id --region ${EC2_REGION} --query \
+        Reservations[].Instances[].PrivateIpAddress --output text)
+        echo "Waiting network on $ip"
+        while ! ping -c 1 -W 1 $ip; do
+            echo "Waiting for $ip - network interface might be down..."
+            sleep 1
+        done
+    done
+}
+## ***************************************************************************************************
+
+## ***************************************************************************************************
 node_init () {
     # for all the nodes in the cluster.
     output=null
@@ -124,7 +142,8 @@ cluster_init () {
     echo "Server type of the node: $SERVICE_TYPE"
     
     if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
-        ip=$ALL_ASG_INST[0]
+        id=$ALL_ASG_INST[0]
+        ip=$(aws ec2 describe-instances --instance-ids $id --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)        
         if [ "$ip" == "$CURRENT_NODE_IP" ]; then
             output=null
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
@@ -152,9 +171,12 @@ echo ""
 echo "03. Wait for all the EC2 instances..."
 wait_for_ec2
 echo ""
-echo "04. Initializes the node, $CURRENT_NODE_IP"
+echo "04. Wait for network..."
+wait_for_network
+echo ""
+echo "05. Initializes the node, $CURRENT_NODE_IP"
 node_init
 echo ""
-echo "05. Initializing the cluster..."
+echo "06. Initializing the cluster..."
 cluster_init
 ## ***********************END OF EXECUTION **********************************************************
