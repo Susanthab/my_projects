@@ -109,7 +109,7 @@ cluster_init () {
     if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
         output=null
         output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
-        --cluster-password $CLUSTER_PASSWORD --cluster-name "$CLUSTER_NAME" --services data,index,query \
+        --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
         --cluster-ramsize 256 --cluster-index-ramsize 256)
         echo "output: cluster-init: $output"
     fi
