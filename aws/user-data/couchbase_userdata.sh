@@ -90,7 +90,7 @@ get-tags () {
 node-init () {
     output=null
     output=$(/opt/couchbase/bin/couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path $data_path --node-init-index-path $index_path)
-    echo "output: node-ninit: $output"
+    echo "output: node-init: $output"
 }
 ## ***************************************************************************************************
 
@@ -112,11 +112,11 @@ cluster-init () {
 
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
-create-paths
+#create-paths
 echo "02. Get tags..."
-get-tags
+#get-tags
 echo "03. Initializes the node, $CURRENT_NODE_IP"
-node-init
+#node-init
 echo "04. Initializing the cluster..."
-cluster-init
+#cluster-init
 ## ***********************END OF EXECUTION **********************************************************
