@@ -195,7 +195,7 @@ wait_for_couchbase () {
         while [ "$server_status" != "healthy" ]; do
             sleep 5
             server_status=$(/opt/couchbase/bin/couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
-                grep status | awk '{print $2}' | tr -d '",')        done
+                grep status | awk '{print $2}' | tr -d '",')
     done
     
 }
