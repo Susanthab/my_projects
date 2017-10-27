@@ -69,16 +69,15 @@ dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
 
-CLUSTER_USER_NAME="admin"
-CLUSTER_PASSWORD="12qwaszx@"
-
 # Create data and index directories
 ## ***************************************************************************************************
 create_paths () {
-    data_path="/data/couchbase/data"
-    index_path="/data/couchbase/index"
-    mkdir  $data_path -p
-    mkdir  $index_path -p
+    DATA_PATH="/data/couchbase/data"
+    INDEX_PATH="/data/couchbase/index"
+    mkdir  $DATA_PATH -p
+    mkdir  $INDEX_PATH -p
+    chown couchbase:couchbase $DATA_PATH
+    chown couchbase:couchbase $INDEX_PATH
 }
 ## ***************************************************************************************************
 
@@ -94,8 +93,8 @@ get_tags () {
 ## ***************************************************************************************************
 node_init () {
     output=null
-    output=$(/opt/couchbase/bin/couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path $data_path \
-    --node-init-index-path $index_path -u $CLUSTER_USER_NAME)
+    output=$(/opt/couchbase/bin/couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path "$DATA_PATH" \
+    --node-init-index-path "$INDEX_PATH" -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD)
     echo "output: node-init: $output"
 }
 ## ***************************************************************************************************
@@ -103,11 +102,11 @@ node_init () {
 ## ***************************************************************************************************
 cluster_init () {
     # Need to find a method to protect this password. Future work. 
-
+        echo "Server type of the node: $SERVICE_TYPE"
         if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
             output=null
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
-            --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
+            --cluster-password $CLUSTER_PASSWORD --cluster-name "$CLUSTER_NAME" --services data,index,query \
             --cluster-ramsize 256 --cluster-index-ramsize 256)
             echo "output: cluster-init: $output"
         fi
@@ -120,7 +119,7 @@ create_paths
 echo "02. Get tags..."
 get_tags
 echo "03. Initializes the node, $CURRENT_NODE_IP"
-#node-init
+node_init
 echo "04. Initializing the cluster..."
-#cluster-init
+cluster_init
 ## ***********************END OF EXECUTION **********************************************************
