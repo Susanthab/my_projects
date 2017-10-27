@@ -142,7 +142,7 @@ cluster_init () {
     echo "Server type of the node: $SERVICE_TYPE"
     
     if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
-        id=$ALL_ASG_INST[0]
+        id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
         ip=$(aws ec2 describe-instances --instance-ids $id --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)        
         if [ "$ip" == "$CURRENT_NODE_IP" ]; then
             output=null
