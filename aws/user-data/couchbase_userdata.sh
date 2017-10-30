@@ -215,11 +215,7 @@ server_add () {
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "output: server-add: $output"     
         output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
-        while [ -z "$output" ];
-        do
-            output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
-            echo "Node: $CURRENT_NODE_IP is added to the cluster."   
-        done   
+        echo "Debug: server_add: $output"
     fi
 }
 ## ***************************************************************************************************
