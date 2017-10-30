@@ -220,6 +220,13 @@ server_add () {
 }
 ## ***************************************************************************************************
 
+rebalance () {
+    # wait for all the nodes of the Couchbase cluster. 
+    wait_for_couchbase
+    output=$(/opt/couchbase/bin/couchbase-cli rebalance -c  $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD)
+    echo "output: rebalance: $output"
+}
+
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
 create_paths
@@ -244,5 +251,9 @@ cluster_init
 echo ""
 echo "Add server..."
 server_add
+sleep 30s
+echo ""
+echo "Rebalance"
+rebalance
 ## ***********************END OF EXECUTION **********************************************************
 
