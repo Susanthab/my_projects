@@ -163,9 +163,18 @@ node_init () {
 ## ***************************************************************************************************
 cluster_init () {
     # This should occur only for one node of the cluster and that node should be a data node. 
-    # Need to find a method to protect this password. Future work. 
+    # Need to find a method to protect this password. Future work.
+    echo "Service type of the node is: $SERVICE_TYPE" 
     echo "Service offering of the node: $SERVICE_OFFERING"
-    id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
+    
+    if [ "$SERVICE_OFFERING" == "data" ]; then
+        id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
+    fi
+
+    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+        id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
+    fi
+    
     ip=$(get_node_ip $arg1 $id)       
     PRIMARY_SERVER_IP=$ip  
     echo "Designated primary server ip: $PRIMARY_SERVER_IP"  
