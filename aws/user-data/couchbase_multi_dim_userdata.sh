@@ -226,6 +226,8 @@ wait_for_couchbase () {
 
 ## ***************************************************************************************************
 server_add () {
+
+    echo "Service offering of the node: $SERVICE_OFFERING"
     group_name=`echo "rack-"${AZ:(-2)}`
     output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME \
                     -p $CLUSTER_PASSWORD --create --group-name $group_name)
@@ -237,14 +239,23 @@ server_add () {
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "output: server-add: $output"     
         output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
-        echo "Debug: server_add: $output"
+        echo "Debug: server-add: $output"
     fi
 
     if [ "$SERVICE_OFFERING" == "index" ]; then
         output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
             --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="index" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
+        echo "output: server-add: $output"
     fi
+
+    if [ "$SERVICE_OFFERING" == "query" ]; then
+        output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
+            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="query" \
+            --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
+        echo "output: server-add: $output"
+    fi
+
 }
 ## ***************************************************************************************************
 
