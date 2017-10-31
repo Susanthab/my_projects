@@ -2,10 +2,9 @@
 
 #=============================================================
 #Author: Susantha B
-#Date: 10/31/17
+#Date: 10/25/17
 #Version: 1.0
-#Purpose: Install & configure Couchbase cluster on AWS with 
-#         multi-dimential scaling. 
+#Purpose: Install & configure Couchbase cluster on AWS. 
 #=============================================================
 
 ## ***************************************************************************************************
@@ -90,34 +89,16 @@ get_tags_and_instances () {
     SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Node service type: $SERVICE_TYPE"
-    SERVICE_OFFERING=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
-        --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_offering`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
-    echo "Node service offering: $SERVICE_OFFERING"
     CLUSTER_NAME=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Cluster name: $CLUSTER_NAME"
 
-    if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
-
-        ASG_DATA_NAME="couchbase-asg-data-$CLUSTER_NAME"
-        ASG_DATA_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_DATA_NAME} \
+    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+        ASG_ALLSERVICES_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
-        echo "Data service instances of the cluster: $ASG_DATA_INST"
-
-        ASG_INDEX_NAME="couchbase-asg-index-$CLUSTER_NAME"
-        ASG_INDEX_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_INDEX_NAME} \
-        --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
-        echo "Index service instances of the cluster: $ASG_INDEX_INST"
-
-        ASG_QUERY_NAME="couchbase-asg-query-$CLUSTER_NAME"
-        ASG_QUERY_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_QUERY_NAME} \
-        --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
-        echo "Query service instances of the cluster: $ASG_QUERY_INST"
-
     fi
 
-    echo "Concatenate all the instance of the auto-scaling group into one."
-    ALL_ASG_INST="$ASG_DATA_INST $ASG_INDEX_INST $ASG_QUERY_INST"
+    ALL_ASG_INST="$ASG_ALLSERVICES_INST"
     echo "All the instances of the cluster: $ALL_ASG_INST"
 }
 ## ***************************************************************************************************
@@ -159,18 +140,17 @@ node_init () {
 cluster_init () {
     # This should occur only for one node of the cluster and that node should be a data node. 
     # Need to find a method to protect this password. Future work. 
-    echo "Service offering of the node: $SERVICE_OFFERING"
-    id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
-    ip=$(get_node_ip $arg1 $id)       
-    PRIMARY_SERVER_IP=$ip  
-    echo "Designated primary server ip: $PRIMARY_SERVER_IP"  
-    if [ "$SERVICE_OFFERING" == "data" ]; then
-
+    echo "Server type of the node: $SERVICE_TYPE"
+    
+    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+        id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
+        ip=$(get_node_ip $arg1 $id)       
+        PRIMARY_SERVER_IP=$ip
         if [ "$ip" == "$CURRENT_NODE_IP" ]; then
             output=null
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
-                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data \
-                    --cluster-ramsize 256 )
+                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
+                    --cluster-ramsize 256 --cluster-index-ramsize 256)
             echo "output: cluster-init: $output"
             # Ideally the cluster name should be set with cluster-init method. However due to some reason it seems not working. 
             #So setting cluster name in a different way.
@@ -189,7 +169,6 @@ cluster_init () {
                 -p $CLUSTER_PASSWORD --move-servers $CURRENT_NODE_IP --from-group "Group 1" --to-group $group_name)
             echo "output: move-group: $output"
         fi
-
     fi
 }
 ## ***************************************************************************************************
@@ -226,36 +205,18 @@ wait_for_couchbase () {
 
 ## ***************************************************************************************************
 server_add () {
-
-    echo "Service offering of the node: $SERVICE_OFFERING"
-    group_name=`echo "rack-"${AZ:(-2)}`
-    output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME \
-                    -p $CLUSTER_PASSWORD --create --group-name $group_name)
-    echo "output: create-group: $output"
-
-    if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$SERVICE_OFFERING" == "data" ]; then
+    if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" ]; then
+        group_name=`echo "rack-"${AZ:(-2)}`
+        output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME \
+                        -p $CLUSTER_PASSWORD --create --group-name $group_name)
+        echo "output: create-group: $output"
         output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
-            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data" \
+            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data","query","index" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "output: server-add: $output"     
         output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
-        echo "Debug: server-add: $output"
+        echo "Debug: server_add: $output"
     fi
-
-    if [ "$SERVICE_OFFERING" == "index" ]; then
-        output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
-            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="index" \
-            --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
-        echo "output: server-add: $output"
-    fi
-
-    if [ "$SERVICE_OFFERING" == "query" ]; then
-        output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
-            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="query" \
-            --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
-        echo "output: server-add: $output"
-    fi
-
 }
 ## ***************************************************************************************************
 
@@ -287,7 +248,6 @@ node_init
 echo ""
 echo "07. Initializing the cluster..."
 cluster_init
-sleep 10s
 echo ""
 echo "08. Add server..."
 server_add
