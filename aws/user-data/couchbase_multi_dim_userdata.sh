@@ -287,6 +287,7 @@ node_init
 echo ""
 echo "07. Initializing the cluster..."
 cluster_init
+sleep 10s
 echo ""
 echo "08. Add server..."
 server_add
