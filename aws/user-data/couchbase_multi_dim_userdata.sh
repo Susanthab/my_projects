@@ -153,8 +153,8 @@ cluster_init () {
         if [ "$ip" == "$CURRENT_NODE_IP" ]; then
             output=null
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
-                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
-                    --cluster-ramsize 256 --cluster-index-ramsize 256)
+                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data \
+                    --cluster-ramsize 256 )
             echo "output: cluster-init: $output"
             # Ideally the cluster name should be set with cluster-init method. However due to some reason it seems not working. 
             #So setting cluster name in a different way.
@@ -209,13 +209,13 @@ wait_for_couchbase () {
 
 ## ***************************************************************************************************
 server_add () {
-    if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" ]; then
+    if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$SERVICE_OFFERING" == "data" ]; then
         group_name=`echo "rack-"${AZ:(-2)}`
         output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME \
                         -p $CLUSTER_PASSWORD --create --group-name $group_name)
         echo "output: create-group: $output"
         output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
-            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data","query","index" \
+            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "output: server-add: $output"     
         output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
