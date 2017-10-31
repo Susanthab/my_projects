@@ -169,7 +169,7 @@ cluster_init () {
     ip=$(get_node_ip $arg1 $id)       
     PRIMARY_SERVER_IP=$ip  
     echo "Designated primary server ip: $PRIMARY_SERVER_IP"  
-    if [ "$ip" == "$CURRENT_NODE_IP"  -a [ "$SERVICE_OFFERING" == "data" -o "$SERVICE_TYPE" == "AllServicesInOne" ] ]; then
+    if [ "$ip" == "$CURRENT_NODE_IP" ] -a [ "$SERVICE_OFFERING" == "data" -o "$SERVICE_TYPE" == "AllServicesInOne" ]; then
 
         if [ "$SERVICE_OFFERING" == "data" ]; then
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
