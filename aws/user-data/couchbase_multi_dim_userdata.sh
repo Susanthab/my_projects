@@ -98,16 +98,26 @@ get_tags_and_instances () {
     echo "Cluster name: $CLUSTER_NAME"
 
     if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
-        ASG_ALLSERVICES_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
-        --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
 
         ASG_DATA_NAME="couchbase-asg-data-$CLUSTER_NAME"
         ASG_DATA_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_DATA_NAME} \
         --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
         echo "Data service instances of the cluster: $ASG_DATA_INST"
+
+        ASG_INDEX_NAME="couchbase-asg-index-$CLUSTER_NAME"
+        ASG_INDEX_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_INDEX_NAME} \
+        --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+        echo "Index service instances of the cluster: $ASG_INDEX_INST"
+
+        ASG_QUERY_NAME="couchbase-asg-query-$CLUSTER_NAME"
+        ASG_QUERY_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_QUERY_NAME} \
+        --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+        echo "Query service instances of the cluster: $ASG_QUERY_INST"
+
     fi
 
-    ALL_ASG_INST="$ASG_ALLSERVICES_INST"
+    echo "Concatenate all the instance of the auto-scaling group into one."
+    ALL_ASG_INST="$ASG_DATA_INST $ASG_INDEX_INST $ASG_QUERY_INST"
     echo "All the instances of the cluster: $ALL_ASG_INST"
 }
 ## ***************************************************************************************************
