@@ -2,9 +2,10 @@
 
 #=============================================================
 #Author: Susantha B
-#Date: 10/25/17
+#Date: 10/31/17
 #Version: 1.0
-#Purpose: Install & configure Couchbase cluster on AWS. 
+#Purpose: Install & configure Couchbase cluster on AWS with 
+#         multi-dimential scaling. 
 #=============================================================
 
 ## ***************************************************************************************************
@@ -89,11 +90,14 @@ get_tags_and_instances () {
     SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Node service type: $SERVICE_TYPE"
+    SERVICE_OFFERING=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+        --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_offering`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    echo "Node service offering: $SERVICE_OFFERING"
     CLUSTER_NAME=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "Cluster name: $CLUSTER_NAME"
 
-    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+    if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
         ASG_ALLSERVICES_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
     fi
@@ -140,9 +144,9 @@ node_init () {
 cluster_init () {
     # This should occur only for one node of the cluster and that node should be a data node. 
     # Need to find a method to protect this password. Future work. 
-    echo "Server type of the node: $SERVICE_TYPE"
+    echo "Service offering of the node: $SERVICE_OFFERING"
     
-    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+    if [ "$SERVICE_OFFERING" == "data" ]; then
         id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
         ip=$(get_node_ip $arg1 $id)       
         PRIMARY_SERVER_IP=$ip
