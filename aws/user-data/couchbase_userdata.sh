@@ -167,7 +167,7 @@ cluster_init () {
     echo "Service type of the node is: $SERVICE_TYPE" 
     echo "Service offering of the node: $SERVICE_OFFERING"
 
-    if [ "$SERVICE_OFFERING" == "data" ]; then
+    if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
         id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
     fi
 
