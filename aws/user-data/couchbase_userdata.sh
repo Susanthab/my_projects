@@ -166,7 +166,7 @@ cluster_init () {
     # Need to find a method to protect this password. Future work.
     echo "Service type of the node is: $SERVICE_TYPE" 
     echo "Service offering of the node: $SERVICE_OFFERING"
-    
+
     if [ "$SERVICE_OFFERING" == "data" ]; then
         id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
     fi
@@ -256,9 +256,7 @@ server_add () {
         output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
             --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
-        echo "output: server-add: $output"     
-        output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
-        echo "Debug: server-add: $output"
+        echo "output: server-add: $output"
     fi
 
     if [ "$SERVICE_OFFERING" == "index" ]; then
@@ -279,8 +277,17 @@ server_add () {
         output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
             --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data","query","index" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
-        echo "output: server-add: $output"    
+        echo "output: server-add: $output"   
     fi
+
+    echo "Checking whether server is added to the cluster..."
+    output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
+    echo "output: host-list: $output"
+    while [ -z "$output" ]
+    do
+        server_add
+        output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
+    done
 
 }
 ## ***************************************************************************************************
