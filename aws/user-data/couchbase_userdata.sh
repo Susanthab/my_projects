@@ -285,6 +285,7 @@ server_add () {
     echo "output: host-list: $output"
     while [ -z "$output" ]
     do
+        sleep 5s
         server_add
         output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
     done
