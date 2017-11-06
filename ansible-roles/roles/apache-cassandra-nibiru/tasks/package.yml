@@ -8,6 +8,8 @@
   apt_key:
     url: "https://www.apache.org/dist/cassandra/KEYS"
     state: present
+  retries: 10
+  delay: 2
 
 - name: Cassandra | Add the Apache repository of Cassandra
   apt_repository:
