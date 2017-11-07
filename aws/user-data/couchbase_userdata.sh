@@ -307,9 +307,9 @@ server_status () {
     for id in $ALL_ASG_INST
     do 
         ip=$(get_node_ip $arg1 $id)
-        output=$(/opt/couchbase/bin/couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
-                 grep clusterMembership | grep active | awk '{print $2}' | tr -d '",')
+        output=$(/opt/couchbase/bin/couchbase-cli server-list -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD)
         echo "debug: server_info: $ip - $output"
+        echo ""
     done
 
 }
