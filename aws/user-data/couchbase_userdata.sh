@@ -315,11 +315,16 @@ get_primary_server () {
         if [ -n "$output" ]; then
           echo "Active server found in the cluster."
           primary_server=$ip
-          echo "Primary server is: $primary_server"
+          echo "Primary server is-1: $primary_server"
           break
         fi
 
     done
+
+    if [ -z "$output" ]; then
+        primary_server=$(get_node_ip $arg1 $id)
+        echo "Primary server is-2: $primary_server"
+    fi
 
 }
 ## ***************************************************************************************************
