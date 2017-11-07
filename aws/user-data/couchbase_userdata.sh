@@ -121,9 +121,9 @@ get_tags_and_instances () {
 
         echo "Concatenate all the instances of the auto-scaling groups into one."
         ALL_ASG_INST="$ASG_DATA_INST $ASG_INDEX_INST $ASG_QUERY_INST"
-        echo "All the instances of the cluster: $ALL_ASG_INST"        
-
     fi
+    
+    echo "All the instances of the cluster: $ALL_ASG_INST"  
 }
 ## ***************************************************************************************************
 
@@ -302,16 +302,23 @@ rebalance () {
 
 ## ***************************************************************************************************
 # This is for testing purpose only.
-server_status () {
+get_primary_server () {
 
     for id in $ALL_ASG_INST
-    do 
+    do
         ip=$(get_node_ip $arg1 $id)
-        output=$(/opt/couchbase/bin/couchbase-cli server-list -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD)
-        echo "debug: server_info_full: $ip - $output"
-        output=$(/opt/couchbase/bin/couchbase-cli server-list -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD@ | grep $ip | grep healthy | grep active)
+        output=$(/opt/couchbase/bin/couchbase-cli server-list -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+             grep $ip | grep healthy | grep active)
         echo "debug: server_info: $ip - $output"
         echo ""
+
+        if [ -n "$output" ]; then
+          echo "Active server found in the cluster."
+          primary_server=$ip
+          echo "Primary server is: $primary_server"
+          break
+        fi
+
     done
 
 }
@@ -338,7 +345,7 @@ echo "06. Initializes the node, $CURRENT_NODE_IP"
 node_init
 echo ""
 echo "07. Initializing the cluster..."
-server_status
+get_primary_server
 cluster_init
 sleep 10s
 echo ""
