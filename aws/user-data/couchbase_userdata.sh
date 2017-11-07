@@ -344,14 +344,16 @@ get_primary_server () {
 # Still in testing...
 find_unhealthy_nodes_and_remove () {
 
-    output=$(/opt/couchbase/bin/couchbase-cli server-list -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
-            grep unhealthy | grep active)    
+    dead_node=$(/opt/couchbase/bin/couchbase-cli server-list -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+            grep unhealthy | grep active | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | head -1)    
     
-    if [ -n "$output" ]; then
-        echo "INFO: Unhealthy node found: $output"
+    if [ -n "$dead_node" ]; then
+        echo "INFO: Unhealthy node found: $dead_node"
         echo "INFO: Preparing to failover..."
-        #output=$(/opt/couchbase/bin/couchbase-cli server-list -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
-        #       --server-failover )
+        output=$(/opt/couchbase/bin/couchbase-cli failover -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
+               --server-failover $dead_node --force)
+        echo "INFO: Server failover: $output"
+        sleep 10s
     fi
 
 }
