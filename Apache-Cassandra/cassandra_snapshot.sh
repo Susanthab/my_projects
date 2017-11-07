@@ -11,6 +11,7 @@
 # 1. zip/unzip has to be installed in all the nodes. 
 #    apt-get install zip unzip
 # 2. aws cli
+# 3. IAM role permission for the EC2 to access S3. 
 
 # Set the data dir path here. 
 _DATA_DIR='/data/cassandra/data/'

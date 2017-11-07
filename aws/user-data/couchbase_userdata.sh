@@ -300,6 +300,22 @@ rebalance () {
     echo "output: rebalance: $output"
 }
 
+## ***************************************************************************************************
+# This is for testing purpose only.
+server_status () {
+
+    for id in $ALL_ASG_INST
+    do 
+        ip=$(get_node_ip $arg1 $id)
+        output=$(/opt/couchbase/bin/couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \ 
+            grep clusterMembership | grep active | awk '{print $2}' | tr -d '",')
+        echo "debug: server_info: $output"
+    done
+
+}
+## ***************************************************************************************************
+
+
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
 create_paths
@@ -320,6 +336,7 @@ echo "06. Initializes the node, $CURRENT_NODE_IP"
 node_init
 echo ""
 echo "07. Initializing the cluster..."
+server_status
 cluster_init
 sleep 10s
 echo ""
