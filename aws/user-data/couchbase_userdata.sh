@@ -164,19 +164,19 @@ node_init () {
 cluster_init () {
     # This should occur only for one node of the cluster and that node should be a data node. 
     # Need to find a method to protect this password. Future work.
-    echo "Service type of the node is: $SERVICE_TYPE" 
-    echo "Service offering of the node: $SERVICE_OFFERING"
+    #echo "Service type of the node is: $SERVICE_TYPE" 
+    #echo "Service offering of the node: $SERVICE_OFFERING"
 
-    if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
-        id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
-    fi
+    #if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
+    #    id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
+    #fi
 
-    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
-        id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
-    fi
+    #if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+    #    id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
+    #fi
     
     ip=$(get_node_ip $arg1 $id)       
-    PRIMARY_SERVER_IP=$ip  
+    #PRIMARY_SERVER_IP=$ip  
     echo "Designated primary server ip: $PRIMARY_SERVER_IP"  
     if [ "$ip" == "$CURRENT_NODE_IP" -a "$SERVICE_OFFERING" == "data" -o "$SERVICE_TYPE" == "AllServicesInOne" ]; then
 
@@ -304,7 +304,18 @@ rebalance () {
 # This is for testing purpose only.
 get_primary_server () {
 
-    for id in $ALL_ASG_INST
+    echo "Service type of the node is: $SERVICE_TYPE" 
+    echo "Service offering of the node: $SERVICE_OFFERING"
+
+    if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
+        ALL_INST=$ASG_DATA_INST
+    fi
+
+    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+        ALL_INST=$ALL_ASG_INST
+    fi
+
+    for id in $ALL_INST
     do
         ip=$(get_node_ip $arg1 $id)
         output=$(/opt/couchbase/bin/couchbase-cli server-list -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
@@ -314,16 +325,17 @@ get_primary_server () {
 
         if [ -n "$output" ]; then
           echo "Active server found in the cluster."
-          primary_server=$ip
-          echo "Primary server is-1: $primary_server"
+          PRIMARY_SERVER_IP=$ip
+          echo "Primary server is-1: $PRIMARY_SERVER_IP"
           break
         fi
 
     done
 
     if [ -z "$output" ]; then
-        primary_server=$(get_node_ip $arg1 $id)
-        echo "Primary server is-2: $primary_server"
+        id=`echo $ALL_INST | head -n1 | awk '{print $1;}'`
+        PRIMARY_SERVER_IP=$(get_node_ip $arg1 $id)
+        echo "Primary server is-2: $PRIMARY_SERVER_IP"
     fi
 
 }
