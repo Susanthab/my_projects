@@ -301,7 +301,6 @@ rebalance () {
 }
 
 ## ***************************************************************************************************
-# This is for testing purpose only.
 get_primary_server () {
 
     echo "Service type of the node is: $SERVICE_TYPE" 
@@ -337,10 +336,26 @@ get_primary_server () {
         PRIMARY_SERVER_IP=$(get_node_ip $arg1 $id)
         echo "Primary server is-2: $PRIMARY_SERVER_IP"
     fi
-
+    
 }
 ## ***************************************************************************************************
 
+## ***************************************************************************************************
+# Still in testing...
+find_unhealthy_nodes_and_remove () {
+
+    output=$(/opt/couchbase/bin/couchbase-cli server-list -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+            grep unhealthy | grep active)    
+    
+    if [ -n "$output" ]; then
+        echo "INFO: Unhealthy node found: $output"
+        echo "INFO: Preparing to failover..."
+        #output=$(/opt/couchbase/bin/couchbase-cli server-list -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
+        #       --server-failover )
+    fi
+
+}
+## ***************************************************************************************************
 
 ## ************************** EXECUTION *************************************************************
 echo "01. Create data and index paths..."
@@ -361,16 +376,21 @@ echo ""
 echo "06. Initializes the node, $CURRENT_NODE_IP"
 node_init
 echo ""
-echo "07. Initializing the cluster..."
+echo "07. Identify a primary server..."
 get_primary_server
+echo ""
+echo "08. Initializing the cluster..."
 cluster_init
 sleep 10s
 echo ""
-echo "08. Add server..."
+echo "09. Add server..."
 server_add
 sleep 30s
 echo ""
-echo "09. Rebalance"
+echo "10. Remove unhealthy nodes..."
+find_unhealthy_nodes_and_remove
+echo ""
+echo "11. Rebalance"
 rebalance
 ## ***********************END OF EXECUTION **********************************************************
 
