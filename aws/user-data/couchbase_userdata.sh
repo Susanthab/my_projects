@@ -89,7 +89,7 @@ create_paths () {
 get_tags_and_instances () {
     SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
-    echo "INFO: Node service type: $SERVICE_TYPE"
+    echo "INFO: Cluster type: $SERVICE_TYPE"
     SERVICE_OFFERING=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_offering`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "INFO: Node service offering: $SERVICE_OFFERING"
@@ -119,11 +119,11 @@ get_tags_and_instances () {
         --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
         echo "INFO: Query service instances of the cluster: $ASG_QUERY_INST"
 
-        echo "Concatenate all the instances of the auto-scaling groups into one."
+        echo "INFO: Concatenate all the instances of the auto-scaling groups into one."
         ALL_ASG_INST="$ASG_DATA_INST $ASG_INDEX_INST $ASG_QUERY_INST"
     fi
     
-    echo "All the instances of the cluster: $ALL_ASG_INST"  
+    echo "INFO: All the instances of the cluster: $ALL_ASG_INST"  
 }
 ## ***************************************************************************************************
 
@@ -280,7 +280,7 @@ server_add () {
         echo "OUTPUT: server-add: $output"   
     fi
 
-    echo "Checking whether server is added to the cluster..."
+    echo "INFO: Checking whether server is added to the cluster..."
     output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
     echo "OUTPUT: host-list: $output"
     while [ -z "$output" ]
@@ -360,39 +360,50 @@ find_unhealthy_nodes_and_remove () {
 ## ***************************************************************************************************
 
 ## ************************** EXECUTION *************************************************************
-echo "STEP 01. Create data and index paths..."
+echo "STEP 01 - Create data and index paths..."
+echo "========================================"
 create_paths
 echo ""
-echo "STEP 02. Get tags..."
+echo "STEP 02 - Get tags..."
+echo "====================="
 get_tags_and_instances
 echo ""
-echo "STEP 03. Wait for all the EC2 instances..."
+echo "STEP 03 - Wait for all the EC2 instances..."
+echo "==========================================="
 wait_for_ec2
 echo ""
-echo "STEP 04. Wait for network..."
+echo "STEP 04 - Wait for network..."
+echo "============================="
 wait_for_network
 echo ""
-echo "STEP 05. Wait for couchbase servers..."
+echo "STEP 05 - Wait for couchbase servers..."
+echo "======================================="
 wait_for_couchbase
 echo ""
-echo "STEP 06. Initializes the node, $CURRENT_NODE_IP"
+echo "STEP 06 - Initializes the node, $CURRENT_NODE_IP"
+echo "================================================"
 node_init
 echo ""
-echo "STEP 07. Identify a primary server..."
+echo "STEP 07 - Identify a primary server..."
+echo "======================================"
 get_primary_server
 echo ""
-echo "STEP 08. Initializing the cluster..."
+echo "STEP 08 - Initializing the cluster..."
+echo "====================================="
 cluster_init
 sleep 10s
 echo ""
-echo "STEP 09. Add server..."
+echo "STEP 09 - Add server..."
+echo "======================="
 server_add
 sleep 30s
 echo ""
-echo "STEP 10. Remove unhealthy nodes..."
+echo "STEP 10 - Remove unhealthy nodes..."
+echo "==================================="
 find_unhealthy_nodes_and_remove
 echo ""
-echo "STEP 11. Rebalance"
+echo "STEP 11 - Rebalance"
+echo "==================="
 rebalance
 ## ***********************END OF EXECUTION **********************************************************
 
