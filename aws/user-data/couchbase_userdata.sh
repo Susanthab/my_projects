@@ -8,6 +8,9 @@
 #         multi-dimential scaling. 
 #=============================================================
 
+echo "PATH=$PATH:/opt/couchbase/bin" > ~/.bash_profile
+source ~/.bash_profile
+
 ## ***************************************************************************************************
 # install SSM agent
 # ideally, this should install prior as custom data in AMI - future work. 
@@ -164,7 +167,7 @@ node_init () {
 cluster_init () {
     # This should occur only for one node of the cluster and that node should be a data node. 
     # Need to find a method to protect this password. Future work.
-        
+
     ip=$(get_node_ip $arg1 $id)       
     #PRIMARY_SERVER_IP=$ip  
     echo "INFO: Designated primary server ip: $PRIMARY_SERVER_IP"  

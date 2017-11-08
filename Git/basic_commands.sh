@@ -5,6 +5,7 @@ git checkout -b <branch-name>
 
 # add files
 git add 
+git add .
 
 # commit files. 
 git commit -m "st2 workflow to create cassandra ring."
