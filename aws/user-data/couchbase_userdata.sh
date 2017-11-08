@@ -87,9 +87,9 @@ create_paths () {
 
 ## ***************************************************************************************************
 get_tags_and_instances () {
-    SERVICE_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
-        --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
-    echo "INFO: Cluster type: $SERVICE_TYPE"
+    CLUSTER_TYPE=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+        --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_type`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    echo "INFO: Cluster type: $CLUSTER_TYPE"
     SERVICE_OFFERING=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`service_offering`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "INFO: Node service offering: $SERVICE_OFFERING"
@@ -97,12 +97,12 @@ get_tags_and_instances () {
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "INFO: Cluster name: $CLUSTER_NAME"
 
-    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+    if [ "$CLUSTER_TYPE" == "standard" ]; then
         ALL_ASG_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
     fi    
 
-    if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
+    if [ "$CLUSTER_TYPE" == "multidimentional" ]; then
 
         ASG_DATA_NAME="couchbase-asg-data-$CLUSTER_NAME"
         ASG_DATA_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${ASG_DATA_NAME} \
@@ -164,21 +164,21 @@ node_init () {
 cluster_init () {
     # This should occur only for one node of the cluster and that node should be a data node. 
     # Need to find a method to protect this password. Future work.
-    #echo "Service type of the node is: $SERVICE_TYPE" 
+    #echo "Service type of the node is: $CLUSTER_TYPE" 
     #echo "Service offering of the node: $SERVICE_OFFERING"
 
-    #if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
+    #if [ "$CLUSTER_TYPE" == "multidimentional" ]; then
     #    id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
     #fi
 
-    #if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+    #if [ "$CLUSTER_TYPE" == "standard" ]; then
     #    id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
     #fi
     
     ip=$(get_node_ip $arg1 $id)       
     #PRIMARY_SERVER_IP=$ip  
     echo "INFO: Designated primary server ip: $PRIMARY_SERVER_IP"  
-    if [ "$ip" == "$CURRENT_NODE_IP" -a "$SERVICE_OFFERING" == "data" -o "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+    if [ "$ip" == "$CURRENT_NODE_IP" -a "$SERVICE_OFFERING" == "data" -o "$CLUSTER_TYPE" == "standard" ]; then
 
         if [ "$SERVICE_OFFERING" == "data" ]; then
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
@@ -189,7 +189,7 @@ cluster_init () {
             #So setting cluster name in a different way.
         fi
 
-        if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+        if [ "$CLUSTER_TYPE" == "standard" ]; then
             output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
                     --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
                     --cluster-ramsize 256 --cluster-index-ramsize 256)
@@ -273,7 +273,7 @@ server_add () {
         echo "OUTPUT: server-add: $output"
     fi
 
-    if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+    if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$CLUSTER_TYPE" == "standard" ]; then
         output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
             --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data","query","index" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
@@ -303,14 +303,14 @@ rebalance () {
 ## ***************************************************************************************************
 get_primary_server () {
 
-    echo "INFO: Service type of the node is: $SERVICE_TYPE" 
+    echo "INFO: Service type of the node is: $CLUSTER_TYPE" 
     echo "INFO: Service offering of the node: $SERVICE_OFFERING"
 
-    if [ "$SERVICE_TYPE" == "MultiDimentional" ]; then
+    if [ "$CLUSTER_TYPE" == "multidimentional" ]; then
         ALL_INST=$ASG_DATA_INST
     fi
 
-    if [ "$SERVICE_TYPE" == "AllServicesInOne" ]; then
+    if [ "$CLUSTER_TYPE" == "standard" ]; then
         ALL_INST=$ALL_ASG_INST
     fi
 
