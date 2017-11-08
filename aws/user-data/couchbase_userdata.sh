@@ -157,7 +157,7 @@ wait_for_network () {
 node_init () {
     # for all the nodes in the cluster.
     output=null
-    output=$(/opt/couchbase/bin/couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path "$DATA_PATH" \
+    output=$(couchbase-cli node-init -c $CURRENT_NODE_IP --node-init-data-path "$DATA_PATH" \
     --node-init-index-path "$INDEX_PATH" -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD)
     echo "OUTPUT: node-init: $output"
 }
@@ -174,7 +174,7 @@ cluster_init () {
     if [ "$ip" == "$CURRENT_NODE_IP" -a "$SERVICE_OFFERING" == "data" -o "$CLUSTER_TYPE" == "standard" ]; then
 
         if [ "$SERVICE_OFFERING" == "data" ]; then
-            output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
+            output=$(couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
                     --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data \
                     --cluster-ramsize 256 )
             echo "OUTPUT: cluster-init: $output"
@@ -183,23 +183,23 @@ cluster_init () {
         fi
 
         if [ "$CLUSTER_TYPE" == "standard" ]; then
-            output=$(/opt/couchbase/bin/couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
+            output=$(couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
                     --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
                     --cluster-ramsize 256 --cluster-index-ramsize 256)
             echo "OUTPUT: cluster-init: $output"
         fi
 
-        output=$(/opt/couchbase/bin/couchbase-cli setting-cluster -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
+        output=$(couchbase-cli setting-cluster -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
                 --cluster-name $CLUSTER_NAME)
         echo "OUTPUT: setting-cluster (cluster name): $output"
 
         # Move node to a proper group. 
         # Create a group and then move the node because rename group did not work. 
         group_name=`echo "rack-"${AZ:(-2)}`
-        output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME \
+        output=$(couchbase-cli group-manage -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME \
             -p $CLUSTER_PASSWORD --create --group-name $group_name)
         echo "OUTPUT: create-group: $output"
-        output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME \
+        output=$(couchbase-cli group-manage -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME \
             -p $CLUSTER_PASSWORD --move-servers $CURRENT_NODE_IP --from-group "Group 1" --to-group $group_name)
         echo "OUTPUT: move-group: $output"
     fi
@@ -223,11 +223,11 @@ wait_for_couchbase () {
     for id in $ALL_ASG_INST
     do
         ip=$(get_node_ip $arg1 $id)
-        server_status=$(/opt/couchbase/bin/couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+        server_status=$(couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
             grep status | awk '{print $2}' | tr -d '",')
         while [ "$server_status" != "healthy" ]; do
             sleep 5
-            server_status=$(/opt/couchbase/bin/couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+            server_status=$(couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
                 grep status | awk '{print $2}' | tr -d '",')
         done
         echo "INFO: Status of the server, $ip: $server_status"
@@ -241,46 +241,46 @@ server_add () {
 
     echo "INFO: Service offering of the node: $SERVICE_OFFERING"
     group_name=`echo "rack-"${AZ:(-2)}`
-    output=$(/opt/couchbase/bin/couchbase-cli group-manage -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME \
+    output=$(couchbase-cli group-manage -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME \
                     -p $CLUSTER_PASSWORD --create --group-name $group_name)
     echo "OUTPUT: create-group: $output"
 
     if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$SERVICE_OFFERING" == "data" ]; then
-        output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
+        output=$(couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
             --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "OUTPUT: server-add: $output"
     fi
 
     if [ "$SERVICE_OFFERING" == "index" ]; then
-        output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
+        output=$(couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
             --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="index" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "OUTPUT: server-add: $output"
     fi
 
     if [ "$SERVICE_OFFERING" == "query" ]; then
-        output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
+        output=$(couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
             --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="query" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "OUTPUT: server-add: $output"
     fi
 
     if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$CLUSTER_TYPE" == "standard" ]; then
-        output=$(/opt/couchbase/bin/couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
+        output=$(couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
             --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data","query","index" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "OUTPUT: server-add: $output"   
     fi
 
     echo "INFO: Checking whether server is added to the cluster..."
-    output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
+    output=$(couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
     echo "OUTPUT: host-list: $output"
     while [ -z "$output" ]
     do
         sleep 5s
         server_add
-        output=$(/opt/couchbase/bin/couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
+        output=$(couchbase-cli host-list --cluster $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | grep $CURRENT_NODE_IP)
     done
 
 }
@@ -289,7 +289,7 @@ server_add () {
 rebalance () {
     # wait for all the nodes of the Couchbase cluster. 
     wait_for_couchbase
-    output=$(/opt/couchbase/bin/couchbase-cli rebalance -c  $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD)
+    output=$(couchbase-cli rebalance -c  $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD)
     echo "OUTPUT: cluster rebalance: $output"
 }
 
@@ -310,7 +310,7 @@ get_primary_server () {
     for id in $ALL_INST
     do
         ip=$(get_node_ip $arg1 $id)
-        output=$(/opt/couchbase/bin/couchbase-cli server-list -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+        output=$(couchbase-cli server-list -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
              grep $ip | grep healthy | grep active)
         echo "OUTPUT: server-list: $ip - $output"
         echo ""
@@ -337,13 +337,13 @@ get_primary_server () {
 # This will handle one failed node only. 
 find_unhealthy_nodes_and_remove () {
 
-    dead_node=$(/opt/couchbase/bin/couchbase-cli server-list -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
+    dead_node=$(couchbase-cli server-list -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
             grep unhealthy | grep active | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | head -1)    
     
     if [ -n "$dead_node" ]; then
         echo "INFO: Unhealthy node found: $dead_node"
         echo "INFO: Preparing to failover..."
-        output=$(/opt/couchbase/bin/couchbase-cli failover -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
+        output=$(couchbase-cli failover -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD \
                --server-failover $dead_node --force)
         echo "OUTPUT: Server failover: $output"
         sleep 10s
