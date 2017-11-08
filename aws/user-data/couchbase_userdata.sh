@@ -164,17 +164,7 @@ node_init () {
 cluster_init () {
     # This should occur only for one node of the cluster and that node should be a data node. 
     # Need to find a method to protect this password. Future work.
-    #echo "Service type of the node is: $CLUSTER_TYPE" 
-    #echo "Service offering of the node: $SERVICE_OFFERING"
-
-    #if [ "$CLUSTER_TYPE" == "multidimentional" ]; then
-    #    id=`echo $ASG_DATA_INST | head -n1 | awk '{print $1;}'`
-    #fi
-
-    #if [ "$CLUSTER_TYPE" == "standard" ]; then
-    #    id=`echo $ALL_ASG_INST | head -n1 | awk '{print $1;}'`
-    #fi
-    
+        
     ip=$(get_node_ip $arg1 $id)       
     #PRIMARY_SERVER_IP=$ip  
     echo "INFO: Designated primary server ip: $PRIMARY_SERVER_IP"  
@@ -303,7 +293,7 @@ rebalance () {
 ## ***************************************************************************************************
 get_primary_server () {
 
-    echo "INFO: Service type of the node is: $CLUSTER_TYPE" 
+    echo "INFO: Service type is: $CLUSTER_TYPE" 
     echo "INFO: Service offering of the node: $SERVICE_OFFERING"
 
     if [ "$CLUSTER_TYPE" == "multidimentional" ]; then
