@@ -1,0 +1,75 @@
+version: '2.0'
+
+name: couchbase.create_couchbase_iam_instance_profile
+description: Mistral Workflow to create IAM instance profile requires for Couchbase cluster.
+
+workflows:
+
+  main:
+    type: direct
+    input:
+      - iam_role_name 
+      - region
+      - assume_role
+
+    vars:
+      role_policy: <% list(dict(arn => "arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess")) +
+                      list(dict(arn => "arn:aws:iam::aws:policy/AutoScalingReadOnlyAccess")) +
+                      list(dict(arn => "arn:aws:iam::aws:policy/AmazonSSMFullAccess")) + 
+                      list(dict(arn => "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"))
+                   %>
+
+    tasks:
+
+      assume_role:
+        action: aws.assume_role
+        input:
+          role_arn: <% $.assume_role %>
+        publish:
+          credentials: <% task(assume_role).result.result %>
+        on-success:
+            - iam_create_role
+
+      iam_create_role:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: iam
+          action_name: create_role
+          params: <% dict(RoleName => $.iam_role_name, AssumeRolePolicyDocument => '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":["ec2.amazonaws.com"]},"Action":["sts:AssumeRole"]}]}', Description => "Allows EC2 instances to call AWS services.") %>
+          credentials: <% $.credentials %>
+        publish:
+          iam_role_arn: <% task(iam_create_role).result.result.Role.Arn %>
+        on-success:
+          - manage_policy
+      
+      manage_policy:
+        with-items:
+          - arn in <% role_policy.select($.arn) %>
+        workflow: manage_policy
+        input:
+          region: <% $.region %>
+          credentials: <% $.credentials %>
+          iam_role_name: <% $.iam_role_name %>
+          policy_arn: <% arn %>
+
+    manage_policy:
+      type: direct
+      input:
+        - region
+        - credentials
+        - iam_role_name
+        - policy_arn
+        
+      tasks:
+
+        attach_role_policy:
+          action: aws.boto3action
+          input:
+            region: <% $.region %>
+            service: iam
+            action_name: attach_role_policy
+            params: <% dict(RoleName => $.iam_role_name, PolicyArn => $.policy_arn %>
+            credentials: <% $.credentials %>
+          publish:
+            iam_role_arn: <% task(iam_create_role).result.result.Role.Arn %>

@@ -142,8 +142,6 @@ KeyName="nibiru-demo" \
 consul_endpoint="infrastructure/aws/us-west-1/vpc/nib1009/state/vpc/"
 
 
-
-
 ## ***************************************************************************************************
 # check Ephemeral storage exists. 
 # Assuming Ephemeral storage always comes as /mnt 
