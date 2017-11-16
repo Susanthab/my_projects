@@ -68,10 +68,10 @@ echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo never > /sys/kernel/mm/transparent_hugepage/defrag 
 
 echo "INFO: Install Couchbase..."
-#wget https://packages.couchbase.com/releases/4.6.3/couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
-wget https://packages.couchbase.com/releases/5.0.0/couchbase-server-enterprise_5.0.0-ubuntu16.04_amd64.deb 
-#dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
-dpkg -i couchbase-server-enterprise_5.0.0-ubuntu16.04_amd64.deb 
+wget https://packages.couchbase.com/releases/4.6.3/couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
+#wget https://packages.couchbase.com/releases/5.0.0/couchbase-server-enterprise_5.0.0-ubuntu16.04_amd64.deb 
+dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
+#dpkg -i couchbase-server-enterprise_5.0.0-ubuntu16.04_amd64.deb 
 
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
