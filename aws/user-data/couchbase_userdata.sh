@@ -81,7 +81,7 @@ apt-get -y update
 while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
     sleep 5;
 done
-apt-get install couchbase-server
+apt-get -y install couchbase-server
 sleep 10s
 echo "INFO: Finished installing Couchbase 5.0."
 echo "========================================"
