@@ -73,20 +73,23 @@ echo never > /sys/kernel/mm/transparent_hugepage/defrag
 #dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 ##dpkg -i couchbase-server-enterprise_5.0.0-ubuntu16.04_amd64.deb 
 
+wait_for_lock () {
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+        echo "INFO: waiting for the lock"
+        sleep 5;
+    done
+}
+
 echo "INFO: Install Couchbase 5.0..."
 echo "=============================="
 curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
+wait_for_lock
 dpkg -i couchbase-release-1.0-4-amd64.deb
+wait_for_lock
 apt-get -y update
-while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-    echo "INFO: waiting for the lock.(1)"
-    sleep 5;
-done
+wait_for_lock
 apt-get -y install couchbase-server
-while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-    echo "INFO: waiting for the lock.(2)"
-    sleep 5;
-done
+wait_for_lock
 echo "INFO: Finished installing Couchbase 5.0."
 echo "========================================"
 
