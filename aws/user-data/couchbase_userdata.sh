@@ -79,10 +79,14 @@ curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-relea
 dpkg -i couchbase-release-1.0-4-amd64.deb
 apt-get -y update
 while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+    echo "INFO: waiting for the lock.(1)"
     sleep 5;
 done
 apt-get -y install couchbase-server
-sleep 10s
+while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+    echo "INFO: waiting for the lock.(2)"
+    sleep 5;
+done
 echo "INFO: Finished installing Couchbase 5.0."
 echo "========================================"
 
