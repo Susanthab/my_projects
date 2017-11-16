@@ -77,7 +77,7 @@ echo "INFO: Install Couchbase 5.0..."
 echo "=============================="
 curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
 dpkg -i couchbase-release-1.0-4-amd64.deb
-apt-get update
+apt-get -y update
 while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
     sleep 5;
 done
