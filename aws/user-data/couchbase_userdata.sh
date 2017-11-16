@@ -75,21 +75,33 @@ echo never > /sys/kernel/mm/transparent_hugepage/defrag
 
 wait_for_lock () {
     while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-        echo "INFO: waiting for the lock"
+        echo "INFO: waiting for the dpkg lock"
         sleep 5;
     done
 }
+
+wait_for_lists_lock () {
+    while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+        echo "INFO: waiting for the lists lock"
+        sleep 5;
+    done
+}
+
 
 echo "INFO: Install Couchbase 5.0..."
 echo "=============================="
 curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
 wait_for_lock
+wait_for_lists_lock
 dpkg -i couchbase-release-1.0-4-amd64.deb
 wait_for_lock
+wait_for_lists_lock
 apt-get -y update
 wait_for_lock
+wait_for_lists_lock
 apt-get -y install couchbase-server
 wait_for_lock
+wait_for_lists_lock
 echo "INFO: Finished installing Couchbase 5.0."
 echo "========================================"
 
