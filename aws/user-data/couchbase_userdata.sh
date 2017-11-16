@@ -67,11 +67,20 @@ echo "INFO: Disable Transparent Huge Pages..."
 echo never > /sys/kernel/mm/transparent_hugepage/enabled 
 echo never > /sys/kernel/mm/transparent_hugepage/defrag 
 
-echo "INFO: Install Couchbase 4.0..."
+#echo "INFO: Install Couchbase 4.0..."
 #wget https://packages.couchbase.com/releases/4.6.3/couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 ##wget https://packages.couchbase.com/releases/5.0.0/couchbase-server-enterprise_5.0.0-ubuntu16.04_amd64.deb 
 #dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 ##dpkg -i couchbase-server-enterprise_5.0.0-ubuntu16.04_amd64.deb 
+
+echo "INFO: Install Couchbase 5.0..."
+echo "=============================="
+curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
+dpkg -i couchbase-release-1.0-4-amd64.deb
+apt-get update
+apt-get install couchbase-server
+echo "INFO: Finished installing Couchbase 5.0."
+echo "========================================"
 
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
