@@ -1,50 +1,21 @@
 version: '2.0'
 
-bitesize-cassandra.create_cassandra_ring:
-  description: A Generic workflow that creates an Apache Cassandra ring on AWS.
+bitesize-cassandra.add_nodes_to_cassandra_ring:
+  description: st2 workflow to add new nodes (seed | non-seed) and increase the total no.of non-seed nodes of the cluster.
   type: direct
   output:
-    lc_name: <% $.lc_name %>
     status_message: <% $.status_message %>
 
   input:
     - region
-    - security_group_id
-    - iam_role_cassandra
-    - subnets
-    - cluster_name
-    - environment
-    - app_id
-    - min_size_seed
-    - max_size_seed
-    - desired_capacity_seed
-    - min_size_nonseed
-    - max_size_nonseed
-    - desired_capacity_nonseed
-    - team_id
-    - image_id
-    - ebs_optimized
-    - instance_type
-    - volume_size
-    - volume_type
-    - storage_type
-    - role
-    - t_owner_individual
-    - key_name
     - assume_role
+    - cluster_name
+    - number_of_nodes_toadd
+    - node_type
     - consul_endpoint
 
   vars:
-    UserData: |
-              #!/bin/bash
-              cd /root && git clone https://github.com/Susanthab/my_projects.git cassandra
-              chmod +x ./cassandra/aws/user-data/cassandra_ring.sh
-              ./cassandra/aws/user-data/cassandra_ring.sh
-
-    launch_config_name: <% 'cassandra-lc-' + $.cluster_name %>
-    asg_name: <% 'cassandra-asg-' + $.cluster_name %>
-    asg_seed: <% 'cassandra-asg-' + $.cluster_name + "-seed" %>
-    asg_nonseed: <% 'cassandra-asg-' + $.cluster_name + "-nonseed" %>
+    # get the following variable values from Consul.
 
   tasks:
 
@@ -54,109 +25,44 @@ bitesize-cassandra.create_cassandra_ring:
         role_arn: <% $.assume_role %>
       publish:
         credentials: <% task(assume_role).result.result %>
+        status_message: "Validate assume role."
       on-success:
-        - check_lc
+        - select_node_type
 
-    check_lc:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: autoscaling
-        action_name: describe_launch_configurations
-        params: <% dict(LaunchConfigurationNames => list($.launch_config_name) ) %>
-        credentials: <% $.credentials %>
-      publish:
-        lc_name: <% task(check_lc).result.result.LaunchConfigurations %>
-        status_message: "Retrieve Launch Configuration data."
-      on-success:
-        - check_asg_seed: <% len($.lc_name)!=0 %>
-        - check_asg_nonseed: <% len($.lc_name)!=0 %>
-        - select_storage_type: <% len($.lc_name)=0 %>
-
-    select_storage_type:
+    select_node_type:
       action: core.local
       input:
-        cmd: "printf <% $.storage_type %>"
+        cmd: "printf <% $.node_type %>"
       publish:
-        path: <% task(select_storage_type).result.stdout %>
-        status_message: "Selecting storage type between EBS and Ephemeral."
+        path: <% task(select_node_type).result.stdout %>
+        asg_name: <% 'cassandra-asg-' + $.cluster_name + "-" + task(select_node_type).result.stdout %>
+        status_message: "Selecting node type between seed and nonseed."
       on-success:
-        - create_launch_configuration_EBS: <% $.path = 'EBS' %>
-        - create_launch_configuration_Ephemeral: <% $.path = 'Ephemeral' %>
+        - check_asg
 
-    create_launch_configuration_EBS:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: autoscaling
-        action_name: create_launch_configuration
-        params: <% dict(LaunchConfigurationName => $.launch_config_name , ImageId => $.image_id, InstanceType => $.instance_type, KeyName => $.key_name, SecurityGroups => list($.security_group_id), IamInstanceProfile => $.iam_role_cassandra, UserData => $.UserData, BlockDeviceMappings => list(dict(DeviceName => "/dev/sdg", Ebs => dict(VolumeSize => $.volume_size, VolumeType => $.volume_type ))), AssociatePublicIpAddress => true) %>
-        credentials: <% $.credentials %>
-      publish:
-        status_message: "Create Launch Configuration with EBS as storage type."
-      on-success:
-        - check_asg_seed
-        - check_asg_nonseed
-
-    create_launch_configuration_Ephemeral:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: autoscaling
-        action_name: create_launch_configuration
-        params: <% dict(LaunchConfigurationName => $.launch_config_name , ImageId => $.image_id, InstanceType => $.instance_type, KeyName => $.key_name, SecurityGroups => list($.security_group_id), IamInstanceProfile => $.iam_role_cassandra, UserData => $.UserData, BlockDeviceMappings => list(dict(DeviceName => "/dev/sdc", VirtualName => "ephemeral1" )), AssociatePublicIpAddress => true) %>
-      publish:
-        status_message: "Create Launch Configuration with Ephemeral as storage type."
-      on-success:
-        - check_asg_seed
-        - check_asg_nonseed
-        
-    check_asg_seed:
+    check_asg:
       action: aws.boto3action
       input:
         region: <% $.region %>
         service: autoscaling
         action_name: describe_auto_scaling_groups
-        params: <% dict(AutoScalingGroupNames => list($.asg_seed) ) %>
+        params: <% dict(AutoScalingGroupNames => list($.asg_name)) %>
         credentials: <% $.credentials %>
       publish:
-        asg_name_1: <% task(check_asg_seed).result.result.AutoScalingGroups %>
-        status_message: "Retrieve Auto-scaling Group data."
+        new_desired_capacity: <% abs($.number_of_nodes_toadd) + task(check_asg).result.result.AutoScalingGroups[0].DesiredCapacity %>
+        autoscaling_groups: <% task(check_asg).result.result.AutoScalingGroups %>
+        max_size: <% task(check_asg).result.result.AutoScalingGroups[0].MaxSize %>
+        status_message: "Retrieve autoscaling group data."
       on-success:
-        - create_auto_scaling_group_seed: <% len($.asg_name_1)=0 %>
+        - set_desired_capacity: <% len($.autoscaling_groups)!=0 and $.new_desired_capacity <= $.max_size %>
 
-    create_auto_scaling_group_seed:
+    set_desired_capacity:
       action: aws.boto3action
       input:
         region: <% $.region %>
         service: autoscaling
-        action_name: create_auto_scaling_group
-        params: <% dict(LaunchConfigurationName => $.launch_config_name, AutoScalingGroupName => $.asg_seed, MinSize => $.min_size_seed, MaxSize => $.max_size_seed, DesiredCapacity => $.desired_capacity_seed, VPCZoneIdentifier => $.subnets, Tags => list(dict(Key => "Project", Value => "Nibiru-V3"), dict(Key => "t_environment", Value => $.environment), dict(Key => "app_id", Value => str($.app_id)), dict(Key => "team_id", Value => $.team_id), dict(Key => "t_role", Value => $.role), dict(Key => "t_owner_individual", Value => $.t_owner_individual), dict(Key => "Name", Value => $.environment + "-" + $.team_id + "-" + $.role + "-" + str($.app_id)), dict(Key => "node_type", Value => "seed"), dict(Key => "asg_name", Value => $.asg_name) )) %>
+        action_name: set_desired_capacity
+        params: <% dict(AutoScalingGroupName => $.asg_name, DesiredCapacity => $.new_desired_capacity, HonorCooldown => true) %>
         credentials: <% $.credentials %>
       publish:
-        status_message: "Creating Auto-scaling Group for seed nodes."
-
-    check_asg_nonseed:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: autoscaling
-        action_name: describe_auto_scaling_groups
-        params: <% dict(AutoScalingGroupNames => list($.asg_nonseed) ) %>
-        credentials: <% $.credentials %>
-      publish:
-        asg_name_2: <% task(check_asg_nonseed).result.result.AutoScalingGroups %>
-        status_message: "Retrieve Auto-scaling Group data."
-      on-success:
-        - create_auto_scaling_group_nonseed: <% len($.asg_name_2)=0 %>
-
-    create_auto_scaling_group_nonseed:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: autoscaling
-        action_name: create_auto_scaling_group
-        params: <% dict(LaunchConfigurationName => $.launch_config_name, AutoScalingGroupName => $.asg_nonseed, MinSize => $.min_size_nonseed, MaxSize => $.max_size_nonseed, DesiredCapacity => $.desired_capacity_nonseed, VPCZoneIdentifier => $.subnets, Tags => list(dict(Key => "Project", Value => "Nibiru-V3"), dict(Key => "t_environment", Value => $.environment), dict(Key => "app_id", Value => str($.app_id)), dict(Key => "team_id", Value => $.team_id), dict(Key => "t_role", Value => $.role), dict(Key => "t_owner_individual", Value => $.t_owner_individual), dict(Key => "Name", Value => $.environment + "-" + $.team_id + "-" + $.role + "-" + str($.app_id)), dict(Key => "node_type", Value => "nonseed"), dict(Key => "asg_name", Value => $.asg_name) )) %>
-        credentials: <% $.credentials %>
-      publish:
-        status_message: "Creating Auto-scaling Group for non-seed nodes."
+        status_message: "Set autoscaling new desired capacity."

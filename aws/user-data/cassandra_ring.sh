@@ -274,7 +274,8 @@ bootstrap_cassandra_seeds () {
         cnt=$((cnt + 1))
         
         if [ $cnt -eq $max_retries ]; then
-          echo "Max retries reached. Something has gone wrong. Please investigate. Exiting..."
+          echo "Max retries reached. Something has gone wrong. Doing a hard restart anyway. Please investigate. Exiting..."
+          force_stop_start_cassandra
           break
         fi
     done
@@ -326,7 +327,7 @@ bootstrap_cassandra_nonseeds () {
           clear_initial_data
           sleep 5s
           force_stop_start_cassandra
-          break
+          #break
         fi
     done
 
