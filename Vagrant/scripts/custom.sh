@@ -21,9 +21,9 @@ sudo pip install boto3
 echo "Install aws boto3 pack..."
 sudo st2 pack install aws=boto3
 
-echo "Install cassandra pack..."
-st2 pack install cassandra
+#echo "Install cassandra pack..."
+#t2 pack install cassandra
 
-echo "Install Travis CI..."
-sudo apt install ruby ruby-dev
-sudo gem install travis
+#echo "Install Travis CI..."
+#sudo apt install ruby ruby-dev
+#sudo gem install travis

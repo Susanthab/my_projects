@@ -35,6 +35,7 @@ UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
 echo "UUID=$UUID       /data   XFS    defaults,nofail        0       2" >> /etc/fstab
 mount -a
 
+pip install --upgrade pip
 pip install -q -r ./cassandra/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
 pip install awscli --upgrade
@@ -84,6 +85,8 @@ get_seed_and_nonseed_asgname () {
 get_seed_nonseed_instances () {
     seed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${seed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
     nonseed_instances=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${nonseed_asg} --region ${EC2_REGION} --query AutoScalingGroups[].Instances[].InstanceId --output text);
+    echo "Seed instances: $seed_instances"
+    echo "Non-seed instances: $nonseed_instances"
 }
 ## ***************************************************************************************************
 
@@ -125,7 +128,7 @@ wait_for_network () {
 
 ## ***************************************************************************************************
 update_cassandra_env_config_file () {
-    # Enable remote access and disable autherization. 
+    echo "Enable remote access and disable autherization..." 
     SEARCH='# JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"'
     REPLACE='JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname='$CURRENT_NODE_IP'"'
     sed -i "s/$SEARCH/$REPLACE/g" $cassandra_env_sh
@@ -319,7 +322,10 @@ bootstrap_cassandra_nonseeds () {
         cnt=$((cnt + 1))
         
         if [ $cnt -eq $max_retries ]; then
-          echo "Max retries reached. Something has gone wrong. Please investigate. Exiting..."
+          echo "Max retries reached. Something has gone wrong. Doing a hard restart anyway. Please investigate. Exiting..."
+          clear_initial_data
+          sleep 5s
+          force_stop_start_cassandra
           break
         fi
     done

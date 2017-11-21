@@ -1,13 +1,29 @@
 
+################
+# Attach orphan storage. 
+#!/bin/bash
+
+output=$(aws ec2 describe-volumes --region us-east-1 --filters Name="status",Values="in-use" \
+            Name=tag-key,Values="asg_name" Name=tag-value,Values="couchbase-asg-standard-standard" \
+            --query 'Volumes[*].{ID:VolumeId}')
+
+vol_cnt=$(echo $output | grep -c ID)
+echo "Volumnes count not in use: $vol_cnt"
+
+if [ $vol_cnt -eq 1 ]; then
+   echo "attach the not in use volume to the new instance." 
+   volume_id=$(echo $output | grep ID | grep vol | awk '{print $4}' | tr -d '"')
+   echo "Orphan volume_id is: $volume_id"  
+fi
+           
+
+################
+
+
+
 
 st2 run packs.install packs=ansible
 st2 run ansible.command_local module_name=apt args='name=sshpass state=present'
-
-ImageId: ami-47bc4c51
-KeyName: susanthab
-SecurityGroups: sg-06249479
-InstanceType: t2.micro
-LaunchConfigurationName: launch-config-mongo-2
 
 
 #!/bin/bash
