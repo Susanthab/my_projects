@@ -14,7 +14,7 @@ brew install docker-machine-driver-xhyve
 
 # Set the permission
 
-minikube start --vm-driver=xhyve --memory=4096
+minikube start --vm-driver=xhyve --memory=6144
 
 # verify 
 kubectl config current-context

@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: couchbase-enterprise
+  labels:
+    version: couchbase-5.0
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: couchbase-enterprise
+      labels:
+        app: couchbase-test
+        tier: data
+    spec:
+      containers:
+      - name: couchbase
+        image: "couchbase:latest"
+        ports:
+          - containerPort: 8091
+            protocol: TCP
