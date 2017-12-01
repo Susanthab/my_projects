@@ -1,164 +1,160 @@
 version: '2.0'
+name: couchbase.remove_node_from_couchbase_cluster
+description: st2 workflow to remove a node from a Couchbase cluster.
 
-bitesize-cassandra.remove_node_from_cassandra_ring:
-  description: st2 workflow to remove a node (seed | nonseed) from a Cassandra ring.
-  type: direct
-  output:
-    status_message: <% $.status_message %>
+workflows:
 
-  input:
-    - region
-    - assume_role
-    - cluster_name
-    - node_type
-    - remove_or_terminate
+  main:
+    type: direct
 
-  vars:
-    asg_name_nonseed: <% 'cassandra-asg-' + $.cluster_name + "-nonseed"%>
+    input:
+      - region
+      - assume_role
+      - cluster_name
+      - node_type
+      - remove_or_terminate
 
-  tasks:
+    tasks:
 
-    assume_role:
-      action: aws.assume_role
-      input:
-        role_arn: <% $.assume_role %>
-      publish:
-        credentials: <% task(assume_role).result.result %>
-        status_message: "Validate assume role."
-      on-success:
-        - select_node_type
+      assume_role:
+        action: aws.assume_role
+        input:
+          role_arn: <% $.assume_role %>
+        publish:
+          credentials: <% task(assume_role).result.result %>
+          status_message: "Validate assume role."
+        on-success:
+          - select_node_type
 
-    select_node_type:
-      action: core.local
-      input:
-        cmd: "printf <% $.node_type %>"
-      publish:
-        path: <% task(select_node_type).result.stdout %>
-        status_message: "Selecting node type between seed and nonseed."
-      on-success:
-        - check_asg_nonseed: <% $.path = 'nonseed' %>
+      select_node_type:
+        action: core.local
+        input:
+          cmd: "printf <% $.node_type %>"
+        publish:
+          path: <% task(select_node_type).result.stdout %>
+          asg_name: <% 'couchbase-asg-' + $.cluster_name + "-" + task(select_node_type).result.stdout %>
+          status_message: "Selecting node type between seed and nonseed."
+        on-success:
+          - check_asg
 
-    check_asg_nonseed:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: autoscaling
-        action_name: describe_auto_scaling_groups
-        params: <% dict(AutoScalingGroupNames => list($.asg_name_nonseed) ) %>
-        credentials: <% $.credentials %>
-      publish:
-        desired_capacity: <% task(check_asg_nonseed).result.result.AutoScalingGroups[0].DesiredCapacity %>
-        status_message: "Retrieve autoscaling group data."
-      on-success:
-        - select_node_to_decommission: <% $.desired_capacity > 1 %>
+      check_asg:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: autoscaling
+          action_name: describe_auto_scaling_groups
+          params: <% dict(AutoScalingGroupNames => list($.asg_name) ) %>
+          credentials: <% $.credentials %>
+        publish:
+          desired_capacity: <% task(check_asg).result.result.AutoScalingGroups[0].DesiredCapacity %>
+          status_message: "Retrieve autoscaling group data."
+        on-success:
+          - select_node_for_removal
 
-    select_node_to_decommission:
-      action: bitesize-cassandra.select_node_to_decommission
-      input:
-        region: <% $.region %>
-        credentials: <% $.credentials %>
-        asg_name: <% $.asg_name_nonseed %>
-      publish:
-        instance_id: <% task(select_node_to_decommission).result.result %>
-        status_message: "Select a node to decommission."
-      on-success:
-        - describe_instances
+      select_node_for_removal:
+        action: couchbase.select_node_for_removal
+        input:
+          region: <% $.region %>
+          credentials: <% $.credentials %>
+          asg_name: <% $.asg_name_nonseed %>
+        publish:
+          instance_id: <% task(select_node_to_decommission).result.result %>
+          status_message: "Select a node to decommission."
+        on-success:
+          - describe_instances
 
-    describe_instances:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: ec2
-        action_name: describe_instances
-        params: <% dict(InstanceIds => list($.instance_id)) %>
-        credentials: <% $.credentials %>
-      publish:
-        instance_name: <% task(describe_instances).result.result.Reservations[0].Instances[0].Tags.where($.Key = 'Name').select($.Value) %>
-        status_message: "describe_instances."
-      on-success:
-        - mark_for_decommission
+      describe_instances:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: ec2
+          action_name: describe_instances
+          params: <% dict(InstanceIds => list($.instance_id)) %>
+          credentials: <% $.credentials %>
+        publish:
+          instance_name: <% task(describe_instances).result.result.Reservations[0].Instances[0].Tags.where($.Key = 'Name').select($.Value) %>
+          status_message: "describe_instances."
 
-    mark_for_decommission:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: ec2
-        action_name: create_tags
-        params: <% dict(Resources => list($.instance_id), Tags => list(dict(Key => 'Name', Value => $.instance_name[0] + '-decommissioning')) ) %>
-        credentials: <% $.credentials %>
-      publish:
-        status_message: "Mark for decommission."
-      on-success:
-        - send_command_nodetool_decommission
+      mark_for_removal:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: ec2
+          action_name: create_tags
+          params: <% dict(Resources => list($.instance_id), Tags => list(dict(Key => 'Name', Value => $.instance_name[0] + '-decommissioning')) ) %>
+          credentials: <% $.credentials %>
+        publish:
+          status_message: "Mark for Removal."
 
-    send_command_nodetool_decommission:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: ssm
-        action_name: send_command
-        params: <% dict( InstanceIds => list($.instance_id), DocumentName => "AWS-RunShellScript", Comment => "nodetool decommission", Parameters => dict( 'commands' => list( "nodetool decommission" ) )) %>
-        credentials: <% $.credentials %>
-      publish:
-        status_message: "Send nodetool decommission command to the EC2."
-      on-success:
-        - wait_for_node_decommissioned
 
-    wait_for_node_decommissioned:
-      action: bitesize-cassandra.wait_for_node_decommissioned
-      input:
-        region: <% $.region %>
-        credentials: <% $.credentials %>
-        instanceId: <% $.instance_id %>
-      publish:
-        decom_result: <% task(wait_for_node_decommissioned).result.result %>
-        status_message: "Wait for node decommissioned."
-      on-success:
-        - mark_for_decommissioned        
-        - remove_or_terminate
+      remove_rebalance:
+        action: couchbase.remove_rebalance
+        input:
+          region: <% $.region %>
+          credentials: <% $.credentials %>
+          instanceId: <% $.instance_id %>
+          username: <% $.username %>
+          password: <% $.password %>
+          server_remove_ip: <% $.ip_address %> 
+        publish:
+          decom_result: <% task(remove_rebalance).result.result %>
+          status_message: "Remove and rebalance."
 
-    mark_for_decommissioned:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: ec2
-        action_name: create_tags
-        params: <% dict(Resources => list($.instance_id), Tags => list(dict(Key => 'Name', Value => $.instance_name[0] + '-decommissioned')) ) %>
-        credentials: <% $.credentials %>
-      publish:
-        status_message: "Mark for decommissioned."
+      send_command_rebalance:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: ssm
+          action_name: send_command
+          params: <% dict( InstanceIds => list($.instance_id), DocumentName => "AWS-RunShellScript", Comment => "rebalance", Parameters => dict( 'commands' => list( "nodetool decommission" ) )) %>
+          credentials: <% $.credentials %>
+        publish:
+          status_message: "Send nodetool decommission command to the EC2."
+        on-success:
+          - wait_for_node_decommissioned
 
-    remove_or_terminate:
-      action: core.local
-      input:
-        cmd: "printf <% $.remove_or_terminate %>"
-      publish:
-        path_2: <% task(remove_or_terminate).result.stdout %>
-        status_message: "Selecting whether the instance should be removed or terminated."
-      on-success:
-        - detach_instance: <% $.decom_result = 'DECOMMISSIONED\n' and $.path_2 = 'remove' %>
-        - terminate_instance_in_auto_scaling_group: <% $.decom_result = 'DECOMMISSIONED\n' and $.path_2 = 'terminate' %>
+      mark_for_removal:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: ec2
+          action_name: create_tags
+          params: <% dict(Resources => list($.instance_id), Tags => list(dict(Key => 'Name', Value => $.instance_name[0] + '-rebalanced_success')) ) %>
+          credentials: <% $.credentials %>
+        publish:
+          status_message: "Mark for decommissioned."
 
-    detach_instance:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: autoscaling
-        action_name: detach_instances
-        params: <% dict( InstanceIds => list($.instance_id), AutoScalingGroupName => $.asg_name_nonseed, ShouldDecrementDesiredCapacity => true ) %>
-        credentials: <% $.credentials %>
-      wait-before: 30
-      publish:
-        status_message: "Removes the instance from the Cassandra ring."
+      remove_or_terminate:
+        action: core.local
+        input:
+          cmd: "printf <% $.remove_or_terminate %>"
+        publish:
+          path_2: <% task(remove_or_terminate).result.stdout %>
+          status_message: "Selecting whether the instance should be removed or terminated."
+        on-success:
+          - detach_instance: <% $.path_2 = 'remove' %>
+          - terminate_instance_in_auto_scaling_group: <% $.path_2 = 'terminate' %>
 
-    terminate_instance_in_auto_scaling_group:
-      action: aws.boto3action
-      input:
-        region: <% $.region %>
-        service: autoscaling
-        action_name: terminate_instance_in_auto_scaling_group
-        params: <% dict( InstanceId => $.instance_id, ShouldDecrementDesiredCapacity => true ) %>
-        credentials: <% $.credentials %>
-      wait-before: 30
-      publish:
-        status_message: "Removes the instance from the Cassandra ring and terminate the EC2 instance."
+      detach_instance:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: autoscaling
+          action_name: detach_instances
+          params: <% dict( InstanceIds => list($.instance_id), AutoScalingGroupName => $.asg_name, ShouldDecrementDesiredCapacity => true ) %>
+          credentials: <% $.credentials %>
+        wait-before: 30
+        publish:
+          status_message: "Removes the instance from the Couchbase cluster."
+
+      terminate_instance_in_auto_scaling_group:
+        action: aws.boto3action
+        input:
+          region: <% $.region %>
+          service: autoscaling
+          action_name: terminate_instance_in_auto_scaling_group
+          params: <% dict( InstanceId => $.instance_id, ShouldDecrementDesiredCapacity => true ) %>
+          credentials: <% $.credentials %>
+        wait-before: 30
+        publish:
+          status_message: "Removes the instance from the Couchbase cluster and terminate the EC2 instance."
