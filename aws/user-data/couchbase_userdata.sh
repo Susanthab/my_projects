@@ -46,14 +46,54 @@ pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
 pip install awscli --upgrade
 
+mount_efs () {
+    echo "Install dependancies..."
+    apt-get update
+        wait_for_lock
+        wait_for_lists_lock
+    apt-get -y install nfs-kernel-server
+        wait_for_lock
+        wait_for_lists_lock    
+    apt-get update
+        wait_for_lock
+        wait_for_lists_lock    
+    apt-get -y install nfs-common
+        wait_for_lock
+        wait_for_lists_lock
+
+    filesystemdirectory1="couchbase-backup"
+
+    instanceid=$INSTANCE_ID
+    availabilityzone=$EC2_AVAIL_ZONE
+    region=$EC2_REGION
+
+    filesystemid=$(aws efs describe-file-systems --region $region --output text --query 'FileSystems[?Name==`efs-couchbase-backup`].[FileSystemId]')
+
+    if [ -n "$filesystemid" ]; then
+        echo "EFS-filesystem id found: $filesystemid"
+        echo "Mounting efs to the EC2..."
+        mkdir -p /var/www/html/$filesystemdirectory1/
+        #chown ec2-user:ec2-user /var/www/html/$filesystemdirectory1/
+
+        echo "$filesystemid.efs.$region.amazonaws.com:/ /var/www/html/$filesystemdirectory1 nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2 0 0" >> /etc/fstab
+
+        mount -a -t nfs4
+    fi
+}
+
+
+
 # Use below script is to get ASG meta data. 
 echo "INFO: Get AWS metadata..."
 wget http://s3.amazonaws.com/ec2metadata/ec2-metadata
 chmod u+x ec2-metadata
 AZ=$(./ec2-metadata -z)
-EC2_AVAIL_ZONE=$(./ec2-metadata -z | grep -Po "(us|sa|eu|ap)-(north|south|central)?(east|west)?-[0-9]+")
-EC2_REGION="`echo \"$EC2_AVAIL_ZONE\" | sed -e 's:\([0-9][0-9]*\)[a-z]*\$:\\1:'`"
-INSTANCE_ID=$(./ec2-metadata | grep instance-id | awk 'NR==1{print $2}')
+#EC2_AVAIL_ZONE=$(./ec2-metadata -z | grep -Po "(us|sa|eu|ap)-(north|south|central)?(east|west)?-[0-9]+")
+EC2_AVAIL_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+#EC2_REGION="`echo \"$EC2_AVAIL_ZONE\" | sed -e 's:\([0-9][0-9]*\)[a-z]*\$:\\1:'`"
+EC2_REGION=${EC2_AVAIL_ZONE:0:-1}
+#INSTANCE_ID=$(./ec2-metadata | grep instance-id | awk 'NR==1{print $2}')
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query AutoScalingInstances[].AutoScalingGroupName --output text)
 
@@ -390,53 +430,56 @@ find_unhealthy_nodes_and_remove () {
 ## ***************************************************************************************************
 
 ## ************************** EXECUTION *************************************************************
-echo "STEP 00 - Install Couchbase 4.0"
+echo "STEP 01 - Install Couchbase 4.0"
 echo "========================================"
-install_couchbase_4
-echo "STEP 01 - Create data and index paths..."
+    install_couchbase_4
+echo "STEP 02 - Create data and index paths..."
 echo "========================================"
-create_paths
+    create_paths
 echo ""
-echo "STEP 02 - Get tags..."
+echo "STEP 03 - Mount EFS..."
+    mount_efs
+echo ""
+echo "STEP 04 - Get tags..."
 echo "====================="
-get_tags_and_instances
+    get_tags_and_instances
 echo ""
-echo "STEP 03 - Wait for all the EC2 instances..."
+echo "STEP 05 - Wait for all the EC2 instances..."
 echo "==========================================="
-wait_for_ec2
+    wait_for_ec2
 echo ""
-echo "STEP 04 - Wait for network..."
+echo "STEP 06 - Wait for network..."
 echo "============================="
-wait_for_network
+    wait_for_network
 echo ""
-echo "STEP 05 - Wait for couchbase servers..."
+echo "STEP 07 - Wait for couchbase servers..."
 echo "======================================="
-wait_for_couchbase
+    wait_for_couchbase
 echo ""
-echo "STEP 06 - Initializes the node, $CURRENT_NODE_IP"
+echo "STEP 08 - Initializes the node, $CURRENT_NODE_IP"
 echo "================================================"
-node_init
+    node_init
 echo ""
-echo "STEP 07 - Identify a primary server..."
+echo "STEP 09 - Identify a primary server..."
 echo "======================================"
-get_primary_server
+    get_primary_server
 echo ""
-echo "STEP 08 - Initializing the cluster..."
+echo "STEP 10 - Initializing the cluster..."
 echo "====================================="
-cluster_init
-sleep 10s
+    cluster_init
+    sleep 10s
 echo ""
-echo "STEP 09 - Add server..."
+echo "STEP 11 - Add server..."
 echo "======================="
-server_add
-sleep 30s
+    server_add
+    sleep 30s
 echo ""
-echo "STEP 10 - Remove unhealthy nodes..."
+echo "STEP 12 - Remove unhealthy nodes..."
 echo "==================================="
-find_unhealthy_nodes_and_remove
+    find_unhealthy_nodes_and_remove
 echo ""
-echo "STEP 11 - Rebalance"
+echo "STEP 13 - Rebalance"
 echo "==================="
-rebalance
+    rebalance
 ## ***********************END OF EXECUTION **********************************************************
 

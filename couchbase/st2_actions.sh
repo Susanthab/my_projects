@@ -11,8 +11,8 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Create a Standard Couchbase cluster on AWS. (default: us-east-1)
 st2 run couchbase.create_couchbase_cluster \
-cluster_name="demo-1" \
-security_group_id="sg-d706c2a2" \
+cluster_name="backup-testing" \
+security_group_id="sg-e971169c" \
 subnets="subnet-262c5643,subnet-e1c5b5cb" \
 storage_type="EBS" \
 environment="dev" \
@@ -22,7 +22,8 @@ instance_type="t2.micro" \
 image_id="ami-47bc4c51" \
 key_name="susanthab" \
 desired_capacity=3 \
-iam_role_couchbase="CouchbaseIAMRole"
+iam_role_couchbase="CouchbaseIAMRole" \
+volume_type="gp2" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Create a multi-dimentional Couchbase cluster on AWS. (default: us-east-1)
