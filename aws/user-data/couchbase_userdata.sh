@@ -302,10 +302,11 @@ wait_for_couchbase () {
         ip=$(get_node_ip $arg1 $id)
         server_status=$(couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
             grep status | awk '{print $2}' | tr -d '",')
-        while [ "$server_status" != "healthy" ]; do
+        while [ "$server_status" != "healthy" -o "$server_status" != "warmup" ]; do
             sleep 5
             server_status=$(couchbase-cli server-info -c $ip -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
                 grep status | awk '{print $2}' | tr -d '",')
+            echo "server status: $server_status"    
         done
         echo "INFO: Status of the server, $ip: $server_status"
     done
