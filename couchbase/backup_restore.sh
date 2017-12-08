@@ -8,10 +8,16 @@
 # backup single bucket from all the nodes. 
 cbbackup http://172.31.69.196:8091 /var/www/html/couchbase-backup/ -u admin -p 12qwaszx@ -b beer-sample
 
-# backup all the buckets of a single node.
-cbbackup http://172.31.76.152:8091 /var/www/html/couchbase-backup/Bitesize/backup-testing/ip-172-31-76-152/ -m full -u admin -p 12qwaszx@ --single-node
+# backup all the buckets of a single node. 
+cbbackup http://172.31.57.238:8091 /var/www/html/couchbase-backup/Bitesize/backup-testing/ip-172-31-76-152/ -m full -u admin -p 12qwaszx@ --single-node
+cbbackup http://172.31.57.238:8091 /var/www/html/couchbase-backup/Bitesize/backup-testing/ip-172-31-76-152/ -m diff -u admin -p 12qwaszx@ --single-node
+cbbackup http://172.31.57.238:8091 /var/www/html/couchbase-backup/Bitesize/backup-testing/ip-172-31-76-152/ -m accu -u admin -p 12qwaszx@ --single-node
 
 # restore
+cbrestore /var/www/html/couchbase-backup/Bitesize/backup-testing/ip-172-31-76-152/ http://172.31.57.170:8091 -u admin -p 12qwaszx@
+
+
+
 cbrestore /var/www/html/couchbase-backup/ http://172.31.69.196:8091 -u admin -p 12qwaszx@ -b beer-sample -B beer-sample-restored
 cbrestore /var/www/html/couchbase-backup/ http://172.31.69.196:8091 -u admin -p 12qwaszx@ -b gamesim-sample -B gamesim-sample-restored
 cbrestore /var/www/html/couchbase-backup/ http://172.31.69.196:8091 -u admin -p 12qwaszx@ -b travel-sample -B travel-sample-restored

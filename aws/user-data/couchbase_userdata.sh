@@ -45,6 +45,8 @@ echo "INFO: Install pre-requisites..."
 pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
 pip install awscli --upgrade
+# install zip and unzip
+apt-get install zip unzip
 
 mount_efs () {
     echo "Install dependancies..."
