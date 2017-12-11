@@ -45,8 +45,6 @@ echo "INFO: Install pre-requisites..."
 pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
 pip install awscli --upgrade
-# install zip and unzip
-pip install zip 
 
 mount_efs () {
     echo "Install dependancies..."
@@ -83,7 +81,10 @@ mount_efs () {
     fi
 }
 
-
+# install zip and unzip
+apt-get -y install zip unzip
+    wait_for_lock
+    wait_for_lists_lock
 
 # Use below script is to get ASG meta data. 
 echo "INFO: Get AWS metadata..."
