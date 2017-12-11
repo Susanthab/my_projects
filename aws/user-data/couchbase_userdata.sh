@@ -46,10 +46,7 @@ pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
 pip install awscli --upgrade
 # install zip and unzip
-apt-get install zip 
-    wait_for_lock
-apt-get install unzip
-    wait_for_lock
+pip install zip 
 
 mount_efs () {
     echo "Install dependancies..."
