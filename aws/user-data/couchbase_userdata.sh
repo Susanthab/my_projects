@@ -15,7 +15,7 @@ source ~/.bash_profile
 # install SSM agent
 # ideally, this should install prior as custom data in AMI - future work. 
 mkdir /tmp/ssm
-wget https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+wget -q https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
 
 dpkg -i amazon-ssm-agent.deb
 echo "INFO: check to see whether SSM agent is running..."
@@ -81,14 +81,9 @@ mount_efs () {
     fi
 }
 
-# install zip and unzip
-apt-get -y install zip unzip
-    wait_for_lock
-    wait_for_lists_lock
-
 # Use below script is to get ASG meta data. 
 echo "INFO: Get AWS metadata..."
-wget http://s3.amazonaws.com/ec2metadata/ec2-metadata
+wget -q http://s3.amazonaws.com/ec2metadata/ec2-metadata
 chmod u+x ec2-metadata
 AZ=$(./ec2-metadata -z)
 #EC2_AVAIL_ZONE=$(./ec2-metadata -z | grep -Po "(us|sa|eu|ap)-(north|south|central)?(east|west)?-[0-9]+")
@@ -112,7 +107,7 @@ echo never > /sys/kernel/mm/transparent_hugepage/defrag
 
 install_couchbase_4 () {
     echo "INFO: Install Couchbase 4.0..."
-    wget https://packages.couchbase.com/releases/4.6.3/couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
+    wget -q https://packages.couchbase.com/releases/4.6.3/couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
     dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 }
 
@@ -134,21 +129,22 @@ install_couchbase_5 () {
     echo "INFO: Install Couchbase 5.0..."
     echo "=============================="
     curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
-    wait_for_lock
-    wait_for_lists_lock
+        wait_for_lock
+        wait_for_lists_lock
     dpkg -i couchbase-release-1.0-4-amd64.deb
-    wait_for_lock
-    wait_for_lists_lock
+        wait_for_lock
+        wait_for_lists_lock
     apt-get -y update
-    wait_for_lock
-    wait_for_lists_lock
+        wait_for_lock
+        wait_for_lists_lock
     apt-get -y install couchbase-server
-    wait_for_lock
-    wait_for_lists_lock
+        wait_for_lock
+        wait_for_lists_lock
     echo "INFO: Finished installing Couchbase 5.0."
     echo "========================================"
 }
 
+apt-get install zip unzip
 
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
