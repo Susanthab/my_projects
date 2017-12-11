@@ -24,6 +24,7 @@ key_name="susanthab" \
 desired_capacity=3 \
 iam_role_couchbase="CouchbaseIAMRole" \
 volume_type="gp2" \
+s3_backup_loc="nibiru-demo" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Create a multi-dimentional Couchbase cluster on AWS. (default: us-east-1)
