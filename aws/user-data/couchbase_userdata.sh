@@ -144,8 +144,6 @@ install_couchbase_5 () {
     echo "========================================"
 }
 
-apt-get install zip unzip
-
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
 
@@ -429,6 +427,10 @@ find_unhealthy_nodes_and_remove () {
 }
 ## ***************************************************************************************************
 
+inst_zip () {
+   apt-get -y install zip
+}
+
 ## ************************** EXECUTION *************************************************************
 echo "STEP 01 - Install Couchbase 4.0"
 echo "========================================"
@@ -481,5 +483,8 @@ echo ""
 echo "STEP 13 - Rebalance"
 echo "==================="
     rebalance
+echo ""
+echo "STEP 14 - Install zip"
+    inst_zip
 ## ***********************END OF EXECUTION **********************************************************
 
