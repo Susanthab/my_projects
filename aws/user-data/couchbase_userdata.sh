@@ -431,6 +431,14 @@ inst_zip () {
    apt-get -y install zip
 }
 
+setup_backup_schedule (){
+    # Future work.
+    # need to change the backup script path for actual one.
+    #cp couchbase/couchbase/bitesize-cbbackup.sh /etc/cron.d/
+    chmod 755 couchbase/couchbase/bitesize-cbbackup.sh
+    echo "*/10 * * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
+}
+
 ## ************************** EXECUTION *************************************************************
 echo "STEP 01 - Install Couchbase 4.0"
 echo "========================================"
@@ -484,7 +492,12 @@ echo "STEP 13 - Rebalance"
 echo "==================="
     rebalance
 echo ""
-echo "STEP 14 - Install zip"
+echo "STEP 14 - Install zip..."
+echo "========================"
     inst_zip
+echo ""
+echo "STEP 15 - Setup backup schedule..."
+echo "=================================="
+    setup_backup_schedule
 ## ***********************END OF EXECUTION **********************************************************
 

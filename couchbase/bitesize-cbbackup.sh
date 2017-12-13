@@ -1,6 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 SHELL=/bin/bash
+PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+echo "PATH: $PATH"
 
 #*************************************************************
 # Author: Susanthab
@@ -23,7 +25,7 @@ HOSTNAME=$(hostname)
 FULL_BACKUP_DAY=5
 
 WEEKNUMBER=$(( 1 + $(date +%U) - $(date -d "$(date -d "-$(($(date +%d)-1)) days")" +%U) ))
-WEEKDAY=$(date -d"1990-01-22" "+%A")
+WEEKDAY=$(date '+%A')
 
 echo "Week number of the month: ${WEEKNUMBER}W"
 echo "Week day: ${WEEKDAY:0:3}"
@@ -52,14 +54,14 @@ get_ec2_tag () {
   echo "S3 backup location: $BACKUP_S3_LOC"
   echo "Backup dir of the node: $BACKUP_DIR"
   echo "Full backup schedule: $FULL_BACKUP_SCH"
+  CHECK_BACKUP_SCH=$(echo "$FULL_BACKUP_SCH" | grep $WK_NUM_WK_DAY)
 }
 
 perform_cbbackup () {
 
-  check_backup_sch=$(echo "$FULL_BACKUP_SCH" | grep $WK_NUM_WK_DAY)
-  echo "check_backup_sch: $check_backup_sch"
+  echo "CHECK_BACKUP_SCH: $CHECK_BACKUP_SCH"
 
-  if [ -n "$check_backup_sch" ]; then 
+  if [ -n "$CHECK_BACKUP_SCH" ]; then 
     backup_mode="full"
   else 
     backup_mode="diff"
@@ -98,9 +100,9 @@ compress (){
 }
 
 clear_backups () {
- if [ $DOW == $FULL_BACKUP_DAY ]; then
-  echo "Clear the backup history before the full backup..."
-  rm -r $BACKUP_DIR/backup
+  if [ -n "$CHECK_BACKUP_SCH" ]; then
+     echo "Clear the backup history before the full backup..."
+     rm -r $BACKUP_DIR/backup
  fi
 }
 

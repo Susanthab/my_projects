@@ -20,7 +20,7 @@ fi
 ################
 
 
-
+echo "*/5 * * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab
 
 st2 run packs.install packs=ansible
 st2 run ansible.command_local module_name=apt args='name=sshpass state=present'
