@@ -43,7 +43,7 @@ get_EC2_metadata () {
 }
 
 get_ec2_tag () {
-  PROJECT_NAME=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`Project`].{val:Value}' --output text)
+  PROJECT_NAME=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`team_id`].{val:Value}' --output text)
   CLUSTER_NAME=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`cluster_name`].{val:Value}' --output text)
   S3_BUCKET_NAME=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`s3_backup_loc`].{val:Value}' --output text)
   FULL_BACKUP_SCH=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`full_backup_sch`].{val:Value}' --output text)
