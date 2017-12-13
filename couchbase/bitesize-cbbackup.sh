@@ -72,7 +72,7 @@ perform_cbbackup () {
   mkdir -p $BACKUP_DIR
   pushd $BACKUP_DIR
   mkdir -p backup
-  cbbackup http://$CURRENT_NODE_IP:8091 backup -m $backup_mode -u $USER -p $PASSWORD --single-node
+  /opt/couchbase/bin/cbbackup http://$CURRENT_NODE_IP:8091 backup -m $backup_mode -u $USER -p $PASSWORD --single-node
 }
 
 s3_upload() {
