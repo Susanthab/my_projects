@@ -438,7 +438,7 @@ setup_backup_schedule (){
     # need to change the backup script path for actual one.
     #cp couchbase/couchbase/bitesize-cbbackup.sh /etc/cron.d/
     chmod 755 couchbase/couchbase/bitesize-cbbackup.sh
-    echo "* */1 * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
+    echo "*/5 * * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
 }
 
 ## ************************** EXECUTION *************************************************************

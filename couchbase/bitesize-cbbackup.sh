@@ -1,8 +1,9 @@
 #!/bin/bash
 
+
 SHELL=/bin/bash
-PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-echo "PATH: $PATH"
+echo "PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> ~/.bash_profile
+source ~/.bash_profile
 
 #*************************************************************
 # Author: Susanthab
@@ -24,14 +25,28 @@ DOW=$(date +%u)
 HOSTNAME=$(hostname)
 FULL_BACKUP_DAY=5
 
-WEEKNUMBER=$(( 1 + $(date +%U) - $(date -d "$(date -d "-$(($(date +%d)-1)) days")" +%U) ))
-WEEKDAY=$(date '+%A')
 
-echo "Week number of the month: ${WEEKNUMBER}W"
-echo "Week day: ${WEEKDAY:0:3}"
+init () {
 
-WK_NUM_WK_DAY="${WEEKNUMBER}W:${WEEKDAY:0:3}"
-echo "WK_NUM_WK_DAY: $WK_NUM_WK_DAY"
+    WEEKNUMBER=$(( 1 + $(date +%U) - $(date -d "$(date -d "-$(($(date +%d)-1)) days")" +%U) ))
+    WEEKDAY=$(date '+%A')
+
+    echo "Week number of the month: ${WEEKNUMBER}W"
+    echo "Week day: ${WEEKDAY:0:3}"
+
+    WK_NUM_WK_DAY="${WEEKNUMBER}W:${WEEKDAY:0:3}"
+    echo "WK_NUM_WK_DAY: $WK_NUM_WK_DAY"
+
+    # as env variable from bash_profile
+    FULL_BACKUP_DATE=$(echo $FULL_BACKUP_DATE)
+    echo "full_backup_date: $FULL_BACKUP_DATE"
+
+    sed -i -e "/export FULL_BACKUP_DATE=/d" ~/.bash_profile
+
+    TODAY=$(date +%Y-%m-%d)
+    echo "today: $TODAY"
+
+}
 
 get_EC2_metadata () {
   instance_id=$(ec2metadata --instance-id)
@@ -61,8 +76,10 @@ perform_cbbackup () {
 
   echo "CHECK_BACKUP_SCH: $CHECK_BACKUP_SCH"
 
-  if [ -n "$CHECK_BACKUP_SCH" ]; then 
+  if [ -n "$CHECK_BACKUP_SCH" -a "$TODAY" != "$FULL_BACKUP_DATE"]; then 
     backup_mode="full"
+    export FULL_BACKUP_DATE=$(date +%Y-%m-%d)
+    echo "export FULL_BACKUP_DATE=$(date +%Y-%m-%d)" >> ~/.bash_profile    
   else 
     backup_mode="diff"
   fi
@@ -108,23 +125,34 @@ clear_backups () {
 
 
 echo ""
-echo "01. Get EC2 metadata..."
+echo "01. Initialize variables..."
+echo "==========================="
+    init
+echo ""
+echo "02. Get EC2 metadata..."
+echo "======================="
     get_EC2_metadata
 echo ""
-echo "02. Determining s3 bucket..."
+echo "03. Determining s3 bucket..."
+echo "============================"
     get_ec2_tag
 echo ""
-echo "03. Clear backup history..."
+echo "04. Clear backup history..."
+echo "==========================="
     clear_backups
 echo ""
-echo "04. Perform cbbackup..."
+echo "05. Perform cbbackup..."
+echo "======================="
     perform_cbbackup
 echo ""
-echo "05. Get latest backup dir..."
+echo "06. Get latest backup dir..."
+echo "============================"
     get_latest_backup_dir
 echo ""
-echo "06. Compress the backup..."
+echo "07. Compress the backup..."
+echo "=========================="
     compress
 echo ""
-echo "07. Uploading backup zip file to s3..."
+echo "08. Uploading backup zip file to s3..."
+echo "======================================"
     s3_upload ${BACKUP_DIR}/backup/${BACKUP_ZIP}
