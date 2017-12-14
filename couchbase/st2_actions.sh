@@ -29,7 +29,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Create a multi-dimentional Couchbase cluster on AWS. (default: us-east-1)
 st2 run couchbase.create_couchbase_cluster_with_multidimensional_scaling \
-cluster_name="demo-2" \
+cluster_name="cbbackup-demo" \
 security_group_id="sg-d706c2a2" \
 subnets="subnet-262c5643,subnet-e1c5b5cb" \
 storage_type="EBS" \
@@ -42,9 +42,11 @@ instance_type_query="t2.micro" \
 image_id="ami-47bc4c51" \
 key_name="susanthab" \
 desired_capacity_data=2 \
-desired_capacity_index=3 \
+desired_capacity_index=2 \
 desired_capacity_query=2 \
 iam_role_couchbase="CouchbaseIAMRole" \
+volume_type="gp2" \
+s3_backup_loc="bitesize-couchbase-backup" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Add node(s) to Couchbase cluster. (default: us-east-1)

@@ -8,7 +8,9 @@
 #         multi-dimential scaling. 
 #=============================================================
 
-echo "PATH=$PATH:/opt/couchbase/bin" > ~/.bash_profile
+echo "PATH=$PATH:/opt/couchbase/bin" >> ~/.bash_profile
+export FULL_BACKUP_DATE="null"
+echo 'export FULL_BACKUP_DATE="null"' >> ~/.bash_profile
 source ~/.bash_profile
 
 ## ***************************************************************************************************
@@ -436,7 +438,7 @@ setup_backup_schedule (){
     # need to change the backup script path for actual one.
     #cp couchbase/couchbase/bitesize-cbbackup.sh /etc/cron.d/
     chmod 755 couchbase/couchbase/bitesize-cbbackup.sh
-    echo "*/10 * * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
+    echo "* */1 * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
 }
 
 ## ************************** EXECUTION *************************************************************
