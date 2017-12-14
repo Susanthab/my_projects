@@ -41,8 +41,6 @@ init () {
     FULL_BACKUP_DATE=$(echo $FULL_BACKUP_DATE)
     echo "full_backup_date: $FULL_BACKUP_DATE"
 
-    sed -i -e "/export FULL_BACKUP_DATE=/d" ~/.bash_profile
-
     TODAY=$(date +%Y-%m-%d)
     echo "today: $TODAY"
 
@@ -78,6 +76,7 @@ perform_cbbackup () {
 
   if [ -n "$CHECK_BACKUP_SCH" -a "$TODAY" != "$FULL_BACKUP_DATE"]; then 
     backup_mode="full"
+    sed -i -e "/export FULL_BACKUP_DATE=/d" ~/.bash_profile
     export FULL_BACKUP_DATE=$(date +%Y-%m-%d)
     echo "export FULL_BACKUP_DATE=$(date +%Y-%m-%d)" >> ~/.bash_profile    
   else 

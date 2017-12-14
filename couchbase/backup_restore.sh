@@ -14,7 +14,7 @@ cbbackup http://172.31.57.238:8091 /var/www/html/couchbase-backup/Bitesize/backu
 cbbackup http://172.31.57.238:8091 /var/www/html/couchbase-backup/Bitesize/backup-testing/ip-172-31-76-152/ -m accu -u admin -p 12qwaszx@ --single-node
 
 # restore
-cbrestore /var/www/html/couchbase-backup/Bitesize/backup-testing/ip-172-31-64-250/backup/2017-12-13T182004Z/2017-12-13T182004Z-full/ http://172.31.55.58:8091 -u admin -p 12qwaszx@ -b beer-sample
+cbrestore /var/www/html/couchbase-backup/bitesize/backup-testing/ip-172-31-71-29/backup/ http://172.31.71.29:8091 -u admin -p 12qwaszx@ -b beer-sample
 
 
 
