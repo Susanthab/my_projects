@@ -11,6 +11,7 @@
 echo "PATH=$PATH:/opt/couchbase/bin" >> ~/.bash_profile
 export FULL_BACKUP_DATE="null"
 echo 'export FULL_BACKUP_DATE="null"' >> ~/.bash_profile
+echo "PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> ~/.bash_profile
 source ~/.bash_profile
 
 ## ***************************************************************************************************

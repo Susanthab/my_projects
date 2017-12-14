@@ -2,7 +2,6 @@
 
 
 SHELL=/bin/bash
-echo "PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> ~/.bash_profile
 source ~/.bash_profile
 
 #*************************************************************
@@ -74,7 +73,7 @@ perform_cbbackup () {
 
   echo "CHECK_BACKUP_SCH: $CHECK_BACKUP_SCH"
 
-  if [ -n "$CHECK_BACKUP_SCH" -a "$TODAY" != "$FULL_BACKUP_DATE"]; then 
+  if [ -n "$CHECK_BACKUP_SCH" -a "$TODAY" != "$FULL_BACKUP_DATE" ]; then 
     backup_mode="full"
     sed -i -e "/export FULL_BACKUP_DATE=/d" ~/.bash_profile
     export FULL_BACKUP_DATE=$(date +%Y-%m-%d)
@@ -116,7 +115,7 @@ compress (){
 }
 
 clear_backups () {
-  if [ -n "$CHECK_BACKUP_SCH" ]; then
+  if [ -n "$CHECK_BACKUP_SCH" -a "$TODAY" != "$FULL_BACKUP_DATE" ]; then
      echo "Clear the backup history before the full backup..."
      rm -r $BACKUP_DIR/backup
  fi
