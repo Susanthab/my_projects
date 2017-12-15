@@ -110,8 +110,10 @@ get_latest_backup_dir () {
 
 compress (){
   echo "Zipping the backup file..."
-  zip -rq -D ${LATEST_BACKUP_DIR}.zip $SOURCE_DIR 
-  BACKUP_ZIP="${LATEST_BACKUP_DIR}.zip"  
+  BACKUP_ZIP=${LATEST_BACKUP_DIR}"$(date -u +"%M-%S")".zip
+  #zip -rq -D ${LATEST_BACKUP_DIR}.zip $SOURCE_DIR 
+  zip -rq -D ${BACKUP_ZIP} $SOURCE_DIR 
+  #BACKUP_ZIP="${LATEST_BACKUP_DIR}.zip"  
 }
 
 clear_backups () {
