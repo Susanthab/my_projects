@@ -131,10 +131,12 @@ wait_for_lists_lock () {
 install_couchbase_5 () {
     echo "INFO: Install Couchbase 5.0..."
     echo "=============================="
-    curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
+    #curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
+    curl -o https://packages.couchbase.com/releases/5.0.1/couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
         wait_for_lock
         wait_for_lists_lock
-    dpkg -i couchbase-release-1.0-4-amd64.deb
+    #dpkg -i couchbase-release-1.0-4-amd64.deb
+    dpkg -i couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
         wait_for_lock
         wait_for_lists_lock
     apt-get -y update
@@ -143,8 +145,8 @@ install_couchbase_5 () {
     apt-get -y install couchbase-server
         wait_for_lock
         wait_for_lists_lock
-    echo "INFO: Finished installing Couchbase 5.0."
-    echo "========================================"
+    echo "INFO: Finished installing Couchbase 5.0 community edition..."
+    echo "============================================================"
 }
 
 # The Couchbase-server should start automatically, if not start.
@@ -440,13 +442,13 @@ setup_backup_schedule (){
     #cp couchbase/couchbase/bitesize-cbbackup.sh /etc/cron.d/
     chmod 755 couchbase/couchbase/bitesize-cbbackup.sh
     # backup job executes at every hour.
-    echo "*/5 * * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
+    echo "* */1 * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
 }
 
 ## ************************** EXECUTION *************************************************************
-echo "STEP 01 - Install Couchbase 4.0"
-echo "========================================"
-    install_couchbase_4
+echo "STEP 01 - Install Couchbase 5.0 community edition."
+echo "=================================================="
+    install_couchbase_5
 echo "STEP 02 - Create data and index paths..."
 echo "========================================"
     create_paths
