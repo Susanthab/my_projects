@@ -131,18 +131,18 @@ wait_for_lists_lock () {
 install_couchbase_5 () {
     echo "INFO: Install Couchbase 5.0..."
     echo "=============================="
-    #curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
-    curl -o https://packages.couchbase.com/releases/5.0.1/couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
+    curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
+    #curl -O https://packages.couchbase.com/releases/5.0.1/couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
         wait_for_lock
         wait_for_lists_lock
-    #dpkg -i couchbase-release-1.0-4-amd64.deb
-    dpkg -i couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
+    dpkg -i couchbase-release-1.0-4-amd64.deb
+    #dpkg -i couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
         wait_for_lock
         wait_for_lists_lock
     apt-get -y update
         wait_for_lock
         wait_for_lists_lock
-    apt-get -y install couchbase-server
+    apt-get -y install couchbase-server-community
         wait_for_lock
         wait_for_lists_lock
     echo "INFO: Finished installing Couchbase 5.0 community edition..."
