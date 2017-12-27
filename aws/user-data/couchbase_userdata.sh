@@ -132,7 +132,7 @@ install_couchbase_5 () {
     echo "INFO: Install Couchbase 5.0..."
     echo "=============================="
     curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
-    #curl -O https://packages.couchbase.com/releases/5.0.1/couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
+    curl -O https://packages.couchbase.com/releases/5.0.1/couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
         wait_for_lock
         wait_for_lists_lock
     dpkg -i couchbase-release-1.0-4-amd64.deb
@@ -142,8 +142,11 @@ install_couchbase_5 () {
     apt-get -y update
         wait_for_lock
         wait_for_lists_lock
-    #dpkg -i couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb  
-    apt-get -y install couchbase-server-community
+    apt-get install libcouchbase-dev libcouchbase2-bin build-essential
+        wait_for_lock
+        wait_for_lists_lock   
+    dpkg -i couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb  
+    #apt-get -y install couchbase-server-community
         wait_for_lock
         wait_for_lists_lock
     echo "INFO: Finished installing Couchbase 5.0 community edition..."
@@ -264,7 +267,7 @@ cluster_init () {
 
         if [ "$CLUSTER_TYPE" == "standard" ]; then
             output=$(couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
-                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query \
+                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query,fts \
                     --cluster-ramsize 256 --cluster-index-ramsize 256)
             echo "OUTPUT: cluster-init: $output"
         fi
