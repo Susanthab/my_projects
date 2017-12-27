@@ -356,7 +356,7 @@ server_add () {
 
     if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$CLUSTER_TYPE" == "standard" ]; then
         output=$(couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
-            --server-add-password=$CLUSTER_PASSWORD --services="$std_services" \
+            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="$std_services" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "OUTPUT: server-add: $output"   
     fi
