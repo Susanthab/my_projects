@@ -138,7 +138,8 @@ install_couchbase_5 () {
     dpkg -i couchbase-release-1.0-4-amd64.deb
         wait_for_lock
         wait_for_lists_lock
-    apt-get -y update
+    apt-get -f -y install    
+    #apt-get -y update
         wait_for_lock
         wait_for_lists_lock
     dpkg -i couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb    
