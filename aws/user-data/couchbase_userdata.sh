@@ -45,6 +45,7 @@ mount -a
 
 echo "INFO: Install pre-requisites..."
 # NOTE: This has to be changed to a proper location. 
+pip install --upgrade pip
 pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
 pip install awscli --upgrade
