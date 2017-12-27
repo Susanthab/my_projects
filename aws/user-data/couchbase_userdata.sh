@@ -142,7 +142,7 @@ install_couchbase_5 () {
     apt-get -y update
         wait_for_lock
         wait_for_lists_lock
-    apt-get install libcouchbase-dev libcouchbase2-bin build-essential
+    apt-get install python-httplib2  #libcouchbase-dev libcouchbase2-bin build-essential
         wait_for_lock
         wait_for_lists_lock   
     dpkg -i couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb  
