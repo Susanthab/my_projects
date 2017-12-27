@@ -14,6 +14,9 @@ echo 'export FULL_BACKUP_DATE="null"' >> ~/.bash_profile
 echo "PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/couchbase/bin" >> ~/.bash_profile
 source ~/.bash_profile
 
+# node services for standard cluster.
+std_services="data,index,query,fts"
+
 ## ***************************************************************************************************
 # install SSM agent
 # ideally, this should install prior as custom data in AMI - future work. 
@@ -268,7 +271,7 @@ cluster_init () {
 
         if [ "$CLUSTER_TYPE" == "standard" ]; then
             output=$(couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
-                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data,index,query,fts \
+                    --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services $std_services \
                     --cluster-ramsize 256 --cluster-index-ramsize 256)
             echo "OUTPUT: cluster-init: $output"
         fi
@@ -353,7 +356,7 @@ server_add () {
 
     if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$CLUSTER_TYPE" == "standard" ]; then
         output=$(couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
-            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="data","query","index" \
+            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="$std_services" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "OUTPUT: server-add: $output"   
     fi
