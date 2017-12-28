@@ -427,7 +427,7 @@ get_primary_server () {
 find_unhealthy_nodes_and_remove () {
 
     dead_node=$(couchbase-cli server-list -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME -p $CLUSTER_PASSWORD | \
-            grep unhealthy | grep active | grep -oE "([0-9]{1,3}\.){3}[0-9]{1,3}" | head -1)    
+            grep unhealthy | grep active | awk '{print$2}' | head -1)    
     
     if [ -n "$dead_node" ]; then
         echo "INFO: Unhealthy node found: $dead_node"
