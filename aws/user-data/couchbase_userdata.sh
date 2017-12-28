@@ -16,6 +16,7 @@ source ~/.bash_profile
 
 # node services for standard cluster.
 std_services="data,index,query,fts"
+backup_job_schedule="0 * * * *"
 
 ## ***************************************************************************************************
 # install SSM agent
@@ -450,7 +451,7 @@ setup_backup_schedule (){
     #cp couchbase/couchbase/bitesize-cbbackup.sh /etc/cron.d/
     chmod 755 couchbase/couchbase/bitesize-cbbackup.sh
     # backup job executes at every hour.
-    echo "* */1 * * * couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
+    echo "$backup_job_schedule couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
 }
 
 ## ************************** EXECUTION *************************************************************
