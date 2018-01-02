@@ -58,19 +58,20 @@ pip install --upgrade pip
 pip install awscli --upgrade
 
 mount_efs () {
+    # Implementation of this func has been changed to suite for CentOS.
     echo "Install dependancies..."
-    apt-get update
-        wait_for_lock
-        wait_for_lists_lock
-    apt-get -y install nfs-kernel-server
-        wait_for_lock
-        wait_for_lists_lock    
-    apt-get update
-        wait_for_lock
-        wait_for_lists_lock    
-    apt-get -y install nfs-common
-        wait_for_lock
-        wait_for_lists_lock
+    # apt-get update
+    #     wait_for_lock
+    #     wait_for_lists_lock
+    # apt-get -y install nfs-kernel-server
+    #     wait_for_lock
+    #     wait_for_lists_lock    
+    # apt-get update
+    #     wait_for_lock
+    #     wait_for_lists_lock    
+    # apt-get -y install nfs-common
+    #     wait_for_lock
+    #     wait_for_lists_lock
 
     filesystemdirectory1="couchbase-backup"
 
@@ -457,7 +458,7 @@ find_unhealthy_nodes_and_remove () {
 ## ***************************************************************************************************
 
 inst_zip () {
-   apt-get -y install zip
+   yum -y install zip
 }
 
 setup_backup_schedule (){
