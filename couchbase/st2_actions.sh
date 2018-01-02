@@ -10,6 +10,7 @@ vpc_id="vpc-4b864f2c"
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Create a Standard Couchbase cluster on AWS. (default: us-east-1)
+# AMI for Ubuntu ami-3f68db29 on ss-np
 st2 run couchbase.create_couchbase_cluster \
 cluster_name="backup-testing" \
 security_group_id="sg-e971169c" \
@@ -19,9 +20,9 @@ environment="dev" \
 app_id=50 \
 t_owner_individual="susantha.bathige@pearson.com" \
 instance_type="t2.medium" \
-image_id="ami-3f68db29" \
+image_id="ami-9ca6568a" \
 key_name="susanthab" \
-desired_capacity=3 \
+desired_capacity=1 \
 iam_role_couchbase="CouchbaseIAMRole" \
 volume_type="gp2" \
 s3_backup_loc="bitesize-couchbase-backup" \

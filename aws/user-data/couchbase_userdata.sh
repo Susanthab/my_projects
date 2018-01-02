@@ -21,10 +21,10 @@ backup_job_schedule="0 * * * *"
 ## ***************************************************************************************************
 # install SSM agent
 # ideally, this should install prior as custom data in AMI - future work. 
-mkdir /tmp/ssm
-wget -q https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb
+cd /tmp
+yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+systemctl start amazon-ssm-agent
 
-dpkg -i amazon-ssm-agent.deb
 echo "INFO: check to see whether SSM agent is running..."
 status=$(service amazon-ssm-agent status | grep "running" | awk '{print$3}')
 if [ "$status" == "(running)" ]; then
@@ -472,59 +472,59 @@ echo "=================================================="
     install_couchbase_5_on_CentOS
 echo "STEP 02 - Create data and index paths..."
 echo "========================================"
-    create_paths
+    #create_paths
 echo ""
 echo "STEP 03 - Mount EFS..."
-    mount_efs
+    #mount_efs
 echo ""
 echo "STEP 04 - Get tags..."
 echo "====================="
-    get_tags_and_instances
+    #get_tags_and_instances
 echo ""
 echo "STEP 05 - Wait for all the EC2 instances..."
 echo "==========================================="
-    wait_for_ec2
+    #wait_for_ec2
 echo ""
 echo "STEP 06 - Wait for network..."
 echo "============================="
-    wait_for_network
+    #wait_for_network
 echo ""
 echo "STEP 07 - Wait for couchbase servers..."
 echo "======================================="
-    wait_for_couchbase
+    #wait_for_couchbase
 echo ""
 echo "STEP 08 - Initializes the node, $CURRENT_NODE_IP"
 echo "================================================"
-    node_init
+    #node_init
 echo ""
 echo "STEP 09 - Identify a primary server..."
 echo "======================================"
-    get_primary_server
+    #get_primary_server
 echo ""
 echo "STEP 10 - Initializing the cluster..."
 echo "====================================="
-    cluster_init
-    sleep 10s
+    #cluster_init
+    #sleep 10s
 echo ""
 echo "STEP 11 - Add server..."
 echo "======================="
-    server_add
-    sleep 30s
+    #server_add
+    #sleep 30s
 echo ""
 echo "STEP 12 - Remove unhealthy nodes..."
 echo "==================================="
-    find_unhealthy_nodes_and_remove
+    #find_unhealthy_nodes_and_remove
 echo ""
 echo "STEP 13 - Rebalance"
 echo "==================="
-    rebalance
+    #rebalance
 echo ""
 echo "STEP 14 - Install zip..."
 echo "========================"
-    inst_zip
+    #inst_zip
 echo ""
 echo "STEP 15 - Setup backup schedule..."
 echo "=================================="
-    setup_backup_schedule
+    #setup_backup_schedule
 ## ***********************END OF EXECUTION **********************************************************
 
