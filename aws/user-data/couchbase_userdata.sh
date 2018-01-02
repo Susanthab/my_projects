@@ -26,16 +26,19 @@ yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/li
 systemctl start amazon-ssm-agent
 
 echo "INFO: check to see whether SSM agent is running..."
-status=$(service amazon-ssm-agent status | grep "running" | awk '{print$3}')
+echo "**************************************************"
+status=$(systemctl status  amazon-ssm-agent.service | grep running | head -1 | awk '{print$3}')
+echo "Status: $status"
 if [ "$status" == "(running)" ]; then
     echo "$service is running!!!"
 else
     echo "Starting $service..."
-    service amazon-ssm-agent start
+    systemctl start  amazon-ssm-agent.service
 fi
 ## ***************************************************************************************************
 
 echo "INFO: Pragramatically mount block device at EC2 startup..."
+echo "**********************************************************"
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
 # The following code is only to add one device. 
 cp /etc/fstab /etc/fstab.orig
@@ -48,9 +51,9 @@ echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc
 mount -a
 
 echo "INFO: Install pre-requisites..."
-# NOTE: This has to be changed to a proper location. 
+echo "*******************************"
 pip install --upgrade pip
-pip install -q -r ./couchbase/ansible-roles/requirements.txt
+#pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
 pip install awscli --upgrade
 
@@ -133,7 +136,7 @@ wait_for_lists_lock () {
     done
 }
 
-install_couchbase_5 () {
+install_couchbase_5_on_ubuntu () {
     # for Ubuntu 16.04
     echo "INFO: Install Couchbase 5.0..."
     echo "=============================="
@@ -164,8 +167,8 @@ install_couchbase_5_on_CentOS (){
     echo "******************************"
     curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-5-x86_64.rpm
     rpm -i couchbase-release-1.0-5-x86_64.rpm
-    yum update
-    yum install couchbase-server-community    
+    yum -y update
+    yum -y install couchbase-server-community    
     echo "Finished executing install_couchbase_5_on_CentOS."
     echo "*************************************************"
 }
@@ -472,59 +475,59 @@ echo "=================================================="
     install_couchbase_5_on_CentOS
 echo "STEP 02 - Create data and index paths..."
 echo "========================================"
-    #create_paths
+    create_paths
 echo ""
 echo "STEP 03 - Mount EFS..."
-    #mount_efs
+    mount_efs
 echo ""
 echo "STEP 04 - Get tags..."
 echo "====================="
-    #get_tags_and_instances
+    get_tags_and_instances
 echo ""
 echo "STEP 05 - Wait for all the EC2 instances..."
 echo "==========================================="
-    #wait_for_ec2
+    wait_for_ec2
 echo ""
 echo "STEP 06 - Wait for network..."
 echo "============================="
-    #wait_for_network
+    wait_for_network
 echo ""
 echo "STEP 07 - Wait for couchbase servers..."
 echo "======================================="
-    #wait_for_couchbase
+    wait_for_couchbase
 echo ""
 echo "STEP 08 - Initializes the node, $CURRENT_NODE_IP"
 echo "================================================"
-    #node_init
+    node_init
 echo ""
 echo "STEP 09 - Identify a primary server..."
 echo "======================================"
-    #get_primary_server
+    get_primary_server
 echo ""
 echo "STEP 10 - Initializing the cluster..."
 echo "====================================="
-    #cluster_init
-    #sleep 10s
+    cluster_init
+    sleep 10s
 echo ""
 echo "STEP 11 - Add server..."
 echo "======================="
-    #server_add
-    #sleep 30s
+    server_add
+    sleep 30s
 echo ""
 echo "STEP 12 - Remove unhealthy nodes..."
 echo "==================================="
-    #find_unhealthy_nodes_and_remove
+    find_unhealthy_nodes_and_remove
 echo ""
 echo "STEP 13 - Rebalance"
 echo "==================="
-    #rebalance
+    rebalance
 echo ""
 echo "STEP 14 - Install zip..."
 echo "========================"
-    #inst_zip
+    inst_zip
 echo ""
 echo "STEP 15 - Setup backup schedule..."
 echo "=================================="
-    #setup_backup_schedule
+    setup_backup_schedule
 ## ***********************END OF EXECUTION **********************************************************
 
