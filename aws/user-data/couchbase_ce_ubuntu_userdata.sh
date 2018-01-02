@@ -159,17 +159,6 @@ install_couchbase_5 () {
     echo "============================================================"
 }
 
-install_couchbase_5_on_CentOS (){
-    echo "INFO: Install Couchbase 5.0..."
-    echo "******************************"
-    curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-5-x86_64.rpm
-    rpm -i couchbase-release-1.0-5-x86_64.rpm
-    yum update
-    yum install couchbase-server-community    
-    echo "Finished executing install_couchbase_5_on_CentOS."
-    echo "*************************************************"
-}
-
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
 
@@ -469,7 +458,7 @@ setup_backup_schedule (){
 ## ************************** EXECUTION *************************************************************
 echo "STEP 01 - Install Couchbase 5.0 community edition."
 echo "=================================================="
-    install_couchbase_5_on_CentOS
+    install_couchbase_5
 echo "STEP 02 - Create data and index paths..."
 echo "========================================"
     create_paths

@@ -53,7 +53,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # cluster_type (standard | multidimentional)
 # node_service_offering ( N/A | data | index | query)
 st2 run couchbase.add_nodes_to_couchbase_cluster \
-cluster_name="testing" \
+cluster_name="backup-testing" \
 cluster_type="standard" \
 node_service_offering="N/A" \
 number_of_nodes_toadd=1 \
@@ -64,7 +64,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # node_type (standard | data | index | query)
 # remove_or_terminate (remove | terminate)
 st2 run couchbase.remove_node_from_couchbase_cluster \
-cluster_name="demo-1" \
+cluster_name="backup-testing" \
 node_type="standard" \
 remove_or_terminate="terminate" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
