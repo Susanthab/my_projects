@@ -17,13 +17,13 @@ source ~/.bash_profile
 echo "INFO: Install pre-requisites..."
 echo "*******************************"
 # update packages.
-yum -y update
+    #yum -y update
 # install pip
-yum -y install python-pip
-pip install --upgrade pip
+    yum -y install python-pip
+    pip install --upgrade pip
 #pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
-pip install awscli --upgrade
+    pip install awscli --upgrade
 
 # node services for standard cluster.
 std_services="data,index,query,fts"
@@ -170,10 +170,12 @@ install_couchbase_5_on_ubuntu () {
 install_couchbase_5_on_CentOS (){
     echo "INFO: Install Couchbase 5.0..."
     echo "******************************"
-    curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-5-x86_64.rpm
-    rpm -i couchbase-release-1.0-5-x86_64.rpm
-    yum -y update
-    yum -y install couchbase-server-community    
+    #curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-5-x86_64.rpm
+    wget http://packages.couchbase.com/releases/5.0.1/couchbase-server-community-5.0.1-centos7.x86_64.rpm  
+    rpm --install couchbase-server-community-5.0.1-centos7.x86_64.rpm
+    #rpm -i couchbase-release-1.0-5-x86_64.rpm
+    #yum -y update
+    #yum -y install couchbase-server-community    
     echo "Finished executing install_couchbase_5_on_CentOS."
     echo "*************************************************"
 }
