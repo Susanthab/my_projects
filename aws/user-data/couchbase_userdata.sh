@@ -14,6 +14,17 @@ echo 'export FULL_BACKUP_DATE="null"' >> ~/.bash_profile
 echo "PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/couchbase/bin" >> ~/.bash_profile
 source ~/.bash_profile
 
+echo "INFO: Install pre-requisites..."
+echo "*******************************"
+# update packages.
+yum -y update
+# install pip
+yum -y install python-pip
+pip install --upgrade pip
+#pip install -q -r ./couchbase/ansible-roles/requirements.txt
+# upgrade awscli to get new features 
+pip install awscli --upgrade
+
 # node services for standard cluster.
 std_services="data,index,query,fts"
 backup_job_schedule="0 * * * *"
@@ -49,13 +60,6 @@ mount $umd /data
 UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
 echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
 mount -a
-
-echo "INFO: Install pre-requisites..."
-echo "*******************************"
-pip install --upgrade pip
-#pip install -q -r ./couchbase/ansible-roles/requirements.txt
-# upgrade awscli to get new features 
-pip install awscli --upgrade
 
 mount_efs () {
     # Implementation of this func has been changed to suite for CentOS.

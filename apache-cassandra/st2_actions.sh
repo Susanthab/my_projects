@@ -15,6 +15,11 @@ Codename: xenial
 st2 run bitesize_cassandra.create_cassandra_iam_instance_profile \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 
+# with specific role name. 
+st2 run bitesize_cassandra.create_cassandra_iam_instance_profile \
+assume_role="arn:aws:iam::452395698705:role/st2_role" \
+iam_role_name="CassandraIAMRole_Demo"
+
 # Create a ring on AWS. (default: us-east-1)
 st2 run bitesize_cassandra.create_cassandra_ring \
 cluster_name="testing" \
