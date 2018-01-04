@@ -17,7 +17,7 @@ source ~/.bash_profile
 echo "INFO: Install pre-requisites..."
 echo "*******************************"
 # update packages.
-    #yum -y update
+    yum -y update
 # install pip
     yum -y install python-pip
     pip install --upgrade pip
@@ -54,14 +54,15 @@ echo "INFO: Pragramatically mount block device at EC2 startup..."
 echo "**********************************************************"
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
 # The following code is only to add one device. 
-cp /etc/fstab /etc/fstab.orig
-umd=`lsblk --noheadings --raw | grep -v "/" | grep -v "xvda\|sda1" | awk '{print "/dev/"$1}'`
-mkfs -t ext4 $umd
-mkdir /data
-mount $umd /data
-UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
-echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
-mount -a
+
+# cp /etc/fstab /etc/fstab.orig
+# umd=`lsblk --noheadings --raw | grep -v "/" | grep -v "xvda\|sda1" | awk '{print "/dev/"$1}'`
+# mkfs -t ext4 $umd
+# mkdir /data
+# mount $umd /data
+# UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
+# echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
+# mount -a
 
 mount_efs () {
     # Implementation of this func has been changed to suite for CentOS.
