@@ -478,15 +478,17 @@ setup_backup_schedule (){
 }
 
 ## ************************** EXECUTION *************************************************************
-echo "STEP 01 - Install Couchbase 5.0 community edition."
-echo "=================================================="
+echo "-----------------------------------------------------"
+echo "| STEP 01 - Install Couchbase 5.0 community edition.|"
+echo "-----------------------------------------------------"
     install_couchbase_5_on_CentOS
-echo "STEP 02 - Create data and index paths..."
-echo "========================================"
+echo "-----------------------------------------"
+echo "| STEP 02 - Create data and index paths.|"
+echo "-----------------------------------------"
     create_paths
 echo ""
 echo "STEP 03 - Mount EFS..."
-    mount_efs
+    #mount_efs
 echo ""
 echo "STEP 04 - Get tags..."
 echo "====================="
