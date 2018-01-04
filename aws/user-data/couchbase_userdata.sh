@@ -21,9 +21,11 @@ echo "*******************************"
 # install pip
     yum -y install python-pip
     pip install --upgrade pip
+    yum -y install zip
 #pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
     pip install awscli --upgrade
+    
 
 # node services for standard cluster.
 std_services="data,index,query,fts"
@@ -64,6 +66,7 @@ mount -a
 mount_efs () {
     # Implementation of this func has been changed to suite for CentOS.
     echo "Install dependancies..."
+    yum -y install nfs-utils
     # apt-get update
     #     wait_for_lock
     #     wait_for_lists_lock
@@ -76,6 +79,7 @@ mount_efs () {
     # apt-get -y install nfs-common
     #     wait_for_lock
     #     wait_for_lists_lock
+
 
     filesystemdirectory1="couchbase-backup"
 
@@ -463,10 +467,6 @@ find_unhealthy_nodes_and_remove () {
 }
 ## ***************************************************************************************************
 
-inst_zip () {
-   yum -y install zip
-}
-
 setup_backup_schedule (){
     # Future work.
     # need to change the backup script path for actual one.
@@ -529,11 +529,7 @@ echo "STEP 13 - Rebalance"
 echo "==================="
     rebalance
 echo ""
-echo "STEP 14 - Install zip..."
-echo "========================"
-    inst_zip
-echo ""
-echo "STEP 15 - Setup backup schedule..."
+echo "STEP 14 - Setup backup schedule..."
 echo "=================================="
     setup_backup_schedule
 ## ***********************END OF EXECUTION **********************************************************
