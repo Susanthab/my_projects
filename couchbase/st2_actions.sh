@@ -25,6 +25,7 @@ key_name="susanthab" \
 desired_capacity=1 \
 iam_role_couchbase="CouchbaseIAMRole" \
 volume_type="gp2" \
+volume_size=150 \
 s3_backup_loc="bitesize-couchbase-backup" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 

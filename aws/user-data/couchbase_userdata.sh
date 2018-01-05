@@ -54,15 +54,14 @@ echo "INFO: Pragramatically mount block device at EC2 startup..."
 echo "**********************************************************"
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
 # The following code is only to add one device. 
-
-# cp /etc/fstab /etc/fstab.orig
-# umd=`lsblk --noheadings --raw | grep -v "/" | grep -v "xvda\|sda1" | awk '{print "/dev/"$1}'`
-# mkfs -t ext4 $umd
-# mkdir /data
-# mount $umd /data
-# UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
-# echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
-# mount -a
+cp /etc/fstab /etc/fstab.orig
+umd=`lsblk -ds | grep -v "/" | grep disk | head -1 | awk '{print "/dev/"$1}'`
+mkfs -t ext4 $umd
+mkdir /data
+mount $umd /data
+UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
+echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
+mount -a
 
 mount_efs () {
     # Implementation of this func has been changed to suite for CentOS.
@@ -107,11 +106,8 @@ echo "INFO: Get AWS metadata..."
 wget -q http://s3.amazonaws.com/ec2metadata/ec2-metadata
 chmod u+x ec2-metadata
 AZ=$(./ec2-metadata -z)
-#EC2_AVAIL_ZONE=$(./ec2-metadata -z | grep -Po "(us|sa|eu|ap)-(north|south|central)?(east|west)?-[0-9]+")
 EC2_AVAIL_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
-#EC2_REGION="`echo \"$EC2_AVAIL_ZONE\" | sed -e 's:\([0-9][0-9]*\)[a-z]*\$:\\1:'`"
 EC2_REGION=${EC2_AVAIL_ZONE:0:-1}
-#INSTANCE_ID=$(./ec2-metadata | grep instance-id | awk 'NR==1{print $2}')
 INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query AutoScalingInstances[].AutoScalingGroupName --output text)
@@ -482,35 +478,44 @@ echo "-----------------------------------------------------"
 echo "| STEP 01 - Install Couchbase 5.0 community edition.|"
 echo "-----------------------------------------------------"
     install_couchbase_5_on_CentOS
+echo ""
 echo "-----------------------------------------"
 echo "| STEP 02 - Create data and index paths.|"
 echo "-----------------------------------------"
     create_paths
 echo ""
-echo "STEP 03 - Mount EFS..."
+echo "-----------------------"
+echo "| STEP 03 - Mount EFS.|"
+echo "-----------------------"
     #mount_efs
 echo ""
-echo "STEP 04 - Get tags..."
-echo "====================="
+echo "----------------------"
+echo "| STEP 04 - Get tags.|"
+echo "----------------------"
     get_tags_and_instances
 echo ""
-echo "STEP 05 - Wait for all the EC2 instances..."
-echo "==========================================="
+echo "--------------------------------------------"
+echo "| STEP 05 - Wait for all the EC2 instances.|"
+echo "--------------------------------------------"
     wait_for_ec2
 echo ""
-echo "STEP 06 - Wait for network..."
-echo "============================="
+echo "------------------------------"
+echo "| STEP 06 - Wait for network.|"
+echo "------------------------------"
     wait_for_network
 echo ""
-echo "STEP 07 - Wait for couchbase servers..."
-echo "======================================="
+echo "----------------------------------------"
+echo "| STEP 07 - Wait for couchbase servers.|"
+echo "----------------------------------------"
     wait_for_couchbase
 echo ""
-echo "STEP 08 - Initializes the node, $CURRENT_NODE_IP"
-echo "================================================"
+echo "----------------------------------------------------"
+echo "| STEP 08 - Initializes the node, $CURRENT_NODE_IP |"
+echo "----------------------------------------------------"
     node_init
 echo ""
-echo "STEP 09 - Identify a primary server..."
+echo "----------------------------------------------------"
+echo "| STEP 09 - Identify a primary server..."
 echo "======================================"
     get_primary_server
 echo ""
