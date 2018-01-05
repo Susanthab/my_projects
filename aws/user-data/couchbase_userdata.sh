@@ -8,6 +8,12 @@
 #         multi-dimential scaling. 
 #=============================================================
 
+
+#For debugging...
+echo "Current user and path"
+whoami
+pwd
+
 #echo "PATH=$PATH:/opt/couchbase/bin" >> ~/.bash_profile
 export FULL_BACKUP_DATE="null"
 echo 'export FULL_BACKUP_DATE="null"' >> ~/.bash_profile
