@@ -469,7 +469,7 @@ setup_backup_schedule (){
     #cp couchbase/couchbase/bitesize-cbbackup.sh /etc/cron.d/
     chmod 755 couchbase/couchbase/bitesize-cbbackup.sh
     # backup job executes at every hour.
-    echo "$backup_job_schedule couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output" | crontab 
+    echo "$backup_job_schedule couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output.txt" | crontab 
 }
 
 ## ************************** EXECUTION *************************************************************
