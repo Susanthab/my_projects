@@ -28,11 +28,17 @@ echo "*******************************"
 #pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
     pip install awscli --upgrade
+# install curl
+    yum -y install curl
     
 
 # node services for standard cluster.
 std_services="data,index,query,fts"
 backup_job_schedule="0 * * * *"
+# in MB.
+cluster_ramsize=512
+# in MB.
+cluster_index_ramsize=512
 
 ## ***************************************************************************************************
 # install SSM agent
@@ -278,7 +284,7 @@ cluster_init () {
         if [ "$SERVICE_OFFERING" == "data" ]; then
             output=$(couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
                     --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services data \
-                    --cluster-ramsize 256 )
+                    --cluster-ramsize $cluster_ramsize )
             echo "OUTPUT: cluster-init: $output"
             # Ideally the cluster name should be set with cluster-init method. However due to some reason it seems not working. 
             #So setting cluster name in a different way.
@@ -287,7 +293,7 @@ cluster_init () {
         if [ "$CLUSTER_TYPE" == "standard" ]; then
             output=$(couchbase-cli cluster-init -c $CURRENT_NODE_IP --cluster-username $CLUSTER_USER_NAME \
                     --cluster-password $CLUSTER_PASSWORD --cluster-name $CLUSTER_NAME --services $std_services \
-                    --cluster-ramsize 256 --cluster-index-ramsize 256)
+                    --cluster-ramsize $cluster_ramsize --cluster-index-ramsize $cluster_index_ramsize)
             echo "OUTPUT: cluster-init: $output"
         fi
 

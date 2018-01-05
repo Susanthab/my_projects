@@ -22,7 +22,7 @@ USER="admin"
 PASSWORD="12qwaszx@"
 DOW=$(date +%u)
 HOSTNAME=$(hostname)
-FULL_BACKUP_DAY=5
+#FULL_BACKUP_DAY=5
 
 
 init () {
@@ -46,8 +46,10 @@ init () {
 }
 
 get_EC2_metadata () {
-  instance_id=$(ec2metadata --instance-id)
-  region=$(ec2metadata --availability-zone | sed 's/[a-z]$//')
+  #curl -O http://s3.amazonaws.com/ec2metadata/ec2-metadata
+  instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+  ec2_avail_zone=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+  region=${ec2_avail_zone:0:-1}
   CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${instance_id} --region ${region} --query Reservations[].Instances[].PrivateIpAddress --output text)
   echo "Instance id: $instance_id"
   echo "AWS region : $region"
