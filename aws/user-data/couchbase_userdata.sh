@@ -14,6 +14,7 @@ echo 'export FULL_BACKUP_DATE="null"' >> ~/.bash_profile
 echo "PATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/couchbase/bin" >> ~/.bash_profile
 source ~/.bash_profile
 
+echo ""
 echo "INFO: Install pre-requisites..."
 echo "*******************************"
 # update packages.
@@ -22,6 +23,8 @@ echo "*******************************"
     yum -y install python-pip
     pip install --upgrade pip
     yum -y install zip
+# this is required to mount efs.
+    yum -y install nfs-utils
 #pip install -q -r ./couchbase/ansible-roles/requirements.txt
 # upgrade awscli to get new features 
     pip install awscli --upgrade
@@ -38,6 +41,7 @@ cd /tmp
 yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
 systemctl start amazon-ssm-agent
 
+echo ""
 echo "INFO: check to see whether SSM agent is running..."
 echo "**************************************************"
 status=$(systemctl status  amazon-ssm-agent.service | grep running | head -1 | awk '{print$3}')
@@ -50,6 +54,7 @@ else
 fi
 ## ***************************************************************************************************
 
+echo ""
 echo "INFO: Pragramatically mount block device at EC2 startup..."
 echo "**********************************************************"
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
@@ -66,20 +71,6 @@ mount -a
 mount_efs () {
     # Implementation of this func has been changed to suite for CentOS.
     echo "Install dependancies..."
-    yum -y install nfs-utils
-    # apt-get update
-    #     wait_for_lock
-    #     wait_for_lists_lock
-    # apt-get -y install nfs-kernel-server
-    #     wait_for_lock
-    #     wait_for_lists_lock    
-    # apt-get update
-    #     wait_for_lock
-    #     wait_for_lists_lock    
-    # apt-get -y install nfs-common
-    #     wait_for_lock
-    #     wait_for_lists_lock
-
 
     filesystemdirectory1="couchbase-backup"
 
