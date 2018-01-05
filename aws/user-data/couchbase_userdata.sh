@@ -487,7 +487,7 @@ echo ""
 echo "-----------------------"
 echo "| STEP 03 - Mount EFS.|"
 echo "-----------------------"
-    #mount_efs
+    mount_efs
 echo ""
 echo "----------------------"
 echo "| STEP 04 - Get tags.|"
