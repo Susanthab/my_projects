@@ -3,6 +3,7 @@
 #=============================================================
 #Author: Susantha B
 #Date: 10/31/17
+#Last updated: 1/5/2018
 #Version: 1.0
 #Purpose: Install & configure Couchbase cluster on AWS with 
 #         multi-dimential scaling. 
