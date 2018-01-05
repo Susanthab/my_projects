@@ -94,7 +94,7 @@ mount_efs () {
 
 # Use below script is to get ASG meta data. 
 echo "INFO: Get AWS metadata..."
-wget -q http://s3.amazonaws.com/ec2metadata/ec2-metadata
+curl -O http://s3.amazonaws.com/ec2metadata/ec2-metadata
 chmod u+x ec2-metadata
 AZ=$(./ec2-metadata -z)
 EC2_AVAIL_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
@@ -115,7 +115,7 @@ echo never > /sys/kernel/mm/transparent_hugepage/defrag
 
 install_couchbase_4 () {
     echo "INFO: Install Couchbase 4.0..."
-    wget -q https://packages.couchbase.com/releases/4.6.3/couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
+    curl -O https://packages.couchbase.com/releases/4.6.3/couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
     dpkg -i couchbase-server-enterprise_4.6.3-ubuntu14.04_amd64.deb
 }
 
@@ -163,7 +163,7 @@ install_couchbase_5_on_CentOS (){
     echo "INFO: Install Couchbase 5.0..."
     echo "******************************"
     #curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-5-x86_64.rpm
-    wget -q http://packages.couchbase.com/releases/5.0.1/couchbase-server-community-5.0.1-centos7.x86_64.rpm  
+    curl -O http://packages.couchbase.com/releases/5.0.1/couchbase-server-community-5.0.1-centos7.x86_64.rpm  
     rpm --install couchbase-server-community-5.0.1-centos7.x86_64.rpm
     #rpm -i couchbase-release-1.0-5-x86_64.rpm
     #yum -y update
@@ -475,9 +475,9 @@ echo "| STEP 02 - Create data and index paths.|"
 echo "-----------------------------------------"
     create_paths
 echo ""
-echo "-----------------------"
+echo "--------------------------"
 echo "| STEP 03 - Mounting EFS.|"
-echo "-----------------------"
+echo "--------------------------"
     mount_efs
 echo ""
 echo "----------------------"
