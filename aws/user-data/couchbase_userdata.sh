@@ -472,7 +472,8 @@ find_unhealthy_nodes_and_remove () {
 setup_backup_schedule (){
     # Future work.
     # need to change the backup script path for actual one.
-    chmod +x couchbase/couchbase/bitesize-cbbackup.sh
+    printf "\nSet backup script executable\n"
+    chmod +x /root/couchbase/couchbase/bitesize-cbbackup.sh
     # backup job executes at every hour.
     echo "$backup_job_schedule couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output.txt" | crontab 
 }
