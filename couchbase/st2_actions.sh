@@ -11,6 +11,8 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Create a Standard Couchbase cluster on AWS. (default: us-east-1)
 # AMI for Ubuntu ami-3f68db29 on ss-np
+# AMI for CentOS ami-5006cf46 on ss-np
+
 st2 run couchbase.create_couchbase_cluster \
 cluster_name="backup-testing" \
 security_group_id="sg-e971169c" \
@@ -20,7 +22,7 @@ environment="dev" \
 app_id=50 \
 t_owner_individual="susantha.bathige@pearson.com" \
 instance_type="t2.medium" \
-image_id="ami-5006cf46" \
+image_id="ami-0d62f31b" \
 key_name="susanthab" \
 desired_capacity=1 \
 iam_role_couchbase="CouchbaseIAMRole" \

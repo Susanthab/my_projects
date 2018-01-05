@@ -476,7 +476,7 @@ echo "-----------------------------------------"
     create_paths
 echo ""
 echo "-----------------------"
-echo "| STEP 03 - Mount EFS.|"
+echo "| STEP 03 - Mounting EFS.|"
 echo "-----------------------"
     mount_efs
 echo ""
@@ -510,26 +510,31 @@ echo "| STEP 09 - Identify a primary server..."
 echo "======================================"
     get_primary_server
 echo ""
-echo "STEP 10 - Initializing the cluster..."
-echo "====================================="
+echo "--------------------------------------"
+echo "| STEP 10 - Initializing the cluster.|"
+echo "--------------------------------------"
     cluster_init
     sleep 10s
 echo ""
-echo "STEP 11 - Add server..."
-echo "======================="
+echo "------------------------"
+echo "| STEP 11 - Add server.|"
+echo "------------------------"
     server_add
     sleep 30s
 echo ""
-echo "STEP 12 - Remove unhealthy nodes..."
-echo "==================================="
+echo "------------------------------------"
+echo "| STEP 12 - Remove unhealthy nodes.|"
+echo "------------------------------------"
     find_unhealthy_nodes_and_remove
 echo ""
-echo "STEP 13 - Rebalance"
-echo "==================="
+echo "-----------------------"
+echo "| STEP 13 - Rebalance.|"
+echo "-----------------------"
     rebalance
 echo ""
-echo "STEP 14 - Setup backup schedule..."
-echo "=================================="
+echo "-----------------------------------"
+echo "| STEP 14 - Setup backup schedule.|"
+echo "-----------------------------------"
     setup_backup_schedule
 ## ***********************END OF EXECUTION **********************************************************
 
