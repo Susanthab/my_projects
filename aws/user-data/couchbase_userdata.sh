@@ -519,9 +519,9 @@ echo "| STEP 08 - Initializes the node, $CURRENT_NODE_IP |"
 echo "----------------------------------------------------"
     node_init
 echo ""
-echo "----------------------------------------------------"
-echo "| STEP 09 - Identify a primary server..."
-echo "======================================"
+echo "---------------------------------------"
+echo "| STEP 09 - Identify a primary server.|"
+echo "---------------------------------------"
     get_primary_server
 echo ""
 echo "--------------------------------------"
