@@ -14,7 +14,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # AMI for CentOS ami-5006cf46 on ss-np
 
 st2 run couchbase.create_couchbase_cluster \
-cluster_name="backup-testing" \
+cluster_name="restore-testing" \
 security_group_id="sg-e971169c" \
 subnets="subnet-262c5643,subnet-e1c5b5cb" \
 storage_type="EBS" \

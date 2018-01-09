@@ -23,3 +23,6 @@ cbrestore /var/www/html/couchbase-backup/ http://172.31.69.196:8091 -u admin -p 
 cbrestore /var/www/html/couchbase-backup/ http://172.31.69.196:8091 -u admin -p 12qwaszx@ -b travel-sample -B travel-sample-restored
 
 cbrestore /var/www/html/backup/ http://172.31.73.220:8091 -u admin -p 12qwaszx@ -b beer-sample -B beer-sample-restored
+
+
+cbrestore /var/www/html/couchbase-backup/restore/ip-172-31-52-205/ http://172.31.54.105:8091 -u admin -p 12qwaszx@ -b beer-sample -B beer-sample-restored

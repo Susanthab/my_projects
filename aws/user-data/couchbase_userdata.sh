@@ -41,9 +41,9 @@ echo "*******************************"
 
 # node services for standard cluster.
 std_services="data,index,query,fts"
-#backup_job_schedule="0 * * * *"
+backup_job_schedule="0 * * * *"
 # for testing only. 
-backup_job_schedule="*/20 * * * *"
+#backup_job_schedule="*/20 * * * *"
 # in MB.
 cluster_ramsize=512
 # in MB.
