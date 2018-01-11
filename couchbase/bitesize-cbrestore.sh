@@ -36,8 +36,8 @@ unzip_file () {
 
 backup_restore () {
 
-    couchbase-cli bucket-create -c $HOST:8091 -u $LOGIN -p $PASSWORD --bucket $DESTINATION_BUCKET --bucket-type couchbase --bucket-ramsize $BUCKET_RAMSIZE --wait
-    CBRESTORE="cbrestore -u $LOGIN -p $PASSWORD -b $SOURCE_BUCKET -B $DESTINATION_BUCKET"
+    /opt/couchbase/bin/couchbase-cli bucket-create -c $HOST:8091 -u $LOGIN -p $PASSWORD --bucket $DESTINATION_BUCKET --bucket-type couchbase --bucket-ramsize $BUCKET_RAMSIZE --wait
+    CBRESTORE="/opt/couchbase/bin/cbrestore -u $LOGIN -p $PASSWORD -b $SOURCE_BUCKET -B $DESTINATION_BUCKET"
     $CBRESTORE $RESTORE_LOC http://$HOST:8091
 
     printf "Clear files from restore location...\n"
