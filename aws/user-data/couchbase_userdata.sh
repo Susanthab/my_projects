@@ -468,7 +468,6 @@ find_unhealthy_nodes_and_remove () {
 }
 ## ***************************************************************************************************
 
-
 set_permission () {
     # Future work.
     # need to change the backup script path for actual one.
