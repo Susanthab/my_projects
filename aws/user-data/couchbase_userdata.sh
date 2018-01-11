@@ -38,7 +38,6 @@ echo "*******************************"
 # install curl
     yum -y install curl
     
-
 # node services for standard cluster.
 std_services="data,index,query,fts"
 backup_job_schedule="0 * * * *"
@@ -469,11 +468,16 @@ find_unhealthy_nodes_and_remove () {
 }
 ## ***************************************************************************************************
 
-setup_backup_schedule (){
+
+set_permission () {
     # Future work.
     # need to change the backup script path for actual one.
-    printf "\nSet backup script executable\n"
+    printf "\nSet backup & restore scripts executable\n"
     chmod u+x /root/couchbase/couchbase/bitesize-cbbackup.sh
+    chmod u+x /root/couchbase/couchbase/bitesize-cbrestore.sh
+}
+
+setup_backup_schedule (){
     # backup job executes at every hour.
     echo "$backup_job_schedule couchbase/couchbase/bitesize-cbbackup.sh >> /var/log/couchbase_backup_output.txt" | crontab 
 }
@@ -546,8 +550,13 @@ echo "| STEP 13 - Rebalance.|"
 echo "-----------------------"
     rebalance
 echo ""
+echo "---------------------------------------"
+echo "| STEP 14 - Set scripts as executable.|"
+echo "---------------------------------------"
+    set_permission
+echo ""
 echo "-----------------------------------"
-echo "| STEP 14 - Setup backup schedule.|"
+echo "| STEP 15 - Setup backup schedule.|"
 echo "-----------------------------------"
     setup_backup_schedule
 ## ***********************END OF EXECUTION **********************************************************
