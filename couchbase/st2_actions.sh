@@ -14,7 +14,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # AMI for CentOS ami-5006cf46 on ss-np
 
 st2 run couchbase.create_couchbase_cluster \
-cluster_name="restore-testing" \
+cluster_name="cb-ce-centos-demo" \
 security_group_id="sg-e971169c" \
 subnets="subnet-262c5643,subnet-e1c5b5cb" \
 storage_type="EBS" \
@@ -24,7 +24,7 @@ t_owner_individual="susantha.bathige@pearson.com" \
 instance_type="t2.medium" \
 image_id="ami-3d824b2b" \
 key_name="susanthab" \
-desired_capacity=2 \
+desired_capacity=3 \
 iam_role_couchbase="CouchbaseIAMRole" \
 volume_type="gp2" \
 volume_size=150 \
@@ -72,6 +72,19 @@ cluster_name="backup-testing" \
 node_type="standard" \
 remove_or_terminate="terminate" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
+
+# Restore Couchbase backup. 
+st2 run couchbase.restore_couchbase_backup \
+region='us-east-1' \
+assume_role='' \
+cluster_name='restore-testing' \
+host='172.31.54.167' \
+user_name='admin' \
+password='123' \
+source_bucket_name='beer-sample' \
+destination_bucket_name='beer-sample-restored' \
+bucket_ramsize='256' \
+backup_file_path='s3://bitesize-couchbase-backup/bitesize/restore-testing/ip-172-31-73-157/2018-01-11-17'
 
 
 

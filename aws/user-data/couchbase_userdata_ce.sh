@@ -176,8 +176,8 @@ install_couchbase_5_on_CentOS (){
     echo "INFO: Install Couchbase 5.0..."
     echo "******************************"
     #curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-5-x86_64.rpm
-    curl -O http://packages.couchbase.com/releases/5.0.1/couchbase-server-enterprise-5.0.1-centos7.x86_64.rpm  
-    rpm --install couchbase-server-enterprise-5.0.1-centos7.x86_64.rpm
+    curl -O http://packages.couchbase.com/releases/5.0.1/couchbase-server-community-5.0.1-centos7.x86_64.rpm  
+    rpm --install couchbase-server-community-5.0.1-centos7.x86_64.rpm
     #rpm -i couchbase-release-1.0-5-x86_64.rpm
     #yum -y update
     #yum -y install couchbase-server-community    
@@ -384,7 +384,7 @@ server_add () {
 
     if [ "$CURRENT_NODE_IP" != "$PRIMARY_SERVER_IP" -a "$CLUSTER_TYPE" == "standard" ]; then
         output=$(couchbase-cli server-add --server-add=$CURRENT_NODE_IP --server-add-username=$CLUSTER_USER_NAME \
-            --server-add-password=$CLUSTER_PASSWORD --group-name="$group_name" --services="$std_services" \
+            --server-add-password=$CLUSTER_PASSWORD --services="$std_services" \
             --cluster=$PRIMARY_SERVER_IP --user=$CLUSTER_USER_NAME --password=$CLUSTER_PASSWORD)
         echo "OUTPUT: server-add: $output"   
     fi
