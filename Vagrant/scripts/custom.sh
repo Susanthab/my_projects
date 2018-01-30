@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Lets install aws pack..."
-sudo st2 pack install aws
+#echo "Lets install aws pack..."
+#sudo st2 pack install aws
 
 echo "Lets install awscli..."
 sudo apt install awscli
@@ -9,11 +9,11 @@ sudo apt install awscli
 echo "Lets install tree..."
 sudo apt install tree
 
-echo "Lets install ansible pack..."
-sudo st2 pack install ansible
+#echo "Lets install ansible pack..."
+#sudo st2 pack install ansible
 
-echo "Lets install consul pack..."
-sudo st2 pack install consul
+#echo "Lets install consul pack..."
+#sudo st2 pack install consul
 
 echo "Lets install boto3..."
 sudo pip install boto3

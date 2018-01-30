@@ -14,7 +14,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # AMI for CentOS ami-5006cf46 on ss-np
 
 st2 run couchbase.create_couchbase_cluster \
-cluster_name="cb-ce-centos-demo" \
+cluster_name="cb-ee-centos-demo" \
 security_group_id="sg-e971169c" \
 subnets="subnet-262c5643,subnet-e1c5b5cb" \
 storage_type="EBS" \
@@ -28,7 +28,8 @@ desired_capacity=3 \
 iam_role_couchbase="CouchbaseIAMRole" \
 volume_type="gp2" \
 volume_size=150 \
-s3_backup_loc="bitesize-couchbase-backup" \
+full_backup_sch="1W:Sun" \
+s3_backup_loc=" bitesize.prsn.couchbase.backup.stg" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Create a multi-dimentional Couchbase cluster on AWS. (default: us-east-1)
@@ -50,14 +51,14 @@ desired_capacity_index=2 \
 desired_capacity_query=2 \
 iam_role_couchbase="CouchbaseIAMRole" \
 volume_type="gp2" \
-s3_backup_loc="bitesize-couchbase-backup" \
+s3_backup_loc="bitesize.couchbase.backup.dev" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 # Add node(s) to Couchbase cluster. (default: us-east-1)
 # cluster_type (standard | multidimentional)
 # node_service_offering ( N/A | data | index | query)
 st2 run couchbase.add_nodes_to_couchbase_cluster \
-cluster_name="backup-testing" \
+cluster_name="cb-ce-centos-demo" \
 cluster_type="standard" \
 node_service_offering="N/A" \
 number_of_nodes_toadd=1 \
@@ -68,7 +69,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # node_type (standard | data | index | query)
 # remove_or_terminate (remove | terminate)
 st2 run couchbase.remove_node_from_couchbase_cluster \
-cluster_name="backup-testing" \
+cluster_name="cb-ce-centos-demo" \
 node_type="standard" \
 remove_or_terminate="terminate" \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
@@ -85,6 +86,24 @@ source_bucket_name='beer-sample' \
 destination_bucket_name='beer-sample-restored' \
 bucket_ramsize='256' \
 backup_file_path='s3://bitesize-couchbase-backup/bitesize/restore-testing/ip-172-31-73-157/2018-01-11-17'
+
+# Create S3 bucket.
+# https://docs.aws.amazon.com/AmazonS3/latest/dev/lifecycle-transition-general-considerations.html
+# https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html
+# environment (dev | qa | nft | stg | prod)
+# enable_default_encryption (true | false). Default is set to false.
+st2 run couchbase.create_s3_bucket_with_policies \
+region="ca-central-1" \
+destination_region="ap-southeast-1" \
+s3_bucket_name="prsn.couchbase.backup" \
+transition_days_to_ia=30 \
+transition_days_to_glacier=60 \
+expiration_days=90 \
+environment='stg' \
+team_id='bitesize' \
+app_id=50 \
+enable_default_encryption=true \
+assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 
 

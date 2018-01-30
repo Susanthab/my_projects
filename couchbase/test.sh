@@ -12,3 +12,14 @@ per_node_quota_mb=$(($per_node_quota/1000))
 
 
 echo $per_node_quota
+
+
+        if region == 'us-east-1':
+            s3_conn.create_bucket(
+                Bucket=bucket,
+            )
+        else:
+            s3_conn.create_bucket(
+                Bucket=bucket,
+                CreateBucketConfiguration={'LocationConstraint': region},
+            )
