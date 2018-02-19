@@ -2,35 +2,36 @@
 
 # Create IAM role for Couchbase (CouchbaseIAMRole). (default: us-east-1)
 st2 run couchbase.create_couchbase_iam_instance_profile \
-assume_role="arn:aws:iam::452395698705:role/st2_role"
+iam_role_name='couchbase-role'
 
 # Create Security group for Couchbase (sg_couchbase). (default: us-east-1)
+# vpc_id and env parameter values need to be taken from Bitesize modular.
 st2 run couchbase.create_couchbase_security_group \
-vpc_id="vpc-4b864f2c"
-assume_role="arn:aws:iam::452395698705:role/st2_role"
+group_name="couchbase_vm_sg" \
+vpc_id="vpc-4b864f2c" \
+env='susanthab'
 
 # Create a Standard Couchbase cluster on AWS. (default: us-east-1)
 # AMI for Ubuntu ami-3f68db29 on ss-np
 # AMI for CentOS ami-5006cf46 on ss-np
 
+# ami-3d824b2b
+# Run in bitesize environment. 
 st2 run couchbase.create_couchbase_cluster \
-cluster_name="cb-ee-centos-demo" \
-security_group_id="sg-e971169c" \
-subnets="subnet-262c5643,subnet-e1c5b5cb" \
+vpc_id="vpc-cd44cbb4" \
+namespace="ubathsu" \
 storage_type="EBS" \
 environment="dev" \
 app_id=50 \
-t_owner_individual="susantha.bathige@pearson.com" \
 instance_type="t2.medium" \
-image_id="ami-3d824b2b" \
-key_name="susanthab" \
+image_id="ami-5216952a" \
+key_name="bitesize" \
 desired_capacity=3 \
-iam_role_couchbase="CouchbaseIAMRole" \
 volume_type="gp2" \
 volume_size=150 \
 full_backup_sch="1W:Sun" \
 s3_backup_loc=" bitesize.prsn.couchbase.backup.stg" \
-assume_role="arn:aws:iam::452395698705:role/st2_role"
+t_owner_individual="susantha.bathige@pearson.com"
 
 # Create a multi-dimentional Couchbase cluster on AWS. (default: us-east-1)
 st2 run couchbase.create_couchbase_cluster_with_multidimensional_scaling \

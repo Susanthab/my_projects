@@ -12,3 +12,6 @@ kubectl describe pod -n glp-dev couchbase-master-glp-3667123713-87rlm
 # Log into a perticular pod
 kubectl exec -it -n glp-dev couchbase-master-glp-3667123713-87rlm -- bin/bash
 
+# get TPR
+kubectl get thirdpartyresources
+
