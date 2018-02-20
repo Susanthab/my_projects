@@ -52,10 +52,11 @@ metadata:
 spec:
   options:
     volume_size: "200"
-    instance_type: t2.medium
-    desired_capacity: 3
+    instance_type: "t2.medium"
+    desired_capacity: "3"
     full_backup_sch: "1W:Sun"
-    app_id: 100
+    app_id: "100"
+    team_id: "dba"
   version: "5.6"
 
 # to create
