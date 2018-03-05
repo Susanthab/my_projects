@@ -260,13 +260,12 @@ get_tags_and_instances () {
 ## ***************************************************************************************************
 
 get_admin_user_pwd () {
-    "Retrive admin user password..."
+    echo ""
+    echo "Retrive admin user password..."
     param_name_pwd="/$t_environment/$t_role/$DB_system/$Deployment_name/db-adminpwd"
     CLUSTER_USER_NAME='Administrator'
     CLUSTER_PASSWORD=`aws ssm get-parameter --name=$param_name_pwd --region=${EC2_REGION} --with-decryption --query 'Parameter.Value' --output text`
-    echo $CLUSTER_PASSWORD
 }
-get_admin_user_pwd
 
 ## ***************************************************************************************************
 # wait for ec2
@@ -524,6 +523,7 @@ echo "----------------------"
 echo "| STEP 04 - Get tags.|"
 echo "----------------------"
     get_tags_and_instances
+    get_admin_user_pwd
 echo ""
 echo "--------------------------------------------"
 echo "| STEP 05 - Wait for all the EC2 instances.|"
