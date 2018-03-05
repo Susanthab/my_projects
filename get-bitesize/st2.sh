@@ -11,6 +11,24 @@ st2 pack install git@github.com:AndyMoore/stackstorm-aws_iam.git
 #https://stackstorm.ubathsu.us-west-2.prsn-dev.io
 
 
+# install vim.
+apt-get install vim
+
+git clone https://github.com/pearsontechnology/stackstorm-couchbase.git couchbase
+# install couchbase pack. 
+st2 run packs.setup_virtualenv packs=couchbase
+
+# reload st2 context.
+st2ctl reload --register-all
+
+
+curl --head -X GET http://couchbase-tpr-dev-1751775996.us-west-2.elb.amazonaws.com
+
+
+
+
+
+
 
 
 

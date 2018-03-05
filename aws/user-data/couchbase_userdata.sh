@@ -189,9 +189,6 @@ install_couchbase_5_on_CentOS (){
 # The Couchbase-server should start automatically, if not start.
 # The function code should come here. 
 
-CLUSTER_USER_NAME="admin"
-CLUSTER_PASSWORD="12qwaszx@"
-
 # Create data and index directories
 ## ***************************************************************************************************
 create_paths () {
@@ -215,6 +212,22 @@ get_tags_and_instances () {
     CLUSTER_NAME=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
         --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`cluster_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
     echo "INFO: Cluster name: $CLUSTER_NAME"
+
+    t_environment=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+            --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`t_environment`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    echo "INFO: t_environment: $t_environment"
+
+    t_role=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+            --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`t_role`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    echo "INFO: t_role: $t_role"
+
+    DB_system=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+            --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`DB_system`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    echo "INFO: DB_system: $DB_system"
+
+    Deployment_name=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
+            --region ${EC2_REGION} --query 'AutoScalingGroups[].Tags[?Key==`Deployment_name`].{val:Value}' --output text | head -n1 | awk '{print $1;}');
+    echo "INFO: Deployment_name: $Deployment_name"
 
     if [ "$CLUSTER_TYPE" == "standard" ]; then
         ALL_ASG_INST=$(aws autoscaling describe-auto-scaling-groups --auto-scaling-group-names ${AG_NAME} \
@@ -245,6 +258,15 @@ get_tags_and_instances () {
     echo "INFO: All the instances of the cluster: $ALL_ASG_INST"  
 }
 ## ***************************************************************************************************
+
+get_admin_user_pwd () {
+    "Retrive admin user password..."
+    param_name_pwd="/$t_environment/$t_role/$DB_system/$Deployment_name/db-adminpwd"
+    CLUSTER_USER_NAME='Administrator'
+    CLUSTER_PASSWORD=`aws ssm get-parameter --name=$param_name_pwd --region=${EC2_REGION} --with-decryption --query 'Parameter.Value' --output text`
+    echo $CLUSTER_PASSWORD
+}
+get_admin_user_pwd
 
 ## ***************************************************************************************************
 # wait for ec2

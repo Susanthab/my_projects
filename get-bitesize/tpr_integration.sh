@@ -9,7 +9,7 @@ st2 trigger get core.st2.IntervalTimer
 # Check details on the Webhook trigger
 st2 trigger get core.st2.webhook
 
-
+kubectl get thirdpartyresources
 # ========================
 # 01 create the TPR in k8.
 # ========================
@@ -47,7 +47,7 @@ metadata:
   labels:
     creator: pipeline
     name: susacouchb
-  name: susacouchb
+  name: couch-test
   namespace: tpr-dev
 spec:
   options:
@@ -57,7 +57,6 @@ spec:
     full_backup_sch: "1W:Sun"
     app_id: "100"
     team_id: "dba"
-  version: "5.6"
 
 # to create
 kubectl create -f couchb-intg.yaml
@@ -77,3 +76,13 @@ kubectl -n tpr-dev get couchbase
 # 04 Delete custom object
 # =======================
 kubectl delete -f couchb-intg.yaml
+
+
+
+select_storage_type:
+        action: core.local
+        input:
+          cmd: "printf <% $.storage_type %>"
+        publish:
+          path: <% task(select_storage_type).result.stdout %>
+        on-success:

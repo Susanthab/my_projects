@@ -8,7 +8,7 @@ iam_role_name='couchbase-role'
 # vpc_id and env parameter values need to be taken from Bitesize modular.
 st2 run couchbase.create_couchbase_security_group \
 group_name="couchbase_vm_sg" \
-vpc_id="vpc-4b864f2c" \
+vpc_id="vpc-cd44cbb4 " \
 env='susanthab'
 
 # Create a Standard Couchbase cluster on AWS. (default: us-east-1)
@@ -107,4 +107,40 @@ enable_default_encryption=true \
 assume_role="arn:aws:iam::452395698705:role/st2_role"
 
 
+st2 run couchbase.create_s3_bucket \
+region="ca-central-1" \
+bucket_name="bitesize.50.prsn.couchbase.backup.ap-southeast-1.stg.replica" \
+acl="private"
 
+st2 run couchbase.create_alb \
+lb_name="couchbase-tpr-dev" \
+subnets='subnet-d4935aad','subnet-44dd350f','subnet-a249fff8' \
+tg_name="tpr-dev-couchbtest" \
+vpc_id="vpc-d51985ac" \
+asg_name="couchbase-couchbtest-tpr-dev" \
+sg_name="couchbase-alb" \
+sg_name_tag="couchbase-alb-dev" \
+namespace="dev" \
+deployment_name="couchtest" \
+role="database" \
+database_system="couchbase"
+
+# common action to create a security group.
+st2 run couchbase.create_security_group \
+group_name="couchbase-alb" \
+description="Security group for Couchbase security group." \
+name="couchbase-alb-dev" \
+namespace="dev" \
+deployment_name="couchtest" \
+role="database" \
+database_system="couchbase" \
+vpc_id="vpc-d51985ac"
+
+
+couchbase-cli server-list -c 10.1.49.238:8091 -u admin -p 12qwaszx@
+
+
+couchbase-cli server-list -c http://couchbase-tpr-dev-306695041.us-west-2.elb.amazonaws.com -u admin -p 12qwaszx@
+
+
+curl -v -u admin:12qwaszx@ http://couchbase-tpr-dev-1866867088.us-west-2.elb.amazonaws.com/pools/nodes
