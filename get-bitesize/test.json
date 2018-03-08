@@ -158,16 +158,68 @@
             "Action": [
                 "ssm:PutParameter",
                 "ssm:GetParameter",
-                "ssm:AddTagsToResource",
-                "ssm:GetParametersByPath"
-
+                "ssm:AddTagsToResource"
             ],
             "Resource": [
-                "*"
+                "arn:aws:ssm:*:*:parameter/tpr-dev/database/*"
             ]
         }
     ]
 }
 
+{
+    "Effect": "Allow",
+    "Action": [ "ssm:PutParameter", "ssm:AddTagsToResource" ],
+    "Resource": [ "arn:aws:ssm:*:*:parameter/*/database/*" ]
+},
+
+{
+    "Version":"2012-10-17",
+    "Statement":[
+       {
+          "Effect":"Allow",
+          "Action":[
+             "ssm:GetParameters",
+          ],
+          "Resource":"*",
+          "Condition":{
+             "StringLike":{
+                "ssm:resourceTag/t_role":[
+                   "database"
+                ]
+             }
+          }
+       }
+    ]
+ }
 
 
+ {
+    "Version":"2012-10-17",
+    "Statement":[
+       {
+          "Effect":"Allow",
+          "Action":[
+             "autoscaling:Describe*",
+             "ec2:Describe*",
+             "elasticfilesystem:Describe*",
+             "s3:PutObject",
+             "s3:GetObject",
+             "s3:ListBucket",
+             "s3:GetBucketLocation",
+             "s3:ListObjects",
+             "s3:GetObjectVersion",
+             "ssm:SendCommand",
+             "ssm:GetParameter",
+             "logs:DescribeResourcePolicies",
+             "ec2messages:AcknowledgeMessage",
+             "ec2messages:DeleteMessage",
+             "ec2messages:FailMessage",
+             "ec2messages:GetEndpoint",
+             "ec2messages:GetMessages",
+             "ec2messages:SendReply"
+          ],
+          "Resource":"*"
+       }
+    ]
+ }

@@ -47,19 +47,19 @@ metadata:
   labels:
     creator: pipeline
     name: susacouchb
-  name: couch-test
+  name: couchbtest
   namespace: tpr-dev
 spec:
   options:
     volume_size: "200"
     instance_type: "t2.medium"
-    desired_capacity: "3"
+    desired_capacity: "2"
     full_backup_sch: "1W:Sun"
     app_id: "100"
     team_id: "dba"
 
 # to create
-kubectl create -f couchb-intg.yaml
+kubectl create -f couchbtest.yaml
 
 # to see the object. 
 kubectl -n tpr-dev get couchbase

@@ -147,32 +147,6 @@ wait_for_lists_lock () {
     done
 }
 
-install_couchbase_5_on_ubuntu () {
-    # for Ubuntu 16.04
-    echo "INFO: Install Couchbase 5.0..."
-    echo "=============================="
-    curl -O http://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-4-amd64.deb
-    curl -O https://packages.couchbase.com/releases/5.0.1/couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb
-        wait_for_lock
-        wait_for_lists_lock
-    dpkg -i couchbase-release-1.0-4-amd64.deb
-        wait_for_lock
-        wait_for_lists_lock
-    echo "apt-get -y update"
-    apt-get -y update
-        wait_for_lock
-        wait_for_lists_lock
-    apt-get install python-httplib2  #libcouchbase-dev libcouchbase2-bin build-essential
-        wait_for_lock
-        wait_for_lists_lock   
-    dpkg -i couchbase-server-community_5.0.1-ubuntu16.04_amd64.deb  
-    #apt-get -y install couchbase-server-community
-        wait_for_lock
-        wait_for_lists_lock
-    echo "INFO: Finished installing Couchbase 5.0 community edition..."
-    echo "============================================================"
-}
-
 install_couchbase_5_on_CentOS (){
     echo "INFO: Install Couchbase 5.0..."
     echo "******************************"
@@ -262,9 +236,14 @@ get_tags_and_instances () {
 get_admin_user_pwd () {
     echo ""
     echo "Retrive admin user password..."
-    param_name_pwd="/$t_environment/$t_role/$DB_system/$Deployment_name/db-adminpwd"
+    param_name_pwd="/$t_environment/$t_role/$DB_system/$Deployment_name/administrator"
     CLUSTER_USER_NAME='Administrator'
     CLUSTER_PASSWORD=`aws ssm get-parameter --name=$param_name_pwd --region=${EC2_REGION} --with-decryption --query 'Parameter.Value' --output text`
+
+    if [ -z "$CLUSTER_PASSWORD" ]; then
+       echo "ERROR: Password id empty. Aborting the script."
+       exit
+    fi
 }
 
 ## ***************************************************************************************************

@@ -116,11 +116,10 @@ st2 run couchbase.create_alb \
 lb_name="couchbase-tpr-dev" \
 subnets='subnet-d4935aad','subnet-44dd350f','subnet-a249fff8' \
 tg_name="tpr-dev-couchbtest" \
-vpc_id="vpc-d51985ac" \
 asg_name="couchbase-couchbtest-tpr-dev" \
 sg_name="couchbase-alb" \
 sg_name_tag="couchbase-alb-dev" \
-namespace="dev" \
+namespace="tpr-dev" \
 deployment_name="couchtest" \
 role="database" \
 database_system="couchbase"
@@ -130,17 +129,18 @@ st2 run couchbase.create_security_group \
 group_name="couchbase-alb" \
 description="Security group for Couchbase security group." \
 name="couchbase-alb-dev" \
-namespace="dev" \
+namespace="tpr-dev" \
 deployment_name="couchtest" \
 role="database" \
 database_system="couchbase" \
 vpc_id="vpc-d51985ac"
 
 
-couchbase-cli server-list -c 10.1.49.238:8091 -u admin -p 12qwaszx@
+couchbase-cli server-list -c 10.1.47.90:8091 -u Administrator -p 935a2dfd15a04491b71808b7
 
 
 couchbase-cli server-list -c http://couchbase-tpr-dev-306695041.us-west-2.elb.amazonaws.com -u admin -p 12qwaszx@
 
 
-curl -v -u admin:12qwaszx@ http://couchbase-tpr-dev-1866867088.us-west-2.elb.amazonaws.com/pools/nodes
+curl -v -u Administrator:a4b59ece291e4df7bc5bccfc http://test.couchbase-tpr-dev.ubathsu.us-west-2.dev/pools/nodes
+

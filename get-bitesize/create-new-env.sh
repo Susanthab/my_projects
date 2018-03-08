@@ -7,6 +7,18 @@ cd bitesize-environments && \
    --region=us-west-2 \
    --modules core,bastion,stackstorm,etcd,kube-master
 
+cd bitesize-environments && \
+   ./manage-env.py add \
+   --env=ubathsu \
+   --region=us-west-2 \
+   --modules kube-minion,consul
+
+cd bitesize-environments && \
+   ./manage-env.py create \
+   --env=ubathsu \
+   --region=us-west-2
+   --modules core,ca,db,bastion,consul,etcd,kube-master,kube-minion,stackstorm
+
 
 # SSH to docker container.
 docker exec -it <container id> /bin/bash
