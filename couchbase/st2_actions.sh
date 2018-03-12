@@ -2,7 +2,15 @@
 
 # Create IAM role for Couchbase (CouchbaseIAMRole). (default: us-east-1)
 st2 run couchbase.create_couchbase_iam_instance_profile \
-iam_role_name='couchbase-role'
+namespace='tpr-dev' \
+deployment_name='couchbtest' \
+role='database' \
+database_system='couchbase' \
+iam_role_name='couch-iam-test' \
+iam_policy_name='couch-iam-test-policy' \
+region='us-west-2' \
+s3_bucket_name='couchb-bkt' \
+account_id='602604727914'
 
 # Create Security group for Couchbase (sg_couchbase). (default: us-east-1)
 # vpc_id and env parameter values need to be taken from Bitesize modular.

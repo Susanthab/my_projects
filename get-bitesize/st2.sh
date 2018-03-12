@@ -30,6 +30,18 @@ curl --head -X GET http://couchbase-tpr-dev-1751775996.us-west-2.elb.amazonaws.c
 
 
 
-
+        action: aws_route53.change_resource_record_sets
+        input:
+          HostedZoneId: <% 'ZGC8GMPDHD4LO' %>
+          ChangeBatch:
+            Changes:
+              - Action: UPSERT
+                ResourceRecordSet:
+                  Name: "<% $.database_system %>.<% $.deployment_name %>.<% $.namespace %>"
+                  Type: "A"
+                  AliasTarget:
+                    HostedZoneId: <% $.lb_hosted_zone_id %>
+                    DNSName: <% $.lb_dns_name %>
+                    EvaluateTargetHealth: False
 
 

@@ -194,6 +194,10 @@
  }
 
 
+ {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["autoscaling:Describe*","ec2:Describe*","elasticfilesystem:Describe*","logs:DescribeResourcePolicies"],"Resource":"*"},{"Effect":"Allow","Action":["ssm:GetParameter"],"Resource": "arn:aws:ssm:<% $.region %>:<% $.account_id %>:parameter/*/database/couchbase/*"},{"Effect":"Allow","Action":["ssm:SendCommand"],"Resource": "arn:aws:ec2:<% $.region %>:<% $.account_id %>:instance/*","Condition": {"StringEquals":{"ec2:ResourceTag/DB_system":"couchbase"}}},{"Effect":"Allow","Action":["s3:PutObject","s3:GetObject"],"Resource":["arn:aws:s3:::<% $.s3_bucket_name %>"]}]}
+
+
+
  {
     "Version":"2012-10-17",
     "Statement":[
@@ -203,23 +207,50 @@
              "autoscaling:Describe*",
              "ec2:Describe*",
              "elasticfilesystem:Describe*",
-             "s3:PutObject",
-             "s3:GetObject",
-             "s3:ListBucket",
-             "s3:GetBucketLocation",
-             "s3:ListObjects",
-             "s3:GetObjectVersion",
-             "ssm:SendCommand",
-             "ssm:GetParameter",
-             "logs:DescribeResourcePolicies",
-             "ec2messages:AcknowledgeMessage",
-             "ec2messages:DeleteMessage",
-             "ec2messages:FailMessage",
-             "ec2messages:GetEndpoint",
-             "ec2messages:GetMessages",
-             "ec2messages:SendReply"
+             "logs:DescribeResourcePolicies"
           ],
           "Resource":"*"
+       },
+       {
+          "Effect":"Allow",
+          "Action":[
+             "ssm:GetParameter"
+          ],
+          "Resource":"arn:aws:ssm:<% $.region %>:<% $.account_id %>:parameter/*/database/couchbase/*"
+       },
+       {
+          "Effect":"Allow",
+          "Action":[
+             "ssm:SendCommand"
+          ],
+          "Resource":"arn:aws:ec2:<% $.region %>:<% $.account_id %>:instance/*",
+          "Condition":{
+             "StringEquals":{
+                "ec2:ResourceTag/DB_system":"couchbase"
+             },
+             "StringEquals":{
+                "ec2:ResourceTag/Deployment_name":"<% $.deployment_name %>"
+             }
+          }
+       },
+       {
+          "Effect":"Allow",
+          "Action":[
+             "s3:PutObject",
+             "s3:GetObject"
+          ],
+          "Resource":[
+             "arn:aws:s3:::<% $.s3_bucket_name %>"
+          ]
        }
     ]
  }
+
+
+
+
+
+ 
+
+
+<% '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["autoscaling:Describe*","ec2:Describe*","elasticfilesystem:Describe*","logs:DescribeResourcePolicies"],"Resource":"*"},{"Effect":"Allow","Action":["ssm:GetParameter"],"Resource":"arn:aws:ssm:' + $.region + ':' + $.account_id + ':parameter/*/database/couchbase/*"},{"Effect":"Allow","Action":["ssm:SendCommand"],"Resource":"arn:aws:ec2:' + $.region + ':' + $.account_id + ':instance/*","Condition": {"StringEquals": {"ec2:ResourceTag/DB_system":["<% $.DB_system %>"],"ec2:ResourceTag/Deployment_name":["<% $.deployment_name %>"]}}},{"Effect":"Allow","Action":["s3:PutObject","s3:GetObject"],"Resource":["arn:aws:s3:::' + $.s3_bucket_name + '/*"]}]}' %>

@@ -73,15 +73,21 @@ echo ""
 echo "INFO: Pragramatically mount block device at EC2 startup..."
 echo "**********************************************************"
 # http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
-# The following code is only to add one device. 
-cp /etc/fstab /etc/fstab.orig
-umd=`lsblk -ds | grep -v "/" | grep disk | head -1 | awk '{print "/dev/"$1}'`
-mkfs -t ext4 $umd
-mkdir /data
-mount $umd /data
-UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
-echo "UUID=$UUID       /data   ext4    defaults,nofail        0       2" >> /etc/fstab
-mount -a
+# The following code is only to two volumes named /data and /backup. 
+drs="/data /backup"
+for d in $drs
+do
+    printf "Mounting $d volume\n"
+    cp /etc/fstab /etc/fstab.orig
+    umd=`lsblk -ds | grep -v "/" | grep disk | head -1 | awk '{print "/dev/"$1}'`
+    mkfs -t ext4 $umd
+    mkdir $d
+    mount $umd $d
+    UUID=`blkid | grep $umd | awk -F'UUID="' '{print $2}' | awk -F'"' '{print $1}'`
+    echo "UUID=$UUID       $d   ext4    defaults,nofail        0       2" >> /etc/fstab
+    mount -a
+done
+
 
 mount_efs () {
     # Implementation of this func has been changed to suite for CentOS.
