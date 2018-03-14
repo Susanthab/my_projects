@@ -24,24 +24,23 @@ st2ctl reload --register-all
 
 curl --head -X GET http://couchbase-tpr-dev-1751775996.us-west-2.elb.amazonaws.com
 
+curl --head X GET http://internal-couchbase-tpr-dev-699245916.us-west-2.elb.amazonaws.com
 
 
+# Sensor troubleshooting.
 
+/opt/stackstorm/st2/bin/st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-ref=kubernetes.watchCouchbase
 
+st2 trigger-instance get 5aa6c1aee908f90038bab42f
 
+/var/log/st2/st2sensorcontainer.log
 
-        action: aws_route53.change_resource_record_sets
-        input:
-          HostedZoneId: <% 'ZGC8GMPDHD4LO' %>
-          ChangeBatch:
-            Changes:
-              - Action: UPSERT
-                ResourceRecordSet:
-                  Name: "<% $.database_system %>.<% $.deployment_name %>.<% $.namespace %>"
-                  Type: "A"
-                  AliasTarget:
-                    HostedZoneId: <% $.lb_hosted_zone_id %>
-                    DNSName: <% $.lb_dns_name %>
-                    EvaluateTargetHealth: False
+st2 rule-enforcement list --rule=couchbase.couchbase
 
+st2 trigger-instance list --trigger=couchbase.couchbase
 
+st2 trigger-instance get 5aa7fee0e908f900380c7002
+
+couchbase-tpr-dev-couchbtest-empty
+
+ps auxwww|grep -i couch

@@ -51,9 +51,10 @@ metadata:
   namespace: tpr-dev
 spec:
   options:
+    volume_type: "gp2"
     volume_size: "200"
-    instance_type: "t2.medium"
-    desired_capacity: "2"
+    instance_type: "t2.large"
+    desired_capacity: "1"
     full_backup_sch: "1W:Sun"
     app_id: "100"
     team_id: "dba"
@@ -79,10 +80,4 @@ kubectl delete -f couchb-intg.yaml
 
 
 
-select_storage_type:
-        action: core.local
-        input:
-          cmd: "printf <% $.storage_type %>"
-        publish:
-          path: <% task(select_storage_type).result.stdout %>
-        on-success:
+{"resource":"ADDED","object_kind":"Couchbase","labels":{"name":"susacouchb","creator":"pipeline"},"namespace":"tpr-dev","uid":"ec304cc7-2616-11e8-8bdf-0a39c1fe23e0","spec":{"options":{"desired_capacity":"1","app_id":"100","volume_type":"gp2","instance_type":"t2.large","team_id":"dba","full_backup_sch":"1W:Sun","volume_size":"200"}},"name":"couchbtest"}

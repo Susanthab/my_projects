@@ -1,0 +1,280 @@
+version: '2.0'
+name: couchbase.create_alb
+description: ALB for the Couchbase cluster.
+
+workflows:
+
+  main:
+    type: direct
+    input:
+      - lb_name
+      - subnets
+      - tg_name
+      - asg_name
+      - sg_name
+      - sg_name_tag
+      - namespace
+      - deployment_name
+      - role
+      - database_system
+
+    vars:
+
+      cluster_domain: "<% $.env %>.<% $.region %>.<% $.internal_domain %>"
+
+    tasks:
+
+      get_config:
+        join: all
+        action: bitesize.get_config
+        publish:
+          env: <% task(get_config).result.result.environment %>
+          internal_domain: <% task(get_config).result.result.internal_domain %>
+          envtype: <% task(get_config).result.result.internal_domain %>
+          region: <% task(get_config).result.result.region %>
+          internal_zoneid: <% task(get_config).result.result.internal_zoneid %>
+          vpc_id: <% task(get_config).result.result.vpc_id %>
+        on-success:
+          - create_security_group 
+          - create_load_balancer
+
+      create_security_group:
+        action: couchbase.create_security_group
+        input:
+          group_name: <% $.sg_name %>
+          description: "Security group for Couchbase security group."
+          name: <% $.sg_name_tag %>
+          namespace: <% $.namespace >
+          deployment_name: <% $.deployment_name %>
+          role: <% $.role %>
+          database_system: <% $.database_system %>
+          vpc_id: <% $.vpc_id %>
+        publish:
+          lb_security_group_id: <% task(create_security_group).result.security_group_id %>
+          cidr: <% task(create_security_group).result.vpc_cidr %>
+        on-success:
+          - set_ip_permission: <% $.cidr != "" %>
+
+      set_ip_permission:
+        action: core.noop
+        publish:
+          ip_permission: <% list( dict(IpProtocol => 'TCP', FromPort => 80, ToPort => 80, IpRanges => list(dict(CidrIp => $.cidr, Description => "ALB")))) %>
+        on-success:
+          - authorize_ingress
+
+      authorize_ingress:
+        action: aws_ec2.authorize_security_group_ingress
+        input:
+          GroupId: <% $.lb_security_group_id %>
+          IpPermissions: <% $.ip_permission %>
+
+      create_load_balancer:
+        action: aws_elbv2.create_load_balancer
+        input:
+          Name: <% $.lb_name %>
+          Subnets: <% $.subnets.split(',') %>
+          SecurityGroups: <% list($.lb_security_group_id) %>
+          Scheme: <% 'internal' %>
+          Type: <% 'application' %>
+        publish:
+          alb_arn: <% task(create_load_balancer).result.result.LoadBalancers[0].LoadBalancerArn %>
+          lb_hosted_zone_id: <% task(create_load_balancer).result.result.LoadBalancers[0].CanonicalHostedZoneId %>
+        on-success:
+          - manage_empty_target_group
+          - manage_specific_target_group
+
+      manage_empty_target_group:
+        join: all
+        workflow: manage_tg_group
+        input:
+          tg_name: "<% $.database_system %>-<% $.namespace %>-empty"
+          vpc_id: <% $.vpc_id %>
+          healthcheckpath: ""
+          alb_arn: <% $.alb_arn %>
+          asg_name: ""
+          cluster_domain: <% $.cluster_domain %>
+        
+      manage_specific_target_group:
+        join: all
+        workflow: manage_tg_group
+        input:
+          tg_name: <% $.tg_name %>
+          vpc_id: <% $.vpc_id %>
+          healthcheckpath: <% '/ui/index.html' %>
+          alb_arn: <% $.alb_arn %>
+          asg_name: <% $.asg_name %>
+          cluster_domain: <% $.cluster_domain %>
+        on-success:
+          - find_lb
+
+      find_lb:
+        action: aws_elbv2.describe_load_balancers
+        input:
+          Names: ["<% $.lb_name %>"]
+        publish:
+          lb_dns_name: <% task(find_lb).result.result.LoadBalancers[0].DNSName %>
+          lb_hosted_zone_id: <% task(find_lb).result.result.LoadBalancers[0].CanonicalHostedZoneId %>
+          cluster_domain: <% $.cluster_domain %>
+        on-success:
+          - setup_route53
+
+      setup_route53:
+        action: aws_route53.change_resource_record_sets
+        input:
+          HostedZoneId: <% $.internal_zoneid %>
+          ChangeBatch:
+            Changes:
+              - Action: UPSERT
+                ResourceRecordSet:
+                  Name: "<% $.database_system %>.<% $.deployment_name %>.<% $.namespace %>.<% $.cluster_domain %>"
+                  Type: "A"
+                  AliasTarget:
+                    HostedZoneId: <% $.lb_hosted_zone_id %> 
+                    DNSName: <% $.lb_dns_name %>
+                    EvaluateTargetHealth: False
+      
+  manage_tg_group:
+    type: direct
+    input:
+      - tg_name
+      - vpc_id
+      - healthcheckpath
+      - alb_arn 
+      - asg_name
+      - cluster_domain
+      
+    tasks:
+
+      create_target_group:
+        action: aws_elbv2.create_target_group
+        input:
+          Name: "<% $.tg_name %>"
+          Protocol: <% 'HTTP' %>
+          Port: <% '8091' %>
+          VpcId: <% $.vpc_id %>
+          TargetType: <% 'instance' %>
+          HealthCheckPath: <% $.healthcheckpath %>
+        publish:
+          tg_arn: <% task(create_target_group).result.result.TargetGroups[0].TargetGroupArn %>
+        on-success:
+          - modify_target_group_attributes: <% $.healthcheckpath != "" %>
+          - attach_load_balancer_target_groups: <% $.healthcheckpath != "" %>
+          - create_listener: <% $.healthcheckpath = "" %>
+          - create_rule: <% $.healthcheckpath != "" %>
+
+      modify_target_group_attributes:
+        action: aws_elbv2.modify_target_group_attributes
+        input:
+          TargetGroupArn: <% $.tg_arn %>
+          Attributes: <% list(dict(Key => 'stickiness.enabled', Value => 'true'),
+                              dict(Key => 'stickiness.lb_cookie.duration_seconds', Value => '10')
+                              )%>
+      
+      attach_load_balancer_target_groups:
+        action: aws_autoscaling.attach_load_balancer_target_groups
+        input:
+          AutoScalingGroupName: <% $.asg_name %>
+          TargetGroupARNs: <% list($.tg_arn) %>
+
+      create_listener:
+        action: aws_elbv2.create_listener
+        input:
+          LoadBalancerArn: <% $.alb_arn %>
+          Protocol: <% 'HTTP' %>
+          Port: <% '80' %>
+          DefaultActions: <% list( dict('Type' => 'forward', 'TargetGroupArn' => $.tg_arn)
+                                  ) %>
+        publish:
+          listener_arn: task(create_listener).result.result.Listeners[0].ListenerArn       
+
+      create_rule:
+        action: aws_elbv2.create_rule
+        input:
+          ListenerArn: <% $.listener_arn %> 
+          - Conditions: 
+              Field: "host-header"
+              - Values: <% $.cluster_domain %>                  
+          - Actions: 
+              Type: 'forward'
+              TargetGroupArn: <% $.tg_arn %>                      
+
+
+
+
+
+      manage_specific_target_group:
+        join: all
+        workflow: manage_tg_group
+        input:
+          tg_name: <% $.tg_name %>
+          vpc_id: <% $.vpc_id %>
+          healthcheckpath: <% '/ui/index.html' %>
+          alb_arn: <% $.alb_arn %>
+          asg_name: <% $.asg_name %>
+          cluster_domain: <% $.cluster_domain %>
+      
+  manage_tg_group:
+    type: direct
+    input:
+      - tg_name
+      - vpc_id
+      - healthcheckpath
+      - alb_arn 
+      - asg_name
+      - cluster_domain
+
+    output:
+      tg_arn: <% $.tg_arn %>
+      
+    tasks:
+
+      create_target_group:
+        action: aws_elbv2.create_target_group
+        input:
+          Name: "<% $.tg_name %>"
+          Protocol: <% 'HTTP' %>
+          Port: <% '8091' %>
+          VpcId: <% $.vpc_id %>
+          TargetType: <% 'instance' %>
+          HealthCheckPath: <% $.healthcheckpath %>
+        publish:
+          tg_arn: <% task(create_target_group).result.result.TargetGroups[0].TargetGroupArn %>
+        on-success:
+          - modify_target_group_attributes: <% $.healthcheckpath != "" %>
+          - attach_load_balancer_target_groups: <% $.healthcheckpath != "" %>
+          - describe_listeners: <% $.healthcheckpath != "" %>
+
+      modify_target_group_attributes:
+        action: aws_elbv2.modify_target_group_attributes
+        input:
+          TargetGroupArn: <% $.tg_arn %>
+          Attributes: <% list(dict(Key => 'stickiness.enabled', Value => 'true'),
+                              dict(Key => 'stickiness.lb_cookie.duration_seconds', Value => '10')
+                              )%>
+      
+      attach_load_balancer_target_groups:
+        action: aws_autoscaling.attach_load_balancer_target_groups
+        input:
+          AutoScalingGroupName: <% $.asg_name %>
+          TargetGroupARNs: <% list($.tg_arn) %>
+
+      describe_listeners:
+        action: aws_elbv2.describe_listeners
+        input:
+          LoadBalancerArn: <% $.alb_arn %>
+        publish:
+          listener_arn: <% task(describe_listeners).result.result.Listeners[0].ListenerArn %>    
+        on-success:
+          - create_rule 
+    
+      create_rule:
+        action: aws_elbv2.create_rule
+        input:
+          ListenerArn: <% $.listener_arn %> 
+          Conditions:
+            - Field: "host-header" 
+              Values: <% list($.cluster_domain) %>                 
+          Priority: 10 
+          Actions:
+            - Type: 'forward'
+              TargetGroupArn: <% $.tg_arn %> 

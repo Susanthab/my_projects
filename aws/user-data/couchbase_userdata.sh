@@ -245,7 +245,7 @@ get_admin_user_pwd () {
     param_name_pwd="/$t_environment/$t_role/$DB_system/$Deployment_name/administrator"
     CLUSTER_USER_NAME='Administrator'
     CLUSTER_PASSWORD=`aws ssm get-parameter --name=$param_name_pwd --region=${EC2_REGION} --with-decryption --query 'Parameter.Value' --output text`
-
+    echo "CLUSTER_PASSWORD: $CLUSTER_PASSWORD"
     if [ -z "$CLUSTER_PASSWORD" ]; then
        echo "ERROR: Password id empty. Aborting the script."
        exit
