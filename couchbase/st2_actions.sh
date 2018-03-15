@@ -144,11 +144,11 @@ database_system="couchbase" \
 vpc_id="vpc-d51985ac"
 
 
-couchbase-cli server-list -c 10-1-37-63:8091 -u Administrator -p 935a2dfd15a04491b71808b7
+couchbase-cli server-list -c 10.1.50.8:8091 -u Administrator -p 6ea53ff70d14409ab05e2078
 
 
 couchbase-cli server-list -c http://couchbase-tpr-dev-306695041.us-west-2.elb.amazonaws.com -u admin -p 12qwaszx@
 
 
-curl -v -u Administrator:a4b59ece291e4df7bc5bccfc http://test.couchb1.dev.ubathsu.us-west-2.dev/pools/nodes
+curl -v -u Administrator:6ea53ff70d14409ab05e2078 http://couchbase.couchb1.tpr-dev.ubathsu.us-west-2.dev/pools/nodes
 

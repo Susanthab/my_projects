@@ -115,13 +115,22 @@ mount_efs () {
 # Use below script is to get ASG meta data. 
 echo "INFO: Get AWS metadata..."
 curl -O http://s3.amazonaws.com/ec2metadata/ec2-metadata
-chmod u+x ec2-metadata
+output=$(chmod u+x ec2-metadata)
+printf "INFO: grant exec permission to ec2-metadata: $output\n"
 AZ=$(./ec2-metadata -z)
 EC2_AVAIL_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
 EC2_REGION=${EC2_AVAIL_ZONE:0:-1}
 INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query AutoScalingInstances[].AutoScalingGroupName --output text)
+
+printf "AZ: $AZ\n"
+printf "EC2_AVAIL_ZONE: $EC2_AVAIL_ZONE\n"
+printf "EC2_REGION: $EC2_REGION\n"
+printf "INSTANCE_ID: $INSTANCE_ID\n"
+printf "CURRENT_NODE_IP: $CURRENT_NODE_IP\n"
+printf "AG_NAME: $AG_NAME\n"
+
 
 echo "INFO: Change the swappiness value to 0 and make it Permanent.."
 echo 0 > /proc/sys/vm/swappiness
@@ -245,7 +254,7 @@ get_admin_user_pwd () {
     param_name_pwd="/$t_environment/$t_role/$DB_system/$Deployment_name/administrator"
     CLUSTER_USER_NAME='Administrator'
     CLUSTER_PASSWORD=`aws ssm get-parameter --name=$param_name_pwd --region=${EC2_REGION} --with-decryption --query 'Parameter.Value' --output text`
-    echo "CLUSTER_PASSWORD: $CLUSTER_PASSWORD"
+
     if [ -z "$CLUSTER_PASSWORD" ]; then
        echo "ERROR: Password id empty. Aborting the script."
        exit
