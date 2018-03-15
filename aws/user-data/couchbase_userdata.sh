@@ -114,17 +114,16 @@ mount_efs () {
 
 # Use below script is to get ASG meta data. 
 echo "INFO: Get AWS metadata..."
-curl -O http://s3.amazonaws.com/ec2metadata/ec2-metadata
-output=$(chmod u+x ec2-metadata)
-printf "INFO: grant exec permission to ec2-metadata: $output\n"
-AZ=$(./ec2-metadata -z)
+#curl -O http://s3.amazonaws.com/ec2metadata/ec2-metadata
+#output=$(chmod u+x ec2-metadata)
+#printf "INFO: grant exec permission to ec2-metadata: $output\n"
+#AZ=$(./ec2-metadata -z)
 EC2_AVAIL_ZONE=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
 EC2_REGION=${EC2_AVAIL_ZONE:0:-1}
 INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query Reservations[].Instances[].PrivateIpAddress --output text)
 AG_NAME=$(aws autoscaling describe-auto-scaling-instances --instance-ids ${INSTANCE_ID} --region ${EC2_REGION} --query AutoScalingInstances[].AutoScalingGroupName --output text)
 
-printf "AZ: $AZ\n"
 printf "EC2_AVAIL_ZONE: $EC2_AVAIL_ZONE\n"
 printf "EC2_REGION: $EC2_REGION\n"
 printf "INSTANCE_ID: $INSTANCE_ID\n"
@@ -326,7 +325,7 @@ cluster_init () {
 
         # Move node to a proper group. 
         # Create a group and then move the node because rename group did not work. 
-        group_name=`echo "rack-"${AZ:(-2)}`
+        group_name=`echo "rack-"${EC2_AVAIL_ZONE:(-2)}`
         output=$(couchbase-cli group-manage -c $CURRENT_NODE_IP -u $CLUSTER_USER_NAME \
             -p $CLUSTER_PASSWORD --create --group-name $group_name)
         echo "OUTPUT: create-group: $output"
@@ -372,7 +371,7 @@ wait_for_couchbase () {
 server_add () {
 
     echo "INFO: Service offering of the node: $SERVICE_OFFERING"
-    group_name=`echo "rack-"${AZ:(-2)}`
+    group_name=`echo "rack-"${EC2_AVAIL_ZONE:(-2)}`
     output=$(couchbase-cli group-manage -c $PRIMARY_SERVER_IP -u $CLUSTER_USER_NAME \
                     -p $CLUSTER_PASSWORD --create --group-name $group_name)
     echo "OUTPUT: create-group: $output"
