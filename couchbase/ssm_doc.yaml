@@ -1,0 +1,81 @@
+
+
+ {
+    "schemaVersion": "2.2",
+    "description": "Run couchbase remove node",
+    "parameters": {
+          "UserName": {
+            "type": "String",
+            "description": "Couchbase user name"
+         },
+         "Password": {
+            "type": "String",
+            "description": "Password of the Couchbase cluster"
+         },     
+          "ClusterIpAddress": {
+            "type": "String",
+            "description": "Cluster IP address"
+         }
+          "RemoveIpAddress": {
+            "type": "String",
+            "description": "IP Address of the node to be removed."
+         }
+    },
+    "mainSteps": [
+      {
+        "action": "aws:runShellScript",
+        "name": "hostlist",
+        "inputs": {
+          "runCommand": ["/opt/couchbase/bin/couchbase-cli rebalance -c {{IpAddress}} -u {{UserName}} -p {{Password}} --server-remove={{RemoveIpAddress}}"]
+        }
+      }
+    ]
+  }
+
+
+
+
+
+    {
+        "Effect": "Allow",
+        "Action": [
+            "ssm:SendCommand"
+        ],
+        "Resource": [
+            "arn:aws:ec2:*:*:instance/*"
+        ],
+        "Condition": {
+            "StringEquals": {
+                "ssm:resourceTag/Enable_SSM_Send_Command": [
+                    "Yes"
+                ],
+                "ssm:resourceTag/DB_system": [
+                    "couchbase",
+                    "couchb",
+                    "cb"
+                ]
+            }
+        }
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "ssm:GetCommandInvocation"
+        ],
+        "Resource": [
+            "arn:aws:ssm:*:*:*"
+        ]
+    },
+    {
+        "Effect": "Allow",
+        "Action": [
+            "ssm:SendCommand"
+        ],
+        "Resource": [
+            "arn:aws:ssm:*:*:document/couchbase-get-cluster-ip",
+            "arn:aws:ssm:*:*:document/couchbase-server-remove"
+        ]
+    }
+
+
+

@@ -8,7 +8,7 @@ from couchbase.admin import Admin
 import requests
 import json
 
-url='http://couchbase-tpr-dev-1866867088.us-west-2.elb.amazonaws.com/pools/nodes'
+url='http://couchbase-test-dev-1866867088.us-west-2.elb.amazonaws.com/pools/nodes'
 
 u = 'admin'
 p = '12qwaszx@'

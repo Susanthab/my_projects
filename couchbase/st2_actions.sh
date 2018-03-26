@@ -67,21 +67,23 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # cluster_type (standard | multidimentional)
 # node_service_offering ( N/A | data | index | query)
 st2 run couchbase.add_nodes_to_couchbase_cluster \
-cluster_name="cb-ce-centos-demo" \
+database_system="couchbase" \
+deployment_name="couchb1" \
+namespace="tpr-dev" \
 cluster_type="standard" \
-node_service_offering="N/A" \
-number_of_nodes_toadd=1 \
-assume_role="arn:aws:iam::452395698705:role/st2_role"
-
+number_of_nodes_toadd=1
 
 # Remove a node from Couchbase cluster. (default: us-east-1)
 # node_type (standard | data | index | query)
 # remove_or_terminate (remove | terminate)
 st2 run couchbase.remove_node_from_couchbase_cluster \
-cluster_name="cb-ce-centos-demo" \
+role="database" \
+database_system="couchbase" \
+deployment_name="couchb1" \
+namespace="tpr-dev" \
 node_type="standard" \
-remove_or_terminate="terminate" \
-assume_role="arn:aws:iam::452395698705:role/st2_role"
+remove_or_terminate="terminate"
+
 
 # Restore Couchbase backup. 
 st2 run couchbase.restore_couchbase_backup \
@@ -102,8 +104,7 @@ backup_file_path='s3://bitesize-couchbase-backup/bitesize/restore-testing/ip-172
 # environment (dev | qa | nft | stg | prod)
 # enable_default_encryption (true | false). Default is set to false.
 st2 run couchbase.create_s3_bucket_with_policies \
-region="ca-central-1" \
-destination_region="ap-southeast-1" \
+region="us-west-2" \
 s3_bucket_name="prsn.couchbase.backup" \
 transition_days_to_ia=30 \
 transition_days_to_glacier=60 \
@@ -111,14 +112,14 @@ expiration_days=90 \
 environment='stg' \
 team_id='bitesize' \
 app_id=50 \
-enable_default_encryption=true \
-assume_role="arn:aws:iam::452395698705:role/st2_role"
+enable_default_encryption=true
 
 
 st2 run couchbase.create_s3_bucket \
 region="ca-central-1" \
 bucket_name="bitesize.50.prsn.couchbase.backup.ap-southeast-1.stg.replica" \
 acl="private"
+
 
 st2 run couchbase.create_alb \
 lb_name="couchbase-tpr-dev" \

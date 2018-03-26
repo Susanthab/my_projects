@@ -7,7 +7,7 @@
                 "s3:GetObject"
             ],
             "Resource": [
-                "arn:aws:s3:::bitesize-dev/us-west-2/ubathsu/cacerts/ca.pem"
+                "arn:aws:s3:::bitesize-dev/us-west-2/ubathsu/cacerts/*/ca.pem"
             ]
         },
         {
@@ -157,100 +157,53 @@
             "Effect": "Allow",
             "Action": [
                 "ssm:PutParameter",
-                "ssm:GetParameter",
-                "ssm:AddTagsToResource"
+                "ssm:AddTagsToResource",
+                "ssm:GetParameters",
+                "ssm:GetParameter"
             ],
             "Resource": [
-                "arn:aws:ssm:*:*:parameter/tpr-dev/database/*"
+                "arn:aws:ssm:*:*:parameter/*/database/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:SendCommand"
+            ],
+            "Resource": [
+                "arn:aws:ec2:*:*:instance/*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "ssm:resourceTag/Enable_SSM_Send_Command": [
+                        "Yes"
+                    ],
+                    "ssm:resourceTag/DB_system": [
+                        "couchbase",
+                        "couchb",
+                        "cb"
+                    ]
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetCommandInvocation"
+            ],
+            "Resource": [
+                "arn:aws:ssm:*:*:*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:SendCommand"
+            ],
+            "Resource": [
+                "arn:aws:ssm:*:*:document/couchbase-get-cluster-ip",
+                "arn:aws:ssm:*:*:document/couchbase-server-remove"
             ]
         }
     ]
 }
-
-{
-    "Effect": "Allow",
-    "Action": [ "ssm:PutParameter", "ssm:AddTagsToResource" ],
-    "Resource": [ "arn:aws:ssm:*:*:parameter/*/database/*" ]
-},
-
-{
-    "Version":"2012-10-17",
-    "Statement":[
-       {
-          "Effect":"Allow",
-          "Action":[
-             "ssm:GetParameters",
-          ],
-          "Resource":"*",
-          "Condition":{
-             "StringLike":{
-                "ssm:resourceTag/t_role":[
-                   "database"
-                ]
-             }
-          }
-       }
-    ]
- }
-
-
- {"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["autoscaling:Describe*","ec2:Describe*","elasticfilesystem:Describe*","logs:DescribeResourcePolicies"],"Resource":"*"},{"Effect":"Allow","Action":["ssm:GetParameter"],"Resource": "arn:aws:ssm:<% $.region %>:<% $.account_id %>:parameter/*/database/couchbase/*"},{"Effect":"Allow","Action":["ssm:SendCommand"],"Resource": "arn:aws:ec2:<% $.region %>:<% $.account_id %>:instance/*","Condition": {"StringEquals":{"ec2:ResourceTag/DB_system":"couchbase"}}},{"Effect":"Allow","Action":["s3:PutObject","s3:GetObject"],"Resource":["arn:aws:s3:::<% $.s3_bucket_name %>"]}]}
-
-
-
- {
-    "Version":"2012-10-17",
-    "Statement":[
-       {
-          "Effect":"Allow",
-          "Action":[
-             "autoscaling:Describe*",
-             "ec2:Describe*",
-             "elasticfilesystem:Describe*",
-             "logs:DescribeResourcePolicies"
-          ],
-          "Resource":"*"
-       },
-       {
-          "Effect":"Allow",
-          "Action":[
-             "ssm:GetParameter"
-          ],
-          "Resource":"arn:aws:ssm:<% $.region %>:<% $.account_id %>:parameter/*/database/couchbase/*"
-       },
-       {
-          "Effect":"Allow",
-          "Action":[
-             "ssm:SendCommand"
-          ],
-          "Resource":"arn:aws:ec2:<% $.region %>:<% $.account_id %>:instance/*",
-          "Condition":{
-             "StringEquals":{
-                "ec2:ResourceTag/DB_system":"couchbase"
-             },
-             "StringEquals":{
-                "ec2:ResourceTag/Deployment_name":"<% $.deployment_name %>"
-             }
-          }
-       },
-       {
-          "Effect":"Allow",
-          "Action":[
-             "s3:PutObject",
-             "s3:GetObject"
-          ],
-          "Resource":[
-             "arn:aws:s3:::<% $.s3_bucket_name %>"
-          ]
-       }
-    ]
- }
-
-
-
-
-
- 
-
-
-<% '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["autoscaling:Describe*","ec2:Describe*","elasticfilesystem:Describe*","logs:DescribeResourcePolicies"],"Resource":"*"},{"Effect":"Allow","Action":["ssm:GetParameter"],"Resource":"arn:aws:ssm:' + $.region + ':' + $.account_id + ':parameter/*/database/couchbase/*"},{"Effect":"Allow","Action":["ssm:SendCommand"],"Resource":"arn:aws:ec2:' + $.region + ':' + $.account_id + ':instance/*","Condition": {"StringEquals": {"ec2:ResourceTag/DB_system":["<% $.DB_system %>"],"ec2:ResourceTag/Deployment_name":["<% $.deployment_name %>"]}}},{"Effect":"Allow","Action":["s3:PutObject","s3:GetObject"],"Resource":["arn:aws:s3:::' + $.s3_bucket_name + '/*"]}]}' %>

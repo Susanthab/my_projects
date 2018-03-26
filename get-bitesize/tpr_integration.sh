@@ -32,6 +32,8 @@ kubectl create -f couchbase.yaml
 # ===================
 # After creating this TPR, if you swicth back to st2 and check the sensor, it should have been created now. 
 # In st2 side check the sensor is created for the above resource. 
+# See whether sensor is running.
+ps auxwww|grep -i couch
 st2 sensor list -p kubernetes | grep Couch
 #| kubernetes.watchCouchbase                    | kubernetes | Sensor that watches Kubernetes API for new   | True    |
 #|  
@@ -40,14 +42,14 @@ st2 sensor list -p kubernetes | grep Couch
 # ==============================
 # 03 create custom object in k8.
 # ==============================
-# couchb-intg.yaml
+# couchb1.yaml
 apiVersion: prsn.io/v1
 kind: Couchbase
 metadata:
   labels:
     creator: pipeline
     name: susacouchb
-  name: couchbtest
+  name: couchbscott
   namespace: tpr-dev
 spec:
   options:
@@ -60,7 +62,7 @@ spec:
     team_id: "dba"
 
 # to create
-kubectl create -f couchbtest.yaml
+kubectl create -f couchbscott.yaml
 
 # to see the object. 
 kubectl -n tpr-dev get couchbase
