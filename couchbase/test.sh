@@ -1,25 +1,15 @@
 #!/bin/bash
 
 tot_mem=$(free | grep Mem: | awk '{print $2}')
+tot_mem_mb=`echo "$tot_mem/1000" | bc`
+printf "INFO: RAM Available (KB) - $tot_mem_mb\n"
 
-factor=.6
+per_node_quota=`echo "$tot_mem*0.80" | bc`
+per_node_quota_mb=`echo "$per_node_quota/1000" | bc`
+printf "INFO: Memory allocated to Couchbase (MB) - $per_node_quota_mb\n"
 
-echo "tot_mem: $tot_mem"
+data_ram_quota=`echo $per_node_quota_mb*0.75 | bc`
+printf "INFO: Data RAM Quota (MB) - $data_ram_quota\n"
 
-per_node_quota=$(($tot_mem * 60 / 100))
-
-per_node_quota_mb=$(($per_node_quota/1000))
-
-
-echo $per_node_quota
-
-
-        if region == 'us-east-1':
-            s3_conn.create_bucket(
-                Bucket=bucket,
-            )
-        else:
-            s3_conn.create_bucket(
-                Bucket=bucket,
-                CreateBucketConfiguration={'LocationConstraint': region},
-            )
+index_ram_quota=`echo $per_node_quota_mb*0.15 | bc`
+printf "INFO: Index RAM Quota (MB) - $index_ram_quota\n"

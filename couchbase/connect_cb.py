@@ -8,19 +8,30 @@ from couchbase.admin import Admin
 import requests
 import json
 
-url='http://couchbase-test-dev-1866867088.us-west-2.elb.amazonaws.com/pools/nodes'
+#url='http://couchbase.cb-susa.tpr-dev.ubathsu.us-west-2.dev/pools/nodes'
+url='http://couchbase.cb-test-susa.tpr-dev.ubathsu.us-west-2.dev/pools/nodes'
 
-u = 'admin'
-p = '12qwaszx@'
+u = 'Administrator'
+#p = '78c89e1cbf1543b581da9ec4'
+p = '6ab7c538b98e448680f017c1'
 response = requests.get(url, auth=(u, p))
 
 nodes = json.loads(response.text)['nodes']
 
 hosts=""
 for n in nodes:
-  hosts = hosts + ',' + n['hostname']
+  hosts = hosts + ',' + (n['hostname']).split(":")[0]
 
 hosts = hosts.lstrip(',')
+print(hosts)
+
+cluster = Cluster('couchbase://hosts')
+#print(cluster)
+
+authenticator = PasswordAuthenticator(u, p)
+cluster.authenticate(authenticator)
+
+#cb = cluster.open_bucket('beer-sample')
 
 adm = Admin(u, p, host=hosts)
 

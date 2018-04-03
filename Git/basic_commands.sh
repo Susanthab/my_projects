@@ -34,3 +34,7 @@ git checkout <bite-2273>
 # remove untracked files
 git rm --cached <file>
 
+# create a tag. 
+git tag -a v0.0.1 -m "v0.0.1: Couchbase pack."
+
+

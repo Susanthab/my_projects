@@ -1,36 +1,83 @@
 
+resource "aws_ssm_document" "couchbase" {
+  name          = "couchbase-get-cluster-ip"
+ 
+  document_type = "Command"
 
- {
-    "schemaVersion": "2.2",
-    "description": "Run couchbase remove node",
-    "parameters": {
-          "UserName": {
-            "type": "String",
-            "description": "Couchbase user name"
-         },
-         "Password": {
-            "type": "String",
-            "description": "Password of the Couchbase cluster"
-         },     
-          "ClusterIpAddress": {
-            "type": "String",
-            "description": "Cluster IP address"
-         }
-          "RemoveIpAddress": {
-            "type": "String",
-            "description": "IP Address of the node to be removed."
-         }
-    },
-    "mainSteps": [
-      {
-        "action": "aws:runShellScript",
-        "name": "hostlist",
-        "inputs": {
-          "runCommand": ["/opt/couchbase/bin/couchbase-cli rebalance -c {{IpAddress}} -u {{UserName}} -p {{Password}} --server-remove={{RemoveIpAddress}}"]
+  content = <<DOC
+  {
+      "schemaVersion": "2.2",
+      "description": "Run couchbase host-list",
+      "parameters": {
+            "UserName": {
+              "type": "String",
+              "description": "Couchbase user name"
+          },
+          "Password": {
+              "type": "String",
+              "description": "Password of the Couchbase cluster"
+          },     
+            "IpAddress": {
+              "type": "String",
+              "description": "Cluster IP address"
+          }
+      },
+      "mainSteps": [
+        {
+          "action": "aws:runShellScript",
+          "name": "hostlist",
+          "inputs": {
+            "runCommand": ["/opt/couchbase/bin/couchbase-cli host-list --cluster {{IpAddress}} -u {{UserName}} -p {{Password}} | grep -v {{IpAddress}} | head -n 1"]
+          }
         }
-      }
-    ]
-  }
+      ]
+    }
+    DOC
+}
+
+
+resource "aws_ssm_document" "couchbase" {
+  name          = "couchbase-server-remove"
+ 
+  document_type = "Command"
+
+  content = <<DOC
+  {
+      "schemaVersion": "2.2",
+      "description": "Run couchbase remove node",
+      "parameters": {
+            "UserName": {
+              "type": "String",
+              "description": "Couchbase user name"
+          },
+          "Password": {
+              "type": "String",
+              "description": "Password of the Couchbase cluster"
+          },     
+            "ClusterIpAddress": {
+              "type": "String",
+              "description": "Cluster IP address"
+          },
+            "RemoveIpAddress": {
+              "type": "String",
+              "description": "IP Address of the node to be removed."
+          }
+      },
+      "mainSteps": [
+        {
+          "action": "aws:runShellScript",
+          "name": "hostlist",
+          "inputs": {
+            "runCommand": ["/opt/couchbase/bin/couchbase-cli rebalance -c {{ClusterIpAddress}} -u {{UserName}} -p {{Password}} --server-remove={{RemoveIpAddress}}"]
+          }
+        }
+      ]
+    }
+    DOC
+}
+
+
+
 
 
 

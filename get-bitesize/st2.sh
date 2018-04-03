@@ -20,6 +20,7 @@ cd /opt/stackstorm/packs/
 git clone https://github.com/pearsontechnology/stackstorm-couchbase.git couchbase
 cd couchbase
 git checkout bite-2383
+git pull origin bite-2383
 st2 run packs.setup_virtualenv packs=couchbase
 st2ctl reload --register-all
 

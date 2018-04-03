@@ -33,7 +33,7 @@ kubectl create -f couchbase.yaml
 # After creating this TPR, if you swicth back to st2 and check the sensor, it should have been created now. 
 # In st2 side check the sensor is created for the above resource. 
 # See whether sensor is running.
-ps auxwww|grep -i couch
+ps auxwww| grep -i couch
 st2 sensor list -p kubernetes | grep Couch
 #| kubernetes.watchCouchbase                    | kubernetes | Sensor that watches Kubernetes API for new   | True    |
 #|  
@@ -48,8 +48,8 @@ kind: Couchbase
 metadata:
   labels:
     creator: pipeline
-    name: susacouchb
-  name: couchbscott
+    name: susanthab
+  name: cb-demo-1
   namespace: tpr-dev
 spec:
   options:

@@ -66,12 +66,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # Add node(s) to Couchbase cluster. (default: us-east-1)
 # cluster_type (standard | multidimentional)
 # node_service_offering ( N/A | data | index | query)
-st2 run couchbase.add_nodes_to_couchbase_cluster \
-database_system="couchbase" \
-deployment_name="couchb1" \
-namespace="tpr-dev" \
-cluster_type="standard" \
-number_of_nodes_toadd=1
+
 
 # Remove a node from Couchbase cluster. (default: us-east-1)
 # node_type (standard | data | index | query)
@@ -144,6 +139,11 @@ role="database" \
 database_system="couchbase" \
 vpc_id="vpc-d51985ac"
 
+st2 run couchbase.add_nodes_to_couchbase_cluster \
+database_system="couchbase" \
+deployment_name="cb-demo-3" \
+namespace="tpr-dev" \
+number_of_nodes_toadd=1
 
 couchbase-cli server-list -c 10.1.50.8:8091 -u Administrator -p 6ea53ff70d14409ab05e2078
 
