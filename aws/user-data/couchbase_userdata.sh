@@ -69,8 +69,14 @@ calc_memory () {
        cluster_ramsize=$data_ram_quota_int
     fi
     echo "Cluster RAM size: $cluster_ramsize"
+    
     # in MB.
-    cluster_index_ramsize=$index_ram_quota_int
+    if [ $index_ram_quota_int -lt 256 ]; then
+       cluster_index_ramsize=256
+    else
+       cluster_index_ramsize=$index_ram_quota_int
+    fi
+    echo "Cluster RAM size: $cluster_index_ramsize"
 }
 calc_memory
 
