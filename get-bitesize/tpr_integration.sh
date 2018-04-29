@@ -49,7 +49,7 @@ metadata:
   labels:
     creator: pipeline
     name: susanthab
-  name: cb-demo-1
+  name: cbtest1
   namespace: tpr-dev
 spec:
   options:

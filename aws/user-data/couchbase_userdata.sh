@@ -58,14 +58,16 @@ calc_memory () {
     printf "INFO: Data RAM Quota (MB) - $data_ram_quota\n"
 
     index_ram_quota=`echo $per_node_quota_mb*0.15 | bc`
-    printf "INFO: Index RAM Quota (MB) - $index_ram_quota\n"    
+    printf "INFO: Index RAM Quota (MB) - $index_ram_quota\n"  
+
+    # in MB.
+    cluster_ramsize=$data_ram_quota
+    # in MB.
+    cluster_index_ramsize=$index_ram_quota  
 }
 calc_memory
 
-# in MB.
-cluster_ramsize=512
-# in MB.
-cluster_index_ramsize=512
+
 
 ## ***************************************************************************************************
 # install SSM agent
