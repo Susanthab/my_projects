@@ -63,7 +63,12 @@ calc_memory () {
     printf "INFO: Index RAM Quota (MB) - $index_ram_quota_int\n"
 
     # in MB.
-    cluster_ramsize=$data_ram_quota_int
+    if [ $data_ram_quota_int -lt 256 ]; then
+       cluster_ramsize=256
+    else
+       cluster_ramsize=$data_ram_quota_int
+    fi
+    echo "Cluster RAM size: $cluster_ramsize"
     # in MB.
     cluster_index_ramsize=$index_ram_quota_int
 }
