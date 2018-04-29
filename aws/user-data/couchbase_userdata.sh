@@ -54,16 +54,18 @@ calc_memory () {
     per_node_quota_mb=`echo "$per_node_quota/1000" | bc`
     printf "INFO: Memory allocated to Couchbase (MB) - $per_node_quota_mb\n"
 
-    data_ram_quota=`echo $per_node_quota_mb*0.75 | bc`
-    printf "INFO: Data RAM Quota (MB) - $data_ram_quota\n"
+    data_ram_quota=`echo "$per_node_quota_mb*0.75" | bc`
+    data_ram_quota_int=`echo $data_ram_quota | awk '{print int($1+0.5)}'`
+    printf "INFO: Data RAM Quota (MB) - $data_ram_quota_int\n"
 
     index_ram_quota=`echo $per_node_quota_mb*0.15 | bc`
-    printf "INFO: Index RAM Quota (MB) - $index_ram_quota\n"  
+    index_ram_quota_int=`echo $index_ram_quota | awk '{print int($1+0.5)}'`
+    printf "INFO: Index RAM Quota (MB) - $index_ram_quota_int\n"
 
     # in MB.
-    cluster_ramsize=$data_ram_quota
+    cluster_ramsize=$data_ram_quota_int
     # in MB.
-    cluster_index_ramsize=$index_ram_quota  
+    cluster_index_ramsize=$index_ram_quota_int
 }
 calc_memory
 
