@@ -67,8 +67,6 @@ calc_memory () {
 }
 calc_memory
 
-
-
 ## ***************************************************************************************************
 # install SSM agent
 # ideally, this should install prior as custom data in AMI - future work. 
