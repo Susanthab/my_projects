@@ -50,7 +50,7 @@ calc_memory () {
     tot_mem_mb=`echo "$tot_mem/1000" | bc`
     printf "INFO: RAM Available (KB) - $tot_mem_mb\n"
 
-    per_node_quota=`echo "$tot_mem*0.80" | bc`
+    per_node_quota=`echo "$tot_mem*0.75" | bc`
     per_node_quota_mb=`echo "$per_node_quota/1000" | bc`
     printf "INFO: Memory allocated to Couchbase (MB) - $per_node_quota_mb\n"
 
@@ -69,14 +69,14 @@ calc_memory () {
        cluster_ramsize=$data_ram_quota_int
     fi
     echo "Cluster RAM size: $cluster_ramsize"
-    
+
     # in MB.
     if [ $index_ram_quota_int -lt 256 ]; then
        cluster_index_ramsize=256
     else
        cluster_index_ramsize=$index_ram_quota_int
     fi
-    echo "Cluster RAM size: $cluster_index_ramsize"
+    echo "Cluster Index RAM size: $cluster_index_ramsize"
 }
 calc_memory
 
