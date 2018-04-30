@@ -75,15 +75,24 @@ st2 execution get <exec id>
 aws ssm describe-instance-information --instance-information-filter-list key=InstanceIds,valueSet=i-029af1bef30ef7064
 
 
-aws ssm send-command --document-name "couchbase-get-cluster-ip" --parameters "UserName=Administrator,Password=1a3a4c017c354217a63ce69f,IpAddress=10.1.52.139" --targets "Key=instanceids,Values=i-029af1bef30ef7064" --region us-west-2
+aws ssm send-command --document-name "couchbase-get-cluster-ip" \
+--parameters "UserName=administrator,Password=7d2a49cf38674f15a21af1d8,IpAddress=10.1.42.139" \
+--targets "Key=instanceids,Values=i-04864a4dcf1fd132e" --region us-west-2
 
 
 
-/opt/couchbase/bin/couchbase-cli host-list --cluster 10.1.52.139 -u Administrator -p 1a3a4c017c354217a63ce69f | grep -v 10.1.52.139 | head -n 1
+/opt/couchbase/bin/couchbase-cli host-list --cluster 10.1.52.139:8091 -u Administrator -p 1a3a4c017c354217a63ce69f | grep -v 10.1.35.203 | head -n 1
 
-couchbase-cli host-list -c 10.1.52.139:8091 --username Administrator \
- --password 1a3a4c017c354217a63ce69f
+couchbase-cli host-list -c 10.1.42.139:8091 --username Administrator \
+ --password 7d2a49cf38674f15a21af1d8
 
 
-couchbase-cli server-list -c 10.1.52.139:8091 --username Administrator \
- --password 1a3a4c017c354217a63ce69f
+couchbase-cli server-list -c 10.1.33.139:8091 --username Administrator \
+ --password e886ae4a856e452b9abd2d87
+
+
+systemctl status amazon-ssm-agent
+
+systemctl restart amazon-ssm-agent
+
+tail -20f /var/log/amazon/ssm/amazon-ssm-agent.log

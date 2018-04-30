@@ -207,3 +207,46 @@
         }
     ]
 }
+
+
+--- ===========================
+
+{
+    "Effect":"Allow",
+    "Action":[
+       "ssm:SendCommand"
+    ],
+    "Resource":"*",
+    "Condition":{
+       "StringLike":{
+          "ssm:resourceTag/Deployment_name":[
+             "cbtest17"
+          ]
+       }
+    }
+ },
+ {
+    "Effect":"Allow",
+    "Action":[
+       "ssm:SendCommand"
+    ],
+    "Resource":[
+       "arn:aws:ssm:us-west-2:602604727914:document/couchbase-get-cluster-ip"
+       "arn:aws:ssm:us-west-2::document/couchbase-*",
+       "arn:aws:ssm:us-west-2::document/couchbase-*"
+    ]
+ },
+ {
+    "Effect":"Allow",
+    "Action":[
+       "ssm:UpdateInstanceInformation",
+       "ssm:ListCommands",
+       "ssm:ListCommandInvocations",
+       "ssm:GetDocument"
+    ],
+    "Resource":"*"
+ }
+
+
+
+ policy_document: <% '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["autoscaling:Describe*","ec2:Describe*","elasticfilesystem:Describe*","logs:DescribeResourcePolicies","ec2messages:*"],"Resource":"*"},{"Effect":"Allow","Action":["ssm:GetParameter"],"Resource":"arn:aws:ssm:' + $.region + ':' + $.account_id + ':parameter/*/database/couchbase/*"},{"Effect":"Allow","Action":["ssm:*"],"Resource":"arn:aws:ssm:' + $.region + ':' + $.account_id + ':instance/*","Condition":{"StringEquals":{"ssm:resourceTag/DB_system":["' + $.database_system + '"],"ssm:resourceTag/Deployment_name":["' + $.deployment_name + '"]}}},{"Effect":"Allow","Action":["s3:PutObject","s3:GetObject"],"Resource":["arn:aws:s3:::' + $.s3_bucket_name + '/*"]}]}' %>

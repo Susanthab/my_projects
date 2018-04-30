@@ -1,0 +1,389 @@
+version: '2.0'
+name: couchbase.create_couchbase_cluster
+description: St2  workflow to create Couchbase cluster on EC2.
+
+workflows:
+
+  main:
+    type: direct
+    input:
+      - couchbase_spec 
+
+    vars:
+      security_group_name: <% $.couchbase_spec['security_group_name'] %>
+      iam_role_name: <% $.couchbase_spec['iam_role_name'] %>
+      iam_policy_name: <% $.couchbase_spec['iam_policy_name'] %>
+      cluster_name: <% $.couchbase_spec['cluster_name'] %>
+      instance_name: <% $.couchbase_spec['instance_name'] %>      
+      vpc_id: <% $.couchbase_spec['vpc_id'] %>
+      namespace: <% $.couchbase_spec['namespace'] %>
+      environment: <% $.couchbase_spec['environment'] %>
+      storage_type: <% $.couchbase_spec['storage_type'] %>
+      app_id: <% $.couchbase_spec['app_id'] %>
+      instance_type: <% $.couchbase_spec['instance_type'] %>
+      key_name: <% $.couchbase_spec['key_name'] %>
+      min_nof_nodes: <% $.couchbase_spec['min_nof_nodes'] %>
+      max_nof_nodes: <% $.couchbase_spec['max_nof_nodes'] %>
+      desired_capacity: <% $.couchbase_spec['desired_capacity'] %>
+      volume_type: <% $.couchbase_spec['volume_type'] %>
+      volume_size: <% $.couchbase_spec['volume_size'] %>
+      full_backup_sch: <% $.couchbase_spec['full_backup_sch'] %>
+      s3_backup_loc: "bitesize-<% $.couchbase_spec['environment_type'] %>/<% $.couchbase_spec['region'] %>/<% $.couchbase_spec['environment'] %>/backups/<% $.couchbase_spec['database_system'] %>/<% $.couchbase_spec['namespace'] %>"
+      t_owner_individual: <% $.couchbase_spec['t_owner_individual'] %>
+      role: <% $.couchbase_spec['role'] %>
+      ebs_optimized: <% $.couchbase_spec['ebs_optimized'] %>
+      region: <% $.couchbase_spec['region'] %>
+      team_id: <% $.couchbase_spec['team_id'] %>
+      database_system: <% $.couchbase_spec['database_system'] %>
+      deployment_name: <% $.couchbase_spec['deployment_name'] %>
+      lc_name: <% $.couchbase_spec['lc_name'] %>
+      asg_name: <% $.couchbase_spec['asg_name'] %>
+      pass: <% $.couchbase_spec['pass'] %>
+      parameter_name: <% '/' + $.couchbase_spec['namespace'] + '/' +
+                         $.couchbase_spec['role'] + '/' +
+                         $.couchbase_spec['database_system'] + '/' +
+                         $.couchbase_spec['deployment_name'] + '/' +
+                         'administrator'  %>
+
+    tasks:
+
+      get_cluster_status:
+        action: consul.kv_get
+        input:
+          key: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/cluster_status/
+          recurse: False
+        publish:
+          cluster_status: <% task(get_cluster_status).result.result %>
+          cluster_status_debug: <% task(get_cluster_status).result.result[1] %>
+        on-success: 
+          - get_accountid: <% $.cluster_status[1] = null or $.cluster_status[1] = 'null' %>
+
+      get_accountid:
+        action: couchbase.get_accountid
+        publish:
+          owner_id: <% task(get_accountid).result.result %>
+        on-success:
+          - create_security_group
+
+      create_security_group:
+        action: couchbase.create_couchbase_security_group
+        input:
+          group_name: <% $.security_group_name %>
+          description: <% "Security group for VM based Couchbase cluster." %>
+          name: <% $.security_group_name %>
+          namespace: <% $.namespace %>
+          deployment_name: <% $.deployment_name %>
+          role: <% $.role %>
+          database_system: <% $.database_system %>
+          vpc_id: <% $.vpc_id %> 
+        publish:
+          security_group_id: <% task(create_security_group).result.security_group_id %>
+        on-success:
+          - create_iam_role
+
+      create_iam_role:
+        action: couchbase.create_couchbase_iam_instance_profile
+        input:
+          deployment_name: <% $.deployment_name %>
+          namespace: <% $.namespace %>
+          role: <% $.role %>
+          database_system: <% $.database_system %>
+          iam_role_name: <% $.iam_role_name %>
+          iam_policy_name: <% $.iam_policy_name %>
+          region: <% $.region %>
+          s3_bucket_name: <% $.s3_backup_loc %>
+          account_id: <% $.owner_id %> 
+        on-success:
+          - describe_subnets_for_alb       
+
+      describe_subnets_for_alb:
+        action: aws_ec2.describe_subnets
+        input:
+          Filters: <% list(dict(Name => 'vpc-id', Values => list($.vpc_id)), dict(Name => 'tag-key', Values => list('Type')), dict(Name => 'tag-value', Values => list('frontend')) ) %>
+        publish:
+          subnets_alb: <% task(describe_subnets_for_alb).result.result.Subnets.select($.SubnetId).join(",") %>
+        on-success:
+          - describe_subnets
+ 
+      describe_subnets:
+        action: aws_ec2.describe_subnets
+        input: 
+          Filters: <% list(dict(Name => 'vpc-id', Values => list($.vpc_id)), dict(Name => 'tag-key', Values => list('Type')), dict(Name => 'tag-value', Values => list('db')) ) %>
+        publish: 
+          subnets: <% task(describe_subnets).result.result.Subnets.select($.SubnetId).join(",") %>
+        on-success:
+         - describe_images
+
+      describe_images:
+        action: aws_ec2.describe_images
+        input:
+          Filters: <% 
+                       list(dict(Name => 'architecture', Values => list('x86_64')), 
+                            dict(Name => 'owner-id' , Values => list($.owner_id)),
+                            dict(Name => 'state' , Values => list('available')),
+                            dict(Name => 'virtualization-type', Values => list('hvm')),
+                            dict(Name => 'root-device-type', Values => list('ebs')),
+                            dict(Name => 'tag-key', Values => list('OS_Version')),
+                            dict(Name => 'tag-value', Values => list('LinuxCentOs7')),
+                            dict(Name => 'tag-key', Values => list('Release')),
+                            dict(Name => 'tag-value', Values => list('7')),
+                            dict(Name => 'is-public', Values => list('false'))
+                      ) %>
+        publish:
+          images: <% task(describe_images).result.result.Images %>
+        on-success:
+          - get_ami: <% len($.images) > 0 %>      
+
+      get_ami:
+        action: couchbase.get_ami
+        input:
+          images: <% $.images %>
+        publish: 
+          image_id: <% task(get_ami).result.result %>
+        on-success:
+          - put_parameter: <% $.image_id != "" %>
+
+      put_parameter: 
+        action: aws_ssm.put_parameter
+        input:
+          Name: <% $.parameter_name %>
+          Value: <% $.pass %>
+          Type: <% 'SecureString' %>
+          Overwrite: <% 'False' %>
+        on-success:
+          - add_tags
+
+      add_tags:
+        action: aws_ssm.add_tags_to_resource
+        input:
+          ResourceType: <% 'Parameter' %>
+          ResourceId: <% $.parameter_name %>
+          Tags: <% list(dict(Key => 't_environment', Value => $.namespace),
+                        dict(Key => 'Deployment_name', Value => $.deployment_name),
+                        dict(Key => 't_role', Value => $.role),
+                        dict(Key => 'DB_system', Value => $.database_system))
+                %>
+        on-success:
+          - manage_lc
+
+      manage_lc:
+        join: all
+        workflow: manage_lc
+        input:
+          lc_name: <% $.lc_name %>
+          storage_type: <% $.storage_type %>
+          image_id: <% $.image_id %>
+          ebs_optimized: <% $.ebs_optimized %>
+          instance_type: <% $.instance_type %>
+          volume_size: <% $.volume_size %>
+          volume_type: <% $.volume_type %>      
+          key_name: <% $.key_name %>
+          security_group_id: <% $.security_group_id %>
+          iam_role_name: <% $.iam_role_name %>
+        on-success:
+          - manage_asg
+
+      manage_asg:
+        join: all
+        workflow: manage_asg
+        input:
+          asg_name: <% $.asg_name %>
+          lc_name: <% $.lc_name %>
+          min_size: <% $.min_nof_nodes %>
+          max_size: <% $.max_nof_nodes %>
+          desired_capacity: <% $.desired_capacity %>
+          cluster_type: "standard"
+          subnets: <% $.subnets %>
+          namespace: <% $.namespace %>
+          app_id: <% $.app_id %>
+          team_id: <% $.team_id %>
+          role: <% $.role %>
+          t_owner_individual: <% $.t_owner_individual %>
+          cluster_name: <% $.cluster_name %>      
+          s3_backup_loc: <% $.s3_backup_loc %>
+          full_backup_sch: <% $.full_backup_sch %> 
+          instance_name: <% $.instance_name %>
+          database_system: <% $.database_system %>
+          deployment_name: <% $.deployment_name %>
+        wait-before: 20
+        on-success:
+          - create_alb
+
+      create_alb:
+        action: couchbase.create_alb
+        input:
+          lb_name: "<% $.environment %>-<% $.database_system %>-<% $.namespace %>"
+          subnets: <% $.subnets_alb %>
+          tg_name: "<% $.environment %>-<% $.namespace %>-default"
+          asg_name: <% $.asg_name %>
+          sg_name: "<% $.database_system %>-alb-<% $.namespace %>-sg"
+          sg_name_tag: "<% $.database_system %>-alb-<% $.namespace %>-sg"
+          namespace: <% $.namespace %>
+          deployment_name: <% $.deployment_name %>
+          role: <% $.role %>
+          database_system: <% $.database_system %>
+        on-success:
+          - setup_route53_target_group
+
+      setup_route53_target_group:
+        action: couchbase.setup_route53_target_group
+        input:
+          lb_name: "<% $.environment %>-<% $.database_system %>-<% $.namespace %>"
+          subnets: <% $.subnets %>
+          tg_name: "<% $.database_system %>-<% $.namespace %>-<% $.deployment_name %>"
+          asg_name: <% $.asg_name %>
+          namespace: <% $.namespace %>
+          deployment_name: <% $.deployment_name %>
+          role: <% $.role %>
+          database_system: <% $.database_system %>
+        publish:
+          dns: <% task(setup_route53_target_group).result.dns %>
+        on-success:
+          - update_cluster_dns
+          - update_vault
+          - update_cluster_status
+          - update_cluster_type
+
+      update_cluster_dns:
+        action: consul.kv_put
+        input:
+          key: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/dns/
+          value: <% $.dns %>
+
+      update_vault:
+        action: vault.write
+        input:
+          path: "secret/<% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/pass"
+          values: '{"administrator_password":"<% $.pass %>"}'      
+
+      update_cluster_status:
+        action: consul.kv_put
+        input:
+          key: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/cluster_status/
+          value: <% 'ADDED' %>
+
+      update_cluster_type:
+        action: consul.kv_put
+        input:
+          key: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/cluster_type/
+          value: <% 'standard' %>
+   
+  manage_lc:
+    type: direct
+    input:
+      - lc_name
+      - storage_type
+      - image_id
+      - ebs_optimized
+      - instance_type
+      - volume_size
+      - volume_type      
+      - key_name
+      - security_group_id
+      - iam_role_name
+      
+    vars:
+      user_data: |
+                 #!/bin/bash
+                 cd /root && git clone https://github.com/Susanthab/my_projects.git couchbase
+                 chmod +x ./couchbase/aws/user-data/couchbase_userdata.sh
+                 ./couchbase/aws/user-data/couchbase_userdata.sh
+
+    tasks:
+      check_lc:
+        action: aws_autoscaling.describe_launch_configurations
+        input:
+          LaunchConfigurationNames: <% list($.lc_name) %>
+        publish:
+          lc_name_returned: <% task(check_lc).result.result.LaunchConfigurations %>
+        on-success:
+          - select_storage_type: <% len($.lc_name_returned)=0 %>
+
+      select_storage_type:
+        action: core.local
+        input:
+          cmd: "printf <% $.storage_type %>"
+        publish:
+          path: <% task(select_storage_type).result.stdout %>
+        on-success:
+          - create_lc_ebs: <% $.path = 'EBS' %>
+
+      create_lc_ebs:
+        action: aws_autoscaling.create_launch_configuration
+        input:
+          LaunchConfigurationName: <% $.lc_name %>
+          ImageId: <% $.image_id %>
+          InstanceType: <% $.instance_type %>
+          KeyName: <% $.key_name %>
+          SecurityGroups: <% list($.security_group_id) %>
+          IamInstanceProfile: <% $.iam_role_name %>
+          UserData: <% $.user_data %>
+          EbsOptimized: <% $.ebs_optimized %>
+          BlockDeviceMappings:
+            - DeviceName: "/dev/sdg"
+              Ebs:
+                VolumeSize: <% $.volume_size %>
+                VolumeType: <% $.volume_type %>
+            - DeviceName: "/dev/sdh"
+              Ebs:
+                VolumeSize: <% $.volume_size %>
+                VolumeType: <% $.volume_type %>
+        retry:
+          count: 20
+          delay: 60
+
+  manage_asg:
+    type: direct
+    input:
+      - asg_name
+      - lc_name
+      - min_size
+      - max_size
+      - desired_capacity
+      - cluster_type
+      - subnets
+      - namespace
+      - app_id
+      - team_id
+      - role
+      - t_owner_individual
+      - cluster_name
+      - s3_backup_loc
+      - full_backup_sch
+      - instance_name
+      - database_system
+      - deployment_name
+      
+    tasks:
+      check_asg:
+        action: aws_autoscaling.describe_auto_scaling_groups
+        input:
+          AutoScalingGroupNames: <% list($.asg_name) %>
+        publish:
+          asg_name_returned: <% task(check_asg).result.result.AutoScalingGroups %>
+        on-success:
+          - create_asg: <% len($.asg_name_returned)=0 %>
+          
+      create_asg:
+        action: aws_autoscaling.create_auto_scaling_group
+        input:
+          LaunchConfigurationName: <% $.lc_name %>
+          AutoScalingGroupName: <% $.asg_name %>
+          MinSize: <% $.min_size %>
+          MaxSize: <% $.max_size %>
+          DesiredCapacity: <% $.desired_capacity %>
+          VPCZoneIdentifier: <% $.subnets %>
+          Tags: <% list(dict(Key => "Project", Value => "Bitesize"), 
+                        dict(Key => "t_environment", Value => $.namespace), 
+                        dict(Key => "app_id", Value => str($.app_id)), 
+                        dict(Key => "team_id", Value => $.team_id), 
+                        dict(Key => "t_role", Value => $.role), 
+                        dict(Key => "t_owner_individual", Value => $.t_owner_individual), 
+                        dict(Key => "Name", Value => $.instance_name), 
+                        dict(Key => "cluster_type", Value => $.cluster_type),
+                        dict(Key => "asg_name", Value => $.asg_name),
+                        dict(Key => "cluster_name", Value => $.cluster_name), 
+                        dict(Key => "s3_backup_loc", Value => $.s3_backup_loc), 
+                        dict(Key => "DB_system", Value => $.database_system),
+                        dict(Key => "Deployment_name", Value => $.deployment_name)
+                       ) %>

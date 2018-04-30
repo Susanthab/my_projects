@@ -68,7 +68,7 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # node_service_offering ( N/A | data | index | query)
 st2 run couchbase.add_nodes_to_couchbase_cluster \
 database_system="couchbase" \
-deployment_name="cbdelete26" \
+deployment_name="cbtest20" \
 namespace="tpr-dev" \
 number_of_nodes_toadd=1
 
@@ -76,7 +76,7 @@ number_of_nodes_toadd=1
 # node_type (standard | data | index | query)
 # remove_or_terminate (remove | terminate)
 st2 run couchbase.remove_node_from_couchbase_cluster \
-deployment_name="cbdelete26" \
+deployment_name="cbtest20" \
 namespace="tpr-dev" \
 database_system="couchbase" \
 role="database" \
