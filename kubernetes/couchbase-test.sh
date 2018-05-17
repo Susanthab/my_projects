@@ -19,3 +19,6 @@ kubectl get services --namespace couchbase-test
 
 # describe a service. 
 kubectl describe service couchbase-test --namespace couchbase-test
+
+# gel all the namespaces
+kubectl get ns

@@ -76,7 +76,7 @@ aws ssm describe-instance-information --instance-information-filter-list key=Ins
 
 
 aws ssm send-command --document-name "couchbase-get-cluster-ip" \
---parameters "UserName=administrator,Password=7d2a49cf38674f15a21af1d8,IpAddress=10.1.42.139" \
+--parameters "UserName=administrator,Password=7d2a49cf38674f15a21af1d8,IpAddress=10.1.54.8" \
 --targets "Key=instanceids,Values=i-04864a4dcf1fd132e" --region us-west-2
 
 
@@ -87,8 +87,8 @@ couchbase-cli host-list -c 10.1.42.139:8091 --username Administrator \
  --password 7d2a49cf38674f15a21af1d8
 
 
-couchbase-cli server-list -c 10.1.33.139:8091 --username Administrator \
- --password e886ae4a856e452b9abd2d87
+couchbase-cli server-list -c 10.1.53.25:8091 --username Administrator \
+ --password b37c58925e0847efbbeb3107
 
 
 systemctl status amazon-ssm-agent

@@ -18,8 +18,6 @@ source ~/.bash_profile
 
 BACKUP_PATH="/var/www/html/couchbase-backup"
 TIMESTAMP="$(date -u +"%Y-%m-%d-%H")"
-USER="admin"
-PASSWORD="12qwaszx@"
 DOW=$(date +%u)
 HOSTNAME=$(hostname)
 #FULL_BACKUP_DAY=5
@@ -63,12 +61,35 @@ get_ec2_tag () {
   FULL_BACKUP_SCH=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`full_backup_sch`].{val:Value}' --output text)
   BACKUP_S3_LOC="$S3_BUCKET_NAME/$PROJECT_NAME/$CLUSTER_NAME/$HOSTNAME/$TIMESTAMP"
   BACKUP_DIR="$BACKUP_PATH/$PROJECT_NAME/$CLUSTER_NAME/$HOSTNAME"
+
+  t_environment=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`t_environment`].{val:Value}' --output text)
+  t_role=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`t_role`].{val:Value}' --output text)
+  DB_system=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`DB_system`].{val:Value}' --output text)
+  Deployment_name=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`Deployment_name`].{val:Value}' --output text)
+
+  echo "INFO: Deployment_name: $Deployment_name"
   echo "Project Name: $PROJECT_NAME"
   echo "Cluster name: $CLUSTER_NAME"
   echo "S3 backup location: $BACKUP_S3_LOC"
   echo "Backup dir of the node: $BACKUP_DIR"
   echo "Full backup schedule: $FULL_BACKUP_SCH"
+  echo "INFO: t_environment: $t_environment"
+  echo "INFO: t_role: $t_role"
+  echo "INFO: DB_system: $DB_system"
   CHECK_BACKUP_SCH=$(echo "$FULL_BACKUP_SCH" | grep $WK_NUM_WK_DAY)
+}
+
+get_admin_user_pwd () {
+    echo ""
+    echo "Retrive admin user password..."
+    param_name_pwd="/$t_environment/$t_role/$DB_system/$Deployment_name/administrator"
+    USER='Administrator'
+    PASSWORD=`aws ssm get-parameter --name=$param_name_pwd --region=$region --with-decryption --query 'Parameter.Value' --output text`
+
+    if [ -z "$CLUSTER_PASSWORD" ]; then
+       echo "ERROR: Password id empty. Aborting the script."
+       exit
+    fi
 }
 
 perform_cbbackup () {
@@ -138,6 +159,7 @@ echo ""
 echo "03. Determining s3 bucket..."
 echo "============================"
     get_ec2_tag
+    get_admin_user_pwd
 echo ""
 echo "04. Clear backup history..."
 echo "==========================="

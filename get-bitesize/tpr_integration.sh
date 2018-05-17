@@ -49,17 +49,17 @@ metadata:
   labels:
     creator: pipeline
     name: susanthab
-  name: cbtest1
+  name: cbtest45
   namespace: tpr-dev
 spec:
   options:
     volume_type: "gp2"
     volume_size: "200"
-    instance_type: "t2.large"
-    desired_capacity: "1"
-    full_backup_sch: "1W:Sun"
+    desired_capacity: "3"
+    full_backup_sch: "1W:Fri"
+    key_name: "couchb-testing"
     app_id: "100"
-    team_id: "dba"
+    team_id: "testing"
 
 # to create
 kubectl create -f couchbscott.yaml

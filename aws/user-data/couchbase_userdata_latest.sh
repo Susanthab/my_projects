@@ -101,8 +101,6 @@ fi
 ## ***************************************************************************************************
 
 # install github readonly key
-aws ssm get-parameters --names "github_ro_key" --region eu-west-1 --with-decryption | jq -r ".Parameters[0].Value" > /root/.ssh/id_rsa
-chmod 0400 /root/.ssh/id_rsa
 
 echo ""
 echo "INFO: Pragramatically mount block device at EC2 startup..."
