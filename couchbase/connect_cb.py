@@ -9,7 +9,8 @@ import requests
 import json
 
 #url='http://couchbase.cb-susa.tpr-dev.ubathsu.us-west-2.dev/pools/nodes'
-url='http://couchbase.cb-test-susa.tpr-dev.ubathsu.us-west-2.dev/pools/nodes'
+#pip install git+http://github.com/couchbase/couchbase-python-client@2.3.5
+url='http://couchbase.cb-test-susa.tpr-dev.ubathsu.us-west-2.dev:8091/pools/nodes'
 
 u = 'Administrator'
 #p = '78c89e1cbf1543b581da9ec4'
@@ -40,3 +41,11 @@ adm.bucket_create('test-bucket',
                   ram_quota=100)
 
 print(cluster)
+
+
+- ec2_instance_facts:
+    instance_ids:
+      - "{{ ansible_ec2_instance_id }}"
+    
+      - "{{ ansible_ec2_placement_availability_zone }}"
+  register: temp_ec2_info

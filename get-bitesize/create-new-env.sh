@@ -15,6 +15,7 @@ cd bitesize-environments && \
 
 cd bitesize-environments && \
    ./manage-env.py create \
+   --envtype=dev \
    --env=ubathsu \
    --region=us-west-2
    --modules core,ca,db,bastion,consul,etcd,kube-master,kube-minion,stackstorm

@@ -39,10 +39,10 @@ curl --head -X GET http://test-couchb-1984504305.us-west-2.elb.amazonaws.com
 
 curl --head X GET http://couchbase.couchb1.tpr-dev.ubathsu.us-west-2.dev
 
-curl http://10.1.50.8/pools/nodes
+curl http://10.1.39.115/pools/nodes
 
 curl -u administrator:6ea53ff70d14409ab05e2078 http://couchbase.couchb1.tpr-dev.ubathsu.us-west-2.dev/pools/default
-curl -v -u Administrator:6ea53ff70d14409ab05e2078 http://10.1.50.8:8091/pools/nodes
+curl -v -u Administrator:bb2f1a541861433288e70588 http://10.1.50.8:8091/pools/nodes
 # Sensor troubleshooting.
 
 /opt/stackstorm/st2/bin/st2sensorcontainer --config-file=/etc/st2/st2.conf --sensor-ref=kubernetes.watchCouchbase
@@ -83,13 +83,25 @@ aws ssm send-command --document-name "couchbase-get-cluster-ip" \
 
 /opt/couchbase/bin/couchbase-cli host-list --cluster 10.1.52.139:8091 -u Administrator -p 1a3a4c017c354217a63ce69f | grep -v 10.1.35.203 | head -n 1
 
-couchbase-cli host-list -c 10.1.42.139:8091 --username Administrator \
- --password 7d2a49cf38674f15a21af1d8
+couchbase-cli host-list -c 10.1.54.147:8091 --username Administrator \
+ --password 0868ca5c76a04a30b67bf51c
 
 
-couchbase-cli server-list -c 10.1.53.25:8091 --username Administrator \
- --password b37c58925e0847efbbeb3107
+couchbase-cli server-list -c 10.1.43.186:8091 --username Administrator \
+ --password bb2f1a541861433288e70588
 
+couchbase-cli server-info -c 10.1.55.202:8091 --username Administrator \
+ --password 11f79bb2929c4a7ca96527e8
+
+# This works everything configured correctly. 
+curl --head -X GET http://couchbase.cbdns14.tpr-dev.susantha.us-west-2.susantha.us-west-2.dev
+
+# This works too. 
+curl -v -u Administrator:f90aacf347f24efe99ae1427 http://test-cb-netlb-1ab242626000eecd.elb.us-west-2.amazonaws.com/pools/nodes
+
+
+
+3a397d7da69e4ae7a19d0a7a
 
 systemctl status amazon-ssm-agent
 

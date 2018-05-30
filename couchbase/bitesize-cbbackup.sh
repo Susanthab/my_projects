@@ -7,7 +7,7 @@ source ~/.bash_profile
 #*************************************************************
 # Author: Susanthab
 # Date written: 11/20/2017
-# Purpose: To perform backups of mongodb replica sets. 
+# Purpose: To perform backups of CouchBase.
 # Revision: 2.0
 #*************************************************************
 
@@ -16,12 +16,12 @@ source ~/.bash_profile
 #    apt-get install zip unzip
 # 2. aws cli
 
-BACKUP_PATH="/var/www/html/couchbase-backup"
-TIMESTAMP="$(date -u +"%Y-%m-%d-%H")"
+BACKUP_PATH={{ couchbase_server_cbbackup_path }}
+TIMESTAMP="$(date -u +"%Y-%m-%d")"
+USER={{ cluster_user_name }}
+PASSWORD={{ cluster_password }}
 DOW=$(date +%u)
 HOSTNAME=$(hostname)
-#FULL_BACKUP_DAY=5
-
 
 init () {
 
@@ -32,6 +32,7 @@ init () {
     echo "Week day: ${WEEKDAY:0:3}"
 
     WK_NUM_WK_DAY="${WEEKNUMBER}W:${WEEKDAY:0:3}"
+    WK_NUM_WK_DAY=$(echo "$WK_NUM_WK_DAY" | awk '{print tolower($0)}')
     echo "WK_NUM_WK_DAY: $WK_NUM_WK_DAY"
 
     # as env variable from bash_profile
@@ -44,7 +45,6 @@ init () {
 }
 
 get_EC2_metadata () {
-  #curl -O http://s3.amazonaws.com/ec2metadata/ec2-metadata
   instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
   ec2_avail_zone=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
   region=${ec2_avail_zone:0:-1}
@@ -61,35 +61,12 @@ get_ec2_tag () {
   FULL_BACKUP_SCH=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`full_backup_sch`].{val:Value}' --output text)
   BACKUP_S3_LOC="$S3_BUCKET_NAME/$PROJECT_NAME/$CLUSTER_NAME/$HOSTNAME/$TIMESTAMP"
   BACKUP_DIR="$BACKUP_PATH/$PROJECT_NAME/$CLUSTER_NAME/$HOSTNAME"
-
-  t_environment=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`t_environment`].{val:Value}' --output text)
-  t_role=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`t_role`].{val:Value}' --output text)
-  DB_system=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`DB_system`].{val:Value}' --output text)
-  Deployment_name=$(aws ec2 describe-instances --instance-ids $instance_id --region $region  --query 'Reservations[].Instances[].Tags[?Key==`Deployment_name`].{val:Value}' --output text)
-
-  echo "INFO: Deployment_name: $Deployment_name"
   echo "Project Name: $PROJECT_NAME"
   echo "Cluster name: $CLUSTER_NAME"
   echo "S3 backup location: $BACKUP_S3_LOC"
   echo "Backup dir of the node: $BACKUP_DIR"
   echo "Full backup schedule: $FULL_BACKUP_SCH"
-  echo "INFO: t_environment: $t_environment"
-  echo "INFO: t_role: $t_role"
-  echo "INFO: DB_system: $DB_system"
   CHECK_BACKUP_SCH=$(echo "$FULL_BACKUP_SCH" | grep $WK_NUM_WK_DAY)
-}
-
-get_admin_user_pwd () {
-    echo ""
-    echo "Retrive admin user password..."
-    param_name_pwd="/$t_environment/$t_role/$DB_system/$Deployment_name/administrator"
-    USER='Administrator'
-    PASSWORD=`aws ssm get-parameter --name=$param_name_pwd --region=$region --with-decryption --query 'Parameter.Value' --output text`
-
-    if [ -z "$CLUSTER_PASSWORD" ]; then
-       echo "ERROR: Password id empty. Aborting the script."
-       exit
-    fi
 }
 
 perform_cbbackup () {
@@ -114,10 +91,10 @@ perform_cbbackup () {
 }
 
 s3_upload() {
-    echo "Uploading $1 to s3"
+    echo "Uploading $1 to s3 => ${BACKUP_S3_LOC}"
     aws s3 cp --only-show-errors "$1"  "s3://${BACKUP_S3_LOC}/"
     echo "Removing: $1"
-    rm $1 -r
+    rm $1 -rf
 }
 
 get_latest_backup_dir () {
@@ -142,7 +119,7 @@ compress (){
 clear_backups () {
   if [ -n "$CHECK_BACKUP_SCH" -a "$TODAY" != "$FULL_BACKUP_DATE" ]; then
      echo "Clear the backup history before the full backup..."
-     rm -r $BACKUP_DIR/backup
+     rm -rf $BACKUP_DIR/backup
  fi
 }
 
@@ -159,7 +136,6 @@ echo ""
 echo "03. Determining s3 bucket..."
 echo "============================"
     get_ec2_tag
-    get_admin_user_pwd
 echo ""
 echo "04. Clear backup history..."
 echo "==========================="
@@ -179,4 +155,7 @@ echo "=========================="
 echo ""
 echo "08. Uploading backup zip file to s3..."
 echo "======================================"
+    echo "${BACKUP_DIR}/backup/${BACKUP_ZIP}"
     s3_upload ${BACKUP_DIR}/backup/${BACKUP_ZIP}
+    cd ~
+echo ""
