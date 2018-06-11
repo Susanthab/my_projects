@@ -83,21 +83,21 @@ aws ssm send-command --document-name "couchbase-get-cluster-ip" \
 
 /opt/couchbase/bin/couchbase-cli host-list --cluster 10.1.52.139:8091 -u Administrator -p 1a3a4c017c354217a63ce69f | grep -v 10.1.35.203 | head -n 1
 
-couchbase-cli host-list -c 10.1.54.147:8091 --username Administrator \
- --password 0868ca5c76a04a30b67bf51c
+couchbase-cli host-list -c 10.240.43.135:8091 --username Administrator \
+ --password 9387cfe9348346bf8062693d
 
 
 couchbase-cli server-list -c 10.1.43.186:8091 --username Administrator \
- --password bb2f1a541861433288e70588
+ --password 9387cfe9348346bf8062693d
 
-couchbase-cli server-info -c 10.1.55.202:8091 --username Administrator \
- --password 11f79bb2929c4a7ca96527e8
+couchbase-cli server-info -c 10.1.47.45:8091 --username Administrator \
+ --password df14891b47a447c2a6bdb957 | grep clusterMembership
 
 # This works everything configured correctly. 
 curl --head -X GET http://couchbase.cbdns14.tpr-dev.susantha.us-west-2.susantha.us-west-2.dev
 
 # This works too. 
-curl -v -u Administrator:f90aacf347f24efe99ae1427 http://test-cb-netlb-1ab242626000eecd.elb.us-west-2.amazonaws.com/pools/nodes
+curl -v -u Administrator:26b84dc3b6c944e8a59b301d http://couchbase.eses.glp-nft.glp1.us-east-2.glp1.us-east-2.pre:8091/pools/nodes
 
 
 

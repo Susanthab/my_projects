@@ -10,7 +10,6 @@ workflows:
       - couchbase_spec
 
     vars:
-      security_group_name: <% $.couchbase_spec['security_group_name'] %>
       iam_role_name: <% $.couchbase_spec['iam_role_name'] %>
       iam_policy_name: <% $.couchbase_spec['iam_policy_name'] %>
       cluster_name: <% $.couchbase_spec['cluster_name'] %>
@@ -39,7 +38,10 @@ workflows:
       lc_name: <% $.couchbase_spec['lc_name'] %>
       asg_name: <% $.couchbase_spec['asg_name'] %>
       pass: <% $.couchbase_spec['pass'] %>
-      parameter_name: <% '/' + $.couchbase_spec['namespace'] + '/' +
+      parameter_name: <% '/bitesize-' + $.couchbase_spec['environment'] + '-' +
+                         $.couchbase_spec['environment_type'] + '/' +
+                         $.couchbase_spec['region'] + '/' +
+                         $.couchbase_spec['namespace'] + '/' +
                          $.couchbase_spec['role'] + '/' +
                          $.couchbase_spec['database_system'] + '/' +
                          $.couchbase_spec['deployment_name'] + '/' +
@@ -61,7 +63,6 @@ workflows:
           - get_kv_list
 
       get_kv_list:
-        wait-before: 5
         action: consul.kv_list
         input:
           key: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>
@@ -69,50 +70,43 @@ workflows:
           recurse: True
         publish:
           kv_list: <% task(get_kv_list).result.result[1] %>
-          key_rule_arn: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/rule_arn
-          key_cluster_status: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/cluster_status
-          key_target_group_arn: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/target_group_arn
-          key_policy_arn: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/policy_arn
+          key_rule_arn: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/rule_arn/
+          key_cluster_status: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/cluster_status/
+          key_target_group_arn: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/target_group_arn/
+          key_policy_arn: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/policy_arn/
+          key_listener_arn: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/listener_arn/
+          key_alb_security_group_id: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/alb_security_group_id/
         on-success:
           - get_kv_value
 
       get_kv_value:
-        wait-before: 5
         action: core.noop
         publish:
           rule_arn: <% let(key_1 => $.key_rule_arn) -> $.kv_list.where($.Key = $key_1).select($.Value) %>
           cluster_status: <% let(key_2 => $.key_cluster_status) -> $.kv_list.where($.Key = $key_2).select($.Value) %>
           target_group_arn: <% let(key_3 => $.key_target_group_arn) -> $.kv_list.where($.Key = $key_3).select($.Value) %>
           policy_arn: <% let(key_4 => $.key_policy_arn) -> $.kv_list.where($.Key = $key_4).select($.Value) %>
-        on-success:
-          - delete_rule
-          
-      delete_rule:
-        wait-before: 5
-        action: aws_elbv2.delete_rule
-        input: 
-          RuleArn: <% $.rule_arn %>
+          listener_arn: <% let(key_5 => $.key_listener_arn) -> $.kv_list.where($.Key = $key_5).select($.Value) %>
+          alb_security_group_id: <% let(key_6 => $.key_alb_security_group_id) -> $.kv_list.where($.Key = $key_6).select($.Value) %>
         on-success:
           - delete_target_group
 
       delete_target_group:
-        wait-before: 5
         action: aws_elbv2.delete_target_group
         input:
-          TargetGroupArn: <% $.target_group_arn %>
+          TargetGroupArn: <% $.target_group_arn[0] %>
         on-success:
           - delete_auto_scaling_group
 
       delete_auto_scaling_group:
-        wait-before: 5
         action: aws_autoscaling.delete_auto_scaling_group
         input: 
           AutoScalingGroupName: <% $.asg_name %>
+          ForceDelete: True
         on-success:
           - delete_launch_configuration
 
       delete_launch_configuration:
-        wait-before: 5
         action: aws_autoscaling.delete_launch_configuration
         input:
           LaunchConfigurationName: <% $.lc_name %>
@@ -120,20 +114,19 @@ workflows:
           - find_lb
 
       find_lb:
-        wait-before: 5
         action: aws_elbv2.describe_load_balancers
         input:
           Names: ["<% $.lb_name %>"]
         publish:
-          alb_arn: <% task(find_lb).result.result.LoadBalancers[0].LoadBalancerArn %>
+          lb_arn: <% task(find_lb).result.result.LoadBalancers[0].LoadBalancerArn %>
           lb_dns_name: <% task(find_lb).result.result.LoadBalancers[0].DNSName %>
           lb_hosted_zone_id: <% task(find_lb).result.result.LoadBalancers[0].CanonicalHostedZoneId %>
           cluster_domain: "<% $.env %>.<% $.region %>.<% $.internal_domain %>"
         on-success:
+          - describe_listeners
           - delete_endpoint
 
       delete_endpoint:
-        wait-before: 5
         action: aws_route53.change_resource_record_sets
         input:
           HostedZoneId: <% $.internal_zoneid %>
@@ -146,39 +139,43 @@ workflows:
                   AliasTarget:
                     HostedZoneId: <% $.lb_hosted_zone_id %>
                     DNSName: <% $.lb_dns_name %>
+                    EvaluateTargetHealth: False
+
+      describe_listeners:
+        action: aws_elbv2.describe_listeners
+        input:
+          LoadBalancerArn: <% $.alb_arn %>
+        publish:
+          listener_arns: <% task(describe_listeners).result.result.Listeners.select($.ListenerArn) %>
         on-success:
+          - delete_load_balancer
+          - update_cluster_status
           - delete_iam_role
 
-      delete_iam_role:
-        wait-before: 5
-        workflow: delete_iam_role
+      delete_load_balancer:
+        action: aws_elbv2.delete_load_balancer
         input:
-          role_name: <% $.iam_role_name %>
-          policy_arn: <% $.policy_arn %>
-        on-success:
-          - delete_parameter
-
-      delete_parameter:
-        wait-before: 5
-        action: aws_ssm.delete_parameter
-        input:
-          Name: <% $.parameter_name %>
-        on-success:
-          - delete_security_group
-
-      delete_security_group:
-        wait-before: 5
-        action: aws_ec2.delete_security_group
-        input:
-          GroupName: <% $.security_group_name %>
-        on-success:
-          - update_cluster_status
+          LoadBalancerArn: <% $.lb_arn %>
 
       update_cluster_status:
         action: consul.kv_put
         input:
           key: <% $.namespace %>/<% $.database_system %>/<% $.deployment_name %>/cluster_status/
           value: <% 'DELETED' %>
+        on-success:
+          - delete_parameter
+
+      delete_iam_role:
+        workflow: delete_iam_role
+        input: 
+          role_name: <% $.iam_role_name %>
+          policy_arn: <% $.policy_arn[0] %>
+
+      delete_parameter:
+        action: aws_ssm.delete_parameter
+        input:
+          Name: <% $.parameter_name %>
+
 
   delete_iam_role:
     type: direct
@@ -189,7 +186,6 @@ workflows:
     tasks:
 
       detach_iam_role:
-        wait-before: 5
         action: aws_iam.remove_role_from_instance_profile
         input:
           InstanceProfileName: <% $.role_name %>
@@ -198,7 +194,6 @@ workflows:
           - detach_role_policy
 
       detach_role_policy:
-        wait-before: 5
         action: aws_iam.detach_role_policy
         input:
           RoleName: <% $.role_name %>
@@ -207,7 +202,6 @@ workflows:
           - delete_policy
 
       delete_policy: 
-        wait-before: 5
         action: aws_iam.delete_policy
         input:
           PolicyArn: <% $.policy_arn %>
@@ -215,7 +209,6 @@ workflows:
           - delete_role
 
       delete_role:
-        wait-before: 5
         action: aws_iam.delete_role
         input:
           RoleName: <% $.role_name %>
@@ -223,16 +216,6 @@ workflows:
           - delete_iam_instance_profile
 
       delete_iam_instance_profile:
-        wait-before: 5
         action: aws_iam.delete_instance_profile
         input:
           InstanceProfileName: <% $.role_name %>
-
-
-
-
-
-
-      
-
-      

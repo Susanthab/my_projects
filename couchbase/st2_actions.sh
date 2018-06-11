@@ -67,20 +67,18 @@ assume_role="arn:aws:iam::452395698705:role/st2_role"
 # cluster_type (standard | multidimentional)
 # node_service_offering ( N/A | data | index | query)
 st2 run couchbase.add_nodes_to_couchbase_cluster \
-database_system="couchbase" \
-deployment_name="cb17" \
+deployment_name="nft1-glp" \
 namespace="tpr-dev" \
+database_system="couchbase" \
 number_of_nodes_toadd=1
 
 # Remove a node from Couchbase cluster. (default: us-east-1)
 # node_type (standard | data | index | query)
 # remove_or_terminate (remove | terminate)
 st2 run couchbase.remove_node_from_couchbase_cluster \
-deployment_name="cb17" \
+deployment_name="nft1-glp" \
 namespace="tpr-dev" \
-database_system="couchbase" \
 role="database" \
-node_type="standard" \
 remove_or_terminate="terminate"
 
 
@@ -143,9 +141,15 @@ role="database" \
 database_system="couchbase" \
 vpc_id="vpc-d51985ac"
 
+st2 run couchbase.bump_release_version_userdata_temp \
+asg_name="couchbase-ubathsu-dev-tpr-dev-couchb-64" \
+ansible_couchb_release="v1.2.2" \
+docker_engine_version="v1" \
+namespace="tpr-dev" \
+deployment_name="couchb-64"
 
 
-couchbase-cli server-list -c 10.1.50.8:8091 -u Administrator -p 6ea53ff70d14409ab05e2078
+couchbase-cli server-list -c 10.240.51.188:8091 -u Administrator -p d50b99228f054289a8aac812
 
 
 couchbase-cli server-list -c http://couchbase-tpr-dev-306695041.us-west-2.elb.amazonaws.com -u admin -p 12qwaszx@
