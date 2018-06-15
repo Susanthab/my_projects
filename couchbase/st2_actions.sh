@@ -148,6 +148,17 @@ docker_engine_version="v1" \
 namespace="tpr-dev" \
 deployment_name="couchb-64"
 
+# restore cb-backup
+st2 run couchbase.restore_couchbase_backup \
+deployment_name="cb013" \
+namespace="tpr-dev" \
+role="database" \
+node_type="stabdard" \
+host="10.1.55.31" \
+source_bucket_name='beer-sample' \
+destination_bucket_name='beer-sample2' \
+bucket_ramsize=256 \
+backup_file_path='s3://bitesize-dev/us-west-2/ubathsu/backups/couchbase/tpr-dev/testing/cb010-tpr-dev/couchbase-i-069847ba6430b20a4.dev.us-west-2.ubathsu/2018-06-15/2018-06-15T000005Z-full-00-07.zip'
 
 couchbase-cli server-list -c 10.240.51.188:8091 -u Administrator -p d50b99228f054289a8aac812
 

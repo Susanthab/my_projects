@@ -55,9 +55,9 @@ spec:
   options:
     volume_type: "gp2"
     volume_size: "200"
+    instance_type: "m4.4xlarge"
     desired_capacity: "3"
     full_backup_sch: "1W:Fri"
-    key_name: "couchb-testing"
     app_id: "100"
     team_id: "testing"
 

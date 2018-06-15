@@ -1,128 +1,43 @@
+resource "aws_ssm_document" "db-cb-restore" {
+  name          = "${local.fullname}-couchbase-cbrestore"
 
-resource "aws_ssm_document" "couchbase" {
-  name          = "couchbase-get-cluster-ip"
- 
   document_type = "Command"
 
   content = <<DOC
   {
       "schemaVersion": "2.2",
-      "description": "Run couchbase host-list",
+      "description": "Run cbrestore",
       "parameters": {
-            "UserName": {
+            "Host": {
               "type": "String",
-              "description": "Couchbase user name"
+              "description": "CB node ip which needs to restore the backup"
           },
-          "Password": {
+          "SourceBucketName": {
               "type": "String",
-              "description": "Password of the Couchbase cluster"
+              "description": "Source bucket name"
           },     
-            "IpAddress": {
+          "DestinationBucketName": {
               "type": "String",
-              "description": "Cluster IP address"
-          }
+              "description": "Destination bucket name"
+          },
+            "BackupFilePath": {
+              "type": "String",
+              "description": "full path (s3) of the backup file"
+          },
+            "BucketRamsize": {
+              "type": "String",
+              "description": "Bucket RAM size"
+          }        
       },
       "mainSteps": [
         {
           "action": "aws:runShellScript",
           "name": "hostlist",
           "inputs": {
-            "runCommand": ["/opt/couchbase/bin/couchbase-cli host-list --cluster {{IpAddress}} -u {{UserName}} -p {{Password}} | grep -v {{IpAddress}} | head -n 1"]
+            "runCommand": ["/usr/local/bin/bitesize_cbrestore.sh {{Host}} {{SourceBucketName}} {{DestinationBucketName}} {{BackupFilePath}} {{BucketRamsize}}"]
           }
         }
       ]
     }
     DOC
 }
-
-
-resource "aws_ssm_document" "couchbase" {
-  name          = "couchbase-server-remove"
- 
-  document_type = "Command"
-
-  content = <<DOC
-  {
-      "schemaVersion": "2.2",
-      "description": "Run couchbase remove node",
-      "parameters": {
-            "UserName": {
-              "type": "String",
-              "description": "Couchbase user name"
-          },
-          "Password": {
-              "type": "String",
-              "description": "Password of the Couchbase cluster"
-          },     
-            "ClusterIpAddress": {
-              "type": "String",
-              "description": "Cluster IP address"
-          },
-            "RemoveIpAddress": {
-              "type": "String",
-              "description": "IP Address of the node to be removed."
-          }
-      },
-      "mainSteps": [
-        {
-          "action": "aws:runShellScript",
-          "name": "hostlist",
-          "inputs": {
-            "runCommand": ["/opt/couchbase/bin/couchbase-cli rebalance -c {{ClusterIpAddress}} -u {{UserName}} -p {{Password}} --server-remove={{RemoveIpAddress}}"]
-          }
-        }
-      ]
-    }
-    DOC
-}
-
-
-
-
-
-
-
-
-    {
-        "Effect": "Allow",
-        "Action": [
-            "ssm:SendCommand"
-        ],
-        "Resource": [
-            "arn:aws:ec2:*:*:instance/*"
-        ],
-        "Condition": {
-            "StringEquals": {
-                "ssm:resourceTag/Enable_SSM_Send_Command": [
-                    "Yes"
-                ],
-                "ssm:resourceTag/DB_system": [
-                    "couchbase",
-                    "couchb",
-                    "cb"
-                ]
-            }
-        }
-    },
-    {
-        "Effect": "Allow",
-        "Action": [
-            "ssm:GetCommandInvocation"
-        ],
-        "Resource": [
-            "arn:aws:ssm:*:*:*"
-        ]
-    },
-    {
-        "Effect": "Allow",
-        "Action": [
-            "ssm:SendCommand"
-        ],
-        "Resource": [
-            "arn:aws:ssm:*:*:document/couchbase-get-cluster-ip",
-            "arn:aws:ssm:*:*:document/couchbase-server-remove"
-        ]
-    }
-
-
-

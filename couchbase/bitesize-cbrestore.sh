@@ -1,4 +1,5 @@
 #!/bin/bash
+exec > "/var/log/cbrestore.log" 2>&1
 
 HOST=$1
 LOGIN=$2

@@ -108,3 +108,6 @@ systemctl status amazon-ssm-agent
 systemctl restart amazon-ssm-agent
 
 tail -20f /var/log/amazon/ssm/amazon-ssm-agent.log
+
+#registered sensors. 
+st2ctl reload --register-sensors
