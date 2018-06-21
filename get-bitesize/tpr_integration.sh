@@ -57,7 +57,7 @@ spec:
     volume_size: "200"
     instance_type: "m4.4xlarge"
     desired_capacity: "3"
-    full_backup_sch: "1W:Fri"
+    full_backup_sch: "1W:Sun,2W:Sun,3W:Sun,4W:Sun"
     app_id: "100"
     team_id: "testing"
 
