@@ -97,8 +97,7 @@ couchbase-cli server-info -c 10.1.47.45:8091 --username Administrator \
 curl --head -X GET http://couchbase.cbdns14.tpr-dev.susantha.us-west-2.susantha.us-west-2.dev
 
 # This works too. 
-curl -v -u Administrator:1ae768e75cad46678791eafd http://couchbase.cb001.tpr-dev.staging.eu-west-1.staging.eu-west-1.stg:8091/pools/nodes
-
+curl -v -u Administrator:c27253ae26064fe2b7b5c27d http://cb-glp1-prod-glp-prd-analytics-66dd6a97a511569a.elb.us-west-2.amazonaws.com:8091/pools/nodes
 
 
 3a397d7da69e4ae7a19d0a7a

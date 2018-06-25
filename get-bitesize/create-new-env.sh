@@ -20,6 +20,13 @@ cd bitesize-environments && \
    --region=us-west-2
    --modules core,ca,db,bastion,consul,etcd,kube-master,kube-minion,stackstorm
 
+# assuming you are in bitesize-environment
+   ./manage-env.py create \
+   --env=ubathsu \
+   --region=us-west-2
+
+# create only CB env. 
+manage-env.py --env <env> --region <region> --envtype dev -p couchbase -m core,bastion create
 
 # SSH to docker container.
 docker exec -it <container id> /bin/bash
