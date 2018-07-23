@@ -34,3 +34,7 @@ git add --all ansible-mongo-replset/*
 rm -rf .git/
 
 ## New change to test git
+
+
+#INTEGRATION TEST
+git add . && git commit -m"test couchb" && git push origin BITE-3179

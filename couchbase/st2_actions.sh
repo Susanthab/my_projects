@@ -163,8 +163,9 @@ backup_file_path='s3://bitesize-dev/us-west-2/ubathsu/backups/couchbase/tpr-dev/
 couchbase-cli server-list -c 10.240.51.188:8091 -u Administrator -p d50b99228f054289a8aac812
 
 
-couchbase-cli server-list -c http://couchbase-tpr-dev-306695041.us-west-2.elb.amazonaws.com -u admin -p 12qwaszx@
+couchbase-cli server-list -c http://host -u admin -p 12qwaszx@
 
 
-curl -v -u Administrator:6ea53ff70d14409ab05e2078 http://couchbase.couchb1.tpr-dev.ubathsu.us-west-2.dev/pools/nodes
+curl -v -u Administrator:6ea53ff70d14409ab05e2078 http://host/pools/nodes
 
+curl -u Administrator:gzC#qRoBDCSYjy8XjwglBF0Q http://host/pools/nodes

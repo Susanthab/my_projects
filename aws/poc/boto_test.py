@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import boto3
-import boto.utils
+import boto.utils  
 import awscli
 
 data = boto.utils.get_instance_identity()

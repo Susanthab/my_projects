@@ -82,4 +82,38 @@ kubectl delete -f couchb-intg.yaml
 
 
 
-{"resource":"ADDED","object_kind":"Couchbase","labels":{"name":"susacouchb","creator":"pipeline"},"namespace":"tpr-dev","uid":"ec304cc7-2616-11e8-8bdf-0a39c1fe23e0","spec":{"options":{"desired_capacity":"1","app_id":"100","volume_type":"gp2","instance_type":"t2.large","team_id":"dba","full_backup_sch":"1W:Sun","volume_size":"200"}},"name":"couchbtest"}
+## TPR for st2 bitesize.
+apiVersion: prsn.io/v1
+kind: Couchbase
+metadata:
+  labels:
+    creator: pipeline
+    name: susanthab
+  name: cbtest45
+  namespace: tpr-dev
+spec:
+  options:
+    volume_type: "gp2"
+    volume_size: "200"
+    instance_type: "m4.4xlarge"
+    desired_capacity: "3"
+    full_backup_sch: "1W:Sun,2W:Sun,3W:Sun,4W:Sun"
+    app_id: "100"
+    team_id: "testing"
+
+
+
+
+metadata:
+    name: couchb1
+    namespace: default
+    labels:
+        type: couchbase.prsn.io
+        instance_type: t2.xlarge
+        node_count: 3
+        volume_size: 200
+        full_backup_sch: "1W:Sun,2W:Sun,3W:Sun,4W:Sun"
+        stack_name: cb
+apiVersion: prsn.io/v1
+kind: Couchbase
+description: ""

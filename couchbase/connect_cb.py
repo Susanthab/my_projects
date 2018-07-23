@@ -49,3 +49,10 @@ print(cluster)
     
       - "{{ ansible_ec2_placement_availability_zone }}"
   register: temp_ec2_info
+
+
+
+curl -X POST -u Administrator:8d89d97f6889476f89810832 http://couchbase.cb001.tpr-dev.ubathsu.eu-west-1.ubathsu.eu-west-1.dev:8091/pools/default/buckets \
+-d name=newBucketDestination -d conflictResolutionType=lww \
+-d authType=sasl -d ramQuotaMB=4096 \
+-d bucketType=couchbase 

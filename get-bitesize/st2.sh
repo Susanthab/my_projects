@@ -94,13 +94,16 @@ couchbase-cli server-info -c 10.1.47.45:8091 --username Administrator \
  --password df14891b47a447c2a6bdb957 | grep clusterMembership
 
 # This works everything configured correctly. 
-curl --head -X GET http://couchbase.cbdns14.tpr-dev.susantha.us-west-2.susantha.us-west-2.dev
+curl --head -X GET http://couchbase.cbst2-01.tpr-dev.ubathsu.eu-west-1.ubathsu.eu-west-1.dev
 
 # This works too. 
-curl -v -u Administrator:c27253ae26064fe2b7b5c27d http://cb-glp1-prod-glp-prd-analytics-66dd6a97a511569a.elb.us-west-2.amazonaws.com:8091/pools/nodes
+curl -v -u Administrator:c27253ae26064fe2b7b5c27d http://test-lb-cb-1894371461.eu-west-1.elb.amazonaws.com:8091/pools/nodes
+
+curl -vgsk --show-error --max-time 15 -XGET -u Administrator:4dac54632b8f40f5ac28e050 'http://couchbase.cbst2-01.tpr-dev.ubathsu.eu-west-1.ubathsu.eu-west-1.dev:8091/pools/nodes'
 
 
-3a397d7da69e4ae7a19d0a7a
+
+
 
 systemctl status amazon-ssm-agent
 

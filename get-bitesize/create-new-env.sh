@@ -26,7 +26,10 @@ cd bitesize-environments && \
    --region=us-west-2
 
 # create only CB env. 
-manage-env.py --env <env> --region <region> --envtype dev -p couchbase -m core,bastion create
+./manage-env.py --env ubathsu --region eu-west-1 --envtype dev -p couchbase -m core,bastion create
+./manage-env.py --env ubathsu --region eu-west-1 --envtype dev -p couchbase create
+
+beconnect.py -su susanthab -go
 
 # SSH to docker container.
 docker exec -it <container id> /bin/bash
