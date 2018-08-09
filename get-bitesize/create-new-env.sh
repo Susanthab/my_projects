@@ -1,4 +1,6 @@
 
+# delete the env plan.
+rm -rf dev/eu-west-1/ubathsu/
 
 # deploy only the core. 
 cd bitesize-environments && \

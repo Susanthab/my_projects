@@ -47,19 +47,27 @@ curl -v -u 'Administrator':'gzC#qRoBDCSYjy8XjwglBF0Q' https://host:8091/pools/no
 # param_5=destination_user_name
 # param_6=destination_user_pwd
 
-python CreateReplication.py \
-    'host' \
-    'Administrator' \
-    '555293688a9c4d4ebdb6c20d' \
-    'host' \
-    'Administrator' \
-    'gzC#qRoBDCSYjy8XjwglBF0Q'
+#python CreateReplication.py \
+#    'source_host' \
+#    'Administrator' \
+#    '555293688a9c4d4ebdb6c20d' \
+#    'dest_host' \
+#    'Administrator' \
+#    'gzC#qRoBDCSYjy8XjwglBF0Q'
 
-python CreateIndex.py \
-    'host' \
+python CreateReplication.py \
+    'couchbase.cbst2-40.tpr-dev.ubathsu.eu-west-1.ubathsu.eu-west-1.dev' \
     'Administrator' \
-    '555293688a9c4d4ebdb6c20d' \
-    'host' \
+    'bd9ae9125ec140598076ccc4' \
+    'cbtr10-tpr-dev-cb.ubathsu.eu-west-1.dev' \
     'Administrator' \
-    'gzC#qRoBDCSYjy8XjwglBF0Q'
+    'FuoCHQolQHj1QIhe'
+
+python CreateIndexes.py \
+    'couchbase.cbst2-40.tpr-dev.ubathsu.eu-west-1.ubathsu.eu-west-1.dev' \
+    'Administrator' \
+    'bd9ae9125ec140598076ccc4' \
+    'cbtr10-tpr-dev-cb.ubathsu.eu-west-1.dev' \
+    'Administrator' \
+    'FuoCHQolQHj1QIhe'
 

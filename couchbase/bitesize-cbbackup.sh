@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 SHELL=/bin/bash
 source ~/.bash_profile
 
@@ -8,7 +7,7 @@ source ~/.bash_profile
 # Author: Susanthab
 # Date written: 11/20/2017
 # Purpose: To perform backups of CouchBase.
-# Revision: 2.0
+# Revision: 2.1
 #*************************************************************
 
 # prerequisites
@@ -16,12 +15,14 @@ source ~/.bash_profile
 #    apt-get install zip unzip
 # 2. aws cli
 
-BACKUP_PATH={{ couchbase_server_cbbackup_path }}
+BACKUP_PATH=/backup
 TIMESTAMP="$(date -u +"%Y-%m-%d")"
-USER={{ cluster_user_name }}
-PASSWORD={{ cluster_password }}
+USER=Administrator
+PASSWORD=750bfcc54a814bda8eefd06a
 DOW=$(date +%u)
 HOSTNAME=$(hostname)
+instance_id=i-05bd94210f80a33d4
+ec2_avail_zone=eu-west-1c
 
 init () {
 
@@ -45,8 +46,7 @@ init () {
 }
 
 get_EC2_metadata () {
-  instance_id=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
-  ec2_avail_zone=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
+  #ec2_avail_zone=$(curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone)
   region=${ec2_avail_zone:0:-1}
   CURRENT_NODE_IP=$(aws ec2 describe-instances --instance-ids ${instance_id} --region ${region} --query Reservations[].Instances[].PrivateIpAddress --output text)
   echo "Instance id: $instance_id"
@@ -79,7 +79,7 @@ perform_cbbackup () {
     export FULL_BACKUP_DATE=$(date +%Y-%m-%d)
     echo "export FULL_BACKUP_DATE=$(date +%Y-%m-%d)" >> ~/.bash_profile    
   else 
-    backup_mode="diff"
+    backup_mode="accu"
   fi
 
   echo "Backup mode: $backup_mode"
@@ -120,7 +120,17 @@ clear_backups () {
   if [ -n "$CHECK_BACKUP_SCH" -a "$TODAY" != "$FULL_BACKUP_DATE" ]; then
      echo "Clear the backup history before the full backup..."
      rm -rf $BACKUP_DIR/backup
- fi
+  fi
+  echo "debug: $backup_mode"
+  echo "debug: $LATEST_BACKUP_DIR"
+  if [ "$backup_mode" == "accu" ]; then
+     echo "Latest backup dir: $LATEST_BACKUP_DIR"
+     # clear the latest accu backup - NOT the full backup. 
+     if [[ "${LATEST_BACKUP_DIR}" =~ $backup_mode ]]; then
+        echo "About to DELETE accu backup"
+        rm -rf $BACKUP_DIR/backup/$child_dir/$LATEST_BACKUP_DIR
+     fi
+  fi
 }
 
 

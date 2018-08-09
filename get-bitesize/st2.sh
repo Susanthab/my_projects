@@ -79,8 +79,6 @@ aws ssm send-command --document-name "couchbase-get-cluster-ip" \
 --parameters "UserName=administrator,Password=7d2a49cf38674f15a21af1d8,IpAddress=10.1.54.8" \
 --targets "Key=instanceids,Values=i-04864a4dcf1fd132e" --region us-west-2
 
-
-
 /opt/couchbase/bin/couchbase-cli host-list --cluster 10.1.52.139:8091 -u Administrator -p 1a3a4c017c354217a63ce69f | grep -v 10.1.35.203 | head -n 1
 
 couchbase-cli host-list -c 10.240.43.135:8091 --username Administrator \

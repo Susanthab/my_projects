@@ -24,6 +24,17 @@ metadata:
 versions:
   - name: v1
 
+# Terraform cb version. 
+apiVersion: extensions/v1beta1
+kind: ThirdPartyResource
+description: "Couchbase ThirdPartyResource"
+metadata:
+  name: cb.prsn.io
+  labels:
+    type: ThirdPartyResource
+versions:
+  - name: v1
+
 # to create
 kubectl create -f couchbase.yaml
 
@@ -57,7 +68,7 @@ spec:
     volume_size: "200"
     instance_type: "m4.4xlarge"
     desired_capacity: "3"
-    full_backup_sch: "1W:Sun,2W:Sun,3W:Sun,4W:Sun"
+    full_backup_sch: "1W:Sun,2W:Sun,3W:Sun,4W:Sun,5W:Sun"
     app_id: "100"
     team_id: "testing"
 
@@ -97,23 +108,33 @@ spec:
     volume_size: "200"
     instance_type: "m4.4xlarge"
     desired_capacity: "3"
-    full_backup_sch: "1W:Sun,2W:Sun,3W:Sun,4W:Sun"
+    full_backup_sch: "1W:Sun,2W:Sun,3W:Sun,4W:Sun,5W:Sun"
     app_id: "100"
     team_id: "testing"
 
-
-
-
-metadata:
-    name: couchb1
-    namespace: default
-    labels:
-        type: couchbase.prsn.io
-        instance_type: t2.xlarge
-        node_count: 3
-        volume_size: 200
-        full_backup_sch: "1W:Sun,2W:Sun,3W:Sun,4W:Sun"
-        stack_name: cb
+# TF version
 apiVersion: prsn.io/v1
-kind: Couchbase
-description: ""
+kind: Cb
+metadata:
+  labels:
+    creator: pipeline
+    name: susanthab
+  name: cbtr01
+  namespace: tpr-dev
+spec:
+  options:
+    instance_type: m4.4xlarge
+    node_count: 5
+    high_perf: 0
+
+
+###### TEMP
+# Install the pack. 
+cd /root/.ssh
+cp ~stanley/.ssh/* .
+chown root *
+st2 pack install git@github.com:pearsontechnology/stackstorm-bitesize.git=BITE-3182
+
+
+python ../../../tools/couchbaseconnect.py -e ubathsu -r eu-west-1 -t dev -l
+python ../../../tools/couchbaseconnect.py -e ubathsu -r eu-west-1 -t dev -u susanthab -a cbtr10-tpr-dev-cb-ubathsu-dev-data

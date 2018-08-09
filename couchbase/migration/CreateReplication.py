@@ -25,19 +25,24 @@ class CreateReplication:
         name = b['name']
         print('INFO: Creating Bucket %s @ destination server' % name)
         print('****************************************************')
-        ramQuotaMB = b['quota']['ram']/1024/1024
+        ramQuotaMB = b['quota']['rawRAM']/1024/1024
         numReplicas = b['vBucketServerMap']['numReplicas']
         data = {'name':name,'ramQuotaMB':ramQuotaMB,'replicaNumber':numReplicas}
-        response = requests.post('http://%s:8091/pools/default/buckets' % self.d_ep, auth=(self.d_user,self.d_pwd), data=data)
+        response = requests.post('https://%s:18091/pools/default/buckets' % self.d_ep, auth=(self.d_user,self.d_pwd), data=data, verify=False)
         print(response.text)
         time.sleep(5)
       return
 
-    def add_remote_server(self,remote_serer_name):
+    def get_remote_server_node(self):
+      response = requests.get('https://%s:18091/pools/nodes' % self.d_ep, auth=(self.d_user,self.d_pwd), verify=False)
+      node = (json.loads(response.text)['nodes'][0]['hostname']).split(":")[0]
+      return(node)
+
+    def add_remote_server(self,remote_serer_name, remote_node):
       print('INFO: Adding remote server')
       print('***************************')
-      data = {'name':remote_serer_name,'hostname':self.d_ep,'username':self.d_user,'password':self.d_pwd}
-      response = requests.post('http://%s:8091/pools/default/remoteClusters' % self.s_ep, auth=(self.s_user,self.s_pwd), data=data)     
+      data = {'name':remote_serer_name,'hostname':remote_node,'username':self.d_user,'password':self.d_pwd}
+      response = requests.post('http://%s:8091/pools/default/remoteClusters' % self.s_ep, auth=(self.s_user,self.s_pwd), data=data, verify=False)     
       print(response.text)
       return
 
@@ -52,28 +57,22 @@ class CreateReplication:
         print(response.text)
       return
 
+def main():
+  xdcr = CreateReplication(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6])
 
-xdcr = CreateReplication(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6])
+  buckets = xdcr.get_source_buckets()
+  a = xdcr.create_buckets_at_destination(buckets)
+  print(a)
 
-try:
-    buckets = xdcr.get_source_buckets()
-#    print(buckets)
-except:
-    print('ERROR: Could not get the Buckets from source server.')
-try:
-    a = xdcr.create_buckets_at_destination(buckets)
-    print(a)
-    time.sleep(10)
-except:
-    print('ERROR: Could not create the Buckets at destination server.')
-try:
-    b = xdcr.add_remote_server('remote1')
-    print(b)
-    time.sleep(10)
-except:
-    print('ERROR: Could not add remote server.')
-try:
-    c = xdcr.create_xdcr('remote1',buckets)
-    print(c)
-except:
-    print('ERROR: Could not create replication for Buckets.')
+  remote_node = xdcr.get_remote_server_node()
+  print(remote_node)
+
+  time.sleep(10)
+  b = xdcr.add_remote_server('remote1', remote_node)
+  print(b)
+  time.sleep(10)
+  c = xdcr.create_xdcr('remote1',buckets)
+  print(c)
+
+if __name__ == '__main__': 
+   main()

@@ -21,7 +21,7 @@ class CreateIndex:
       return(all_indexes)
 
     def get_destination_server_node(self):
-      response = requests.get('http://%s:8091/pools/nodes' % self.d_ep, auth=(self.d_user,self.d_pwd))
+      response = requests.get('https://%s:18091/pools/nodes' % self.d_ep, auth=(self.d_user,self.d_pwd), verify=False)
       node = (json.loads(response.text)['nodes'][0]['hostname']).split(":")[0]
       return(node)
 
@@ -30,18 +30,31 @@ class CreateIndex:
         i_definition = i['definition']
         index = i['index']
         b_name = i['bucket']
-        print(i_definition) 
+        #print(i_definition) 
         data = {'statement':i_definition}
-        response = requests.post('http://%s:8093/query/service' % node, auth=(self.d_user,self.d_pwd), data = data)
-        print(response.text)
+        print("Info: Creating index [%s] ON Bucket, [%s]" % (index, b_name))
+        response = requests.post('https://%s:18093/query/service' % node, auth=(self.d_user,self.d_pwd), data = data, verify=False)
+        if "success" in response.text:
+          print "Success: Index created successfully!"
+        else:
+          print "Error: Index creation failed."
+        time.sleep(5)
         data = {'statement': 'BUILD INDEX ON `%s` (`%s`) USING GSI' % (b_name,index)}
-        response = requests.post('http://%s:8093/query/service' % node, auth=(self.d_user,self.d_pwd), data = data)
-        print(response.text)
-        time.sleep(2)
+        print("Info: Building index...")
+        response = requests.post('https://%s:18093/query/service' % node, auth=(self.d_user,self.d_pwd), data = data, verify=False)
+        if "success" in response.text:
+          print "Success: Build Index is successfull!"
+        else:
+          print("Error: Build index failed.")
+        time.sleep(5)
       return      
 
-ind = CreateIndex(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6])
+def main():
+  ind = CreateIndex(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5],sys.argv[6])
 
-indexes = ind.get_all_source_indexes()
-node = ind.get_destination_server_node()
-res = ind.create_index_at_destination(indexes,node)
+  indexes = ind.get_all_source_indexes()
+  node = ind.get_destination_server_node()
+  res = ind.create_index_at_destination(indexes,node)
+
+if __name__ == '__main__': 
+   main()
