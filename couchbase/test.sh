@@ -13,3 +13,10 @@ printf "INFO: Data RAM Quota (MB) - $data_ram_quota\n"
 
 index_ram_quota=`echo $per_node_quota_mb*0.15 | bc`
 printf "INFO: Index RAM Quota (MB) - $index_ram_quota\n"
+
+
+
+
+update led set learningModel.configurations.courseMastery.PreAssessment.mastery = '0' where id = '<glp_course_id>';
+update led set learningModel.configurations.courseMastery.Practice.mastery = '0' where id = '<glp_course_id>';
+update led set learningModel.configurations.courseMastery.PostAssessment.mastery = '0' where id = '<glp_course_id>';

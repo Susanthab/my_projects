@@ -31,6 +31,9 @@ cd bitesize-environments && \
 ./manage-env.py --env ubathsu --region eu-west-1 --envtype dev -p couchbase -m core,bastion create
 ./manage-env.py --env ubathsu --region eu-west-1 --envtype dev -p couchbase create
 
+# Create new env for SRE demo. 
+./manage-env.py --env sredemo --region eu-west-1 --envtype dev
+
 beconnect.py -su susanthab -go
 
 # SSH to docker container.

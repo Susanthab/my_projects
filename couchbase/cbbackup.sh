@@ -1,8 +1,5 @@
 #!/bin/bash
 
-SHELL=/bin/bash
-source ~/.bash_profile
-
 #*************************************************************
 # Author: Susanthab
 # Date written: 11/20/2017
@@ -10,22 +7,34 @@ source ~/.bash_profile
 # Revision: 2.1
 #*************************************************************
 
+# if the script is already running, then exit.
+for pid in $(pgrep -f cbbackup.sh); do
+    if [ $pid != $$ ]; then
+        echo "[$(date)] : cbbackup.sh : Process is already running with PID $pid"
+        exit 1
+    else
+      echo "Running with PID $pid"
+    fi  
+done
+
+SHELL=/bin/bash
+source ~/.bash_profile
+
 # prerequisites
 # 1. zip/unzip has to be installed in all the nodes. 
 #    apt-get install zip unzip
 # 2. aws cli
 
 BACKUP_PATH={{ couchbase_backup_path }}
-TIMESTAMP="$(date -u +"%Y-%m-%d")"
 USER={{ cluster_user_name }}
 PASSWORD={{ cluster_password }}
-DOW=$(date +%u)
-HOSTNAME=$(hostname)
 CURRENT_NODE_IP={{ ansible_ec2_local_ipv4 }}
-#instance_id={{ ansible_ec2_instance_id }}
-#ec2_avail_zone={{ ansible_ec2_placement_availability_zone }}
 FULL_BACKUP_SCH={{ full_backup_schedule }}
-BACKUP_S3_LOC={{ s3_backup_location }}
+S3_BUCKET_NAME={{ s3_backup_location }}
+
+HOSTNAME=$(hostname)
+DOW=$(date +%u)
+TIMESTAMP="$(date -u +"%Y-%m-%d")"
 
 init () {
 
@@ -48,8 +57,9 @@ init () {
 
 }
 
-get_ec2_tag () {
+set_backup_dir () {
   BACKUP_DIR="$BACKUP_PATH/$HOSTNAME"
+  BACKUP_S3_LOC="$S3_BUCKET_NAME/$HOSTNAME/$TIMESTAMP"
   echo "S3 backup location: $BACKUP_S3_LOC"
   echo "Backup dir of the node: $BACKUP_DIR"
   echo "Full backup schedule: $FULL_BACKUP_SCH"
@@ -97,22 +107,25 @@ get_latest_backup_dir () {
 
 compress (){
   echo "Zipping the backup file..."
+  echo "Latest backup dir $LATEST_BACKUP_DIR"
+  echo "Source dir $SOURCE_DIR"
   BACKUP_ZIP=${LATEST_BACKUP_DIR}-"$(date -u +"%M-%S")".zip
-  #zip -rq -D ${LATEST_BACKUP_DIR}.zip $SOURCE_DIR 
   zip -rq -D ${BACKUP_ZIP} $SOURCE_DIR 
-  #BACKUP_ZIP="${LATEST_BACKUP_DIR}.zip"  
 }
 
-clear_backups () {
+clear_full_backup () {
   if [ -n "$CHECK_BACKUP_SCH" -a "$TODAY" != "$FULL_BACKUP_DATE" ]; then
      echo "Clear the backup history before the full backup..."
      rm -rf $BACKUP_DIR/backup
   fi
+}
+
+clear_accu_backup () {
   echo "debug: $backup_mode"
   echo "debug: $LATEST_BACKUP_DIR"
   if [ "$backup_mode" == "accu" ]; then
      echo "Latest backup dir: $LATEST_BACKUP_DIR"
-     # clear the latest accu backup - NOT the full backup. 
+     # clear the latest accu backup - NOT the full backup.
      if [[ "${LATEST_BACKUP_DIR}" =~ $backup_mode ]]; then
         echo "About to DELETE accu backup"
         rm -rf $BACKUP_DIR/backup/$child_dir/$LATEST_BACKUP_DIR
@@ -120,35 +133,39 @@ clear_backups () {
   fi
 }
 
-
 echo "----------------------------"
 echo "| 01. Initialize variables |"
 echo "----------------------------"
-    init
-echo "-----------------------------"
-echo "| 02. Determining s3 bucket |"
-echo "-----------------------------"
-    get_ec2_tag
+        init
+        sleep 10m
+echo "-----------------------"
+echo "| 02. Set backup dirs |"
+echo "-----------------------"
+        set_backup_dir
 echo "----------------------------"
 echo "| 03. Clear backup history |"
 echo "----------------------------"
-    clear_backups
+        clear_full_backup
 echo "------------------------"
 echo "| 04. Perform cbbackup |"
 echo "------------------------"
-    perform_cbbackup
+        perform_cbbackup
 echo "-----------------------------"
 echo "| 05. Get latest backup dir |"
 echo "-----------------------------"
-    get_latest_backup_dir
+        get_latest_backup_dir
 echo "---------------------------"
-echo "| 07. Compress the backup |"
+echo "| 06. Compress the backup |"
 echo "---------------------------"
-    compress
+        compress
 echo "---------------------------------------"
 echo "| 07. Uploading backup zip file to s3 |"
 echo "---------------------------------------"
-    echo "${BACKUP_DIR}/backup/${BACKUP_ZIP}"
-    s3_upload ${BACKUP_DIR}/backup/${BACKUP_ZIP}
-    cd ~
+        echo "${BACKUP_DIR}/backup/${BACKUP_ZIP}"
+        s3_upload ${BACKUP_DIR}/backup/${BACKUP_ZIP}
 echo ""
+echo "--------------------------"
+echo "| 08. Clear accu backups |"
+echo "--------------------------"
+    clear_accu_backup
+    cd ~

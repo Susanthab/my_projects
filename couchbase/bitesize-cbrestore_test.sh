@@ -47,7 +47,10 @@ $CBRESTORE $RESTORE_LOC http://$HOST:8091
 
 # copy s3 file to local host
 aws s3 cp "s3://bitesize-dev/eu-west-1/ubathsu/backups/couchbase/kernel-glp-prd/full/node5/2018-08-06T060004Z-3.zip" .
-aws s3 cp "s3://bitesize-dev/eu-west-1/ubathsu/backups/couchbase/tpr-dev/testing/cb-052-tpr-dev/couchbase-i-05bd94210f80a33d4.dev.eu-west-1.ubathsu/2018-08-07/2018-08-07T180616Z-accu-06-18.zip" . 
+aws s3 cp "s3://bitesize-dev/eu-west-1/ubathsu/backups/cb-tpr-dev-cbtr01/cb-tpr-dev-cbtr01-i-0f850e7c3b64d03dc.ubathsu.eu-west-1.dev/2018-08-14/2018-08-14T165843Z-accu-58-45.zip" . 
+
+https://s3-eu-west-1.amazonaws.com/bitesize-pre/us-east-2/glp1/backups/couchbase/glp-nft/dba/analytics-glp-nft/couchbase-i-02ff81349c0f941e4.pre.us-east-2.glp1/2018-07-23/2018-07-23T000005Z-diff-00-28.zip
+
 
 # restore full-backup
 #################################################
@@ -70,18 +73,18 @@ done
 
 
 # restore diff backup
-cbrestore 2018-08-07T180122Z/2018-08-07T180616Z-accu -u Administrator \
--p 750bfcc54a814bda8eefd06a \
--b test-restore \
--B test-restore \
-http://10.1.53.77:8091
+cbrestore 2018-08-14T164821Z/2018-08-14T165843Z-accu -u Administrator \
+-p HOm1SIwLW5r3hjyY \
+-b test_restore \
+-B test_restore \
+http://10.1.37.131:8091
 
 # restore locally taken backup
 cbrestore sample-backup/2018-07-31T214725Z/2018-07-31T214725Z-full -u Administrator \
 -p 9545e99b4aed4145924189b8 \
--b travel-sample \
--B ts-restored \
-http://10.1.38.96:8091
+-b test_backup \
+-B test_backup \
+http://10.1.44.9:8091
 
 
 

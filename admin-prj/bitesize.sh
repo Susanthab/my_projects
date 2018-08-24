@@ -8,5 +8,7 @@ ssh -i "aws/bitesize-prod/bitesize.key" centos@52.55.157.91
 sudo su -
 ssh -i "/root/.ssh/bitesize.key" ubuntu@10.253.6.242
 
+# releases
+
 
 

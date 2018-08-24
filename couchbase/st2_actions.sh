@@ -160,7 +160,7 @@ destination_bucket_name='beer-sample2' \
 bucket_ramsize=256 \
 backup_file_path='s3://bitesize-dev/us-west-2/ubathsu/backups/couchbase/tpr-dev/testing/cb010-tpr-dev/couchbase-i-069847ba6430b20a4.dev.us-west-2.ubathsu/2018-06-15/2018-06-15T000005Z-full-00-07.zip'
 
-couchbase-cli server-list -c 10.240.51.188:8091 -u Administrator -p d50b99228f054289a8aac812
+couchbase-cli server-list -c 10.240.37.115:18091 -u Administrator -p efmiqzYAbFvKjqpZ
 
 
 couchbase-cli server-list -c http://host -u admin -p 12qwaszx@

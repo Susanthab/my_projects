@@ -64,3 +64,7 @@ kubectl exec -it <instance name> /bin/bash
 # port-forward
 kubectl port-forward <instance name> 9090:8080
 # distributed tracing is helpful to troubleshoot issues with Microservices.
+
+kubectl get pods -n glp-nft | grep lcd | awk {'print $1'} | xargs -L 1 -I {} kubectl -n glp-nft exec {} -- sh -c "echo \"{} => \`netstat -na | grep tcp | grep :9390 | grep -v LISTEN | wc -l\`\""
+
+kubectl describe ep kong-api-gw -n glp-nft 

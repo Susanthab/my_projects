@@ -41,4 +41,7 @@ curl -vgsk --show-error --max-time 15 -X POST -u Administrator:037330e3108b4501a
 #UPDATE `Test` SET type="airline2" WHERE id="k001"
 
 # rbac
-curl -vgsk --show-error --max-time 15 -X GET -u Administrator:gzC#qRoBDCSYjy8XjwglBF0Q https://host:18091/settings/rbac/roles
+curl -vgsk --show-error --max-time 15 -X GET -u Administrator:HOm1SIwLW5r3hjyY https://cbtr01-tpr-dev-cb.ubathsu.eu-west-1.dev:18091/settings/rbac/roles
+
+# Execute N1QL query. 
+curl -v -u susanthab:twister75 http://10.1.33.149:8093/query/service  -d 'statement=Select * from system:completed_requests where str_to_duration(serviceTime) > 1e+10 order by requestTime desc limit 1;'
