@@ -47,7 +47,7 @@ stern <app name>
 # Question 1 -> What is our logging tool in BS?
 
 # delete a pod
-kubectl delete pod <instance name>
+kubectl delete pod <instance name> 
 
 # labels are really really important in k8.
 # to see serving labels
@@ -68,3 +68,11 @@ kubectl port-forward <instance name> 9090:8080
 kubectl get pods -n glp-nft | grep lcd | awk {'print $1'} | xargs -L 1 -I {} kubectl -n glp-nft exec {} -- sh -c "echo \"{} => \`netstat -na | grep tcp | grep :9390 | grep -v LISTEN | wc -l\`\""
 
 kubectl describe ep kong-api-gw -n glp-nft 
+
+#connections
+kubectl get pods -n glp-nft | grep pls | awk {'print $1'} | xargs -L 1 -I {} kubectl -n glp-nft exec {} -- sh -c "echo \"{} => \`netstat -na | grep tcp | grep -v LISTEN | wc -l\`\""
+
+curl --key /etc/cfssl/ssl/kubernetes/client-prometheus-key.pem --cert /etc/cfssl/ssl/kubernetes/client-prometheus.pem -k https://master.glp1.us-east-2.pre/api/v1/namespaces/glp-nft/pods/lad-974849190-5bg76:9360/proxy/lad/metrics
+
+
+for i in `kubectl get pod -n=glp-nft -o name | sed -e 's/^pods\///g'`; do echo $i; kubectl exec -it -n=glp-nft $i -- sh -c 'netstat -an | grep 11210'; done

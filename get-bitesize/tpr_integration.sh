@@ -137,5 +137,3 @@ st2 pack install git@github.com:pearsontechnology/stackstorm-bitesize.git=BITE-3
 st2ctl reload --register-all
 
 
-python ../../../tools/couchbaseconnect.py -e ubathsu -r eu-west-1 -t dev -l
-python ../../../tools/couchbaseconnect.py -e ubathsu -r eu-west-1 -t dev -u susanthab -a cbtr01-tpr-dev-cb-ubathsu-dev-data

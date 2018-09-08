@@ -49,6 +49,8 @@ $CBRESTORE $RESTORE_LOC http://$HOST:8091
 aws s3 cp "s3://bitesize-dev/eu-west-1/ubathsu/backups/couchbase/kernel-glp-prd/full/node5/2018-08-06T060004Z-3.zip" .
 aws s3 cp "s3://bitesize-dev/eu-west-1/ubathsu/backups/cb-tpr-dev-cbtr01/cb-tpr-dev-cbtr01-i-0f850e7c3b64d03dc.ubathsu.eu-west-1.dev/2018-08-14/2018-08-14T165843Z-accu-58-45.zip" . 
 
+"s3://bitesize-pre/us-east-2/glp1/backups/couchbase/diagnostic"
+
 https://s3-eu-west-1.amazonaws.com/bitesize-pre/us-east-2/glp1/backups/couchbase/glp-nft/dba/analytics-glp-nft/couchbase-i-02ff81349c0f941e4.pre.us-east-2.glp1/2018-07-23/2018-07-23T000005Z-diff-00-28.zip
 
 

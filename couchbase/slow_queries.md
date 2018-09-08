@@ -29,6 +29,7 @@ WITH {"defer_build":true};
 BUILD INDEX ON `rms`(`rms_docType_courseId`) USING GSI;
 SELECT * FROM system:indexes WHERE name="rms_docType_courseId";
 
+
 (Original)
 SELECT id, docType, scope, properties 
 from ams where docType = 'actor-profile-node' 
@@ -38,3 +39,6 @@ and id like ‘%_glp-1533889842768'
 SELECT id, docType, scope, properties 
 from ams where docType = 'actor-profile-node' 
 and id like 'GLP-%_glp-1533889820113'
+
+
+qa-team pwd }h^Ri1/S(C`%.CLL

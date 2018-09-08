@@ -71,3 +71,53 @@ python CreateIndexes.py \
     'Administrator' \
     'FuoCHQolQHj1QIhe'
 
+
+
+
+###### NFT - eses cluster replication set up.
+python CreateReplication.py \
+    'couchbase.eses.glp-nft.glp1.us-east-2.glp1.us-east-2.pre' \
+    'susanthab' \
+    'twister75' \
+    'eses-glp-nft-cb.glp1.us-east-2.glp1.us-east-2.pre' \
+    'temp_replication' \
+    '12qwaszx@'
+
+###### NFT - kernel cluster replication set up.
+python CreateReplication.py \
+    'couchbase.kernal.glp-nft.glp1.us-east-2.glp1.us-east-2.pre' \
+    'susanthab' \
+    'twister75' \
+    'kernel-glp-nft-cb.glp1.us-east-2.glp1.us-east-2.pre' \
+    'temp_replication' \
+    '1qaz2wsx@'
+
+
+###### PROD - kernel cluster replication set up.
+python CreateReplication.py \
+    '10.240.32.89' \
+    'susanthab' \
+    'twister75' \
+    'kernel-glp-prd-cb.glp1.us-west-2.prod' \
+    'temp-xdcr-kernel' \
+    '1qaz2wsx@'
+
+
+###### PROD - eses cluster replication set up.
+python CreateReplication.py \
+    'couchbase.eses.glp-prd.glp1.us-west-2.glp1.us-west-2.prod' \
+    'susanthab' \
+    'twister75' \
+    'eses-glp-prd-cb.glp1.us-west-2.prod' \
+    'temp-xdcr-eses' \
+    '1qaz2wsx@'
+
+###### PROD - analytics cluster replication set up.
+python CreateReplication.py \
+    'couchbase.analytics.glp-prd.glp1.us-west-2.glp1.us-west-2.prod' \
+    'susanthab' \
+    'twister75' \
+    'anlyt-glp-prd-cb.glp1.us-west-2.prod' \
+    'temp-xdcr-anlyt' \
+    '1qaz2wsx@'
+
