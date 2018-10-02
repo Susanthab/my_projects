@@ -171,7 +171,12 @@ find /usr/share/doc -name '*.pdf' -exec cp {} . \;
 # look for larger files. 
 find /boot -size +20000k -type f
 
+# disk usage
+du -sh *
 
+# disk utilization
+yum install ncdu
+ncdu /
 
 
 

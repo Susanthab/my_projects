@@ -136,4 +136,20 @@ chown root *
 st2 pack install git@github.com:pearsontechnology/stackstorm-bitesize.git=BITE-3182
 st2ctl reload --register-all
 
+#mds testing in new wfk.
+apiVersion: prsn.io/v1
+kind: Cb
+metadata:
+  labels:
+    creator: pipeline
+    name: susanthab
+  name: cbtr01
+  namespace: tpr-dev
+spec:
+  options:
+    instance_type: t2.xlarge
+    node_count: 2
+    use_mds: 1
+
+
 

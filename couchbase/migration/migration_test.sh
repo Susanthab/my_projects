@@ -58,18 +58,18 @@ curl -v -u 'Administrator':'gzC#qRoBDCSYjy8XjwglBF0Q' https://host:8091/pools/no
 python CreateReplication.py \
     'couchbase.cbst2-40.tpr-dev.ubathsu.eu-west-1.ubathsu.eu-west-1.dev' \
     'Administrator' \
-    'bd9ae9125ec140598076ccc4' \
+    '123' \
     'cbtr10-tpr-dev-cb.ubathsu.eu-west-1.dev' \
     'Administrator' \
-    'FuoCHQolQHj1QIhe'
+    '123'
 
 python CreateIndexes.py \
     'couchbase.cbst2-40.tpr-dev.ubathsu.eu-west-1.ubathsu.eu-west-1.dev' \
     'Administrator' \
-    'bd9ae9125ec140598076ccc4' \
+    '123' \
     'cbtr10-tpr-dev-cb.ubathsu.eu-west-1.dev' \
     'Administrator' \
-    'FuoCHQolQHj1QIhe'
+    '123'
 
 
 
@@ -78,7 +78,7 @@ python CreateIndexes.py \
 python CreateReplication.py \
     'couchbase.eses.glp-nft.glp1.us-east-2.glp1.us-east-2.pre' \
     'susanthab' \
-    'twister75' \
+    '123' \
     'eses-glp-nft-cb.glp1.us-east-2.glp1.us-east-2.pre' \
     'temp_replication' \
     '12qwaszx@'
@@ -87,37 +87,63 @@ python CreateReplication.py \
 python CreateReplication.py \
     'couchbase.kernal.glp-nft.glp1.us-east-2.glp1.us-east-2.pre' \
     'susanthab' \
-    'twister75' \
+    '123' \
     'kernel-glp-nft-cb.glp1.us-east-2.glp1.us-east-2.pre' \
     'temp_replication' \
     '1qaz2wsx@'
 
 
-###### PROD - kernel cluster replication set up.
+###### PROD(prd) - kernel cluster replication set up.
 python CreateReplication.py \
     '10.240.32.89' \
     'susanthab' \
-    'twister75' \
+    '123' \
     'kernel-glp-prd-cb.glp1.us-west-2.prod' \
     'temp-xdcr-kernel' \
     '1qaz2wsx@'
 
 
-###### PROD - eses cluster replication set up.
+###### PROD(prd) - eses cluster replication set up.
 python CreateReplication.py \
     'couchbase.eses.glp-prd.glp1.us-west-2.glp1.us-west-2.prod' \
     'susanthab' \
-    'twister75' \
+    '123' \
     'eses-glp-prd-cb.glp1.us-west-2.prod' \
     'temp-xdcr-eses' \
     '1qaz2wsx@'
 
-###### PROD - analytics cluster replication set up.
+###### PROD(prd) - analytics cluster replication set up.
 python CreateReplication.py \
     'couchbase.analytics.glp-prd.glp1.us-west-2.glp1.us-west-2.prod' \
     'susanthab' \
-    'twister75' \
+    '123' \
     'anlyt-glp-prd-cb.glp1.us-west-2.prod' \
     'temp-xdcr-anlyt' \
     '1qaz2wsx@'
 
+###### PROD(uat) - eses cluster replication set up.
+python CreateReplication.py \
+    'couchbase.eses.glp-uat.glp1.us-west-2.glp1.us-west-2.prod' \
+    'susanthab' \
+    'twister75' \
+    'eses-glp-uat-cb.glp1.us-west-2.prod' \
+    'temp-xdcr-eses-uat' \
+    '12qwaszx@'
+
+###### PROD(uat) - kernel cluster replication set up.
+python CreateReplication.py \
+    'couchbase.kernal.glp-uat.glp1.us-west-2.glp1.us-west-2.prod' \
+    'susanthab' \
+    'twister75' \
+    'kernel-glp-uat-cb.glp1.us-west-2.prod' \
+    'temp-xdcr-kernel-uat' \
+    '12qwaszx@'
+
+    ###### PROD(uat) - analytics cluster replication set up.
+python CreateReplication.py \
+    'couchbase.analytics.glp-uat.glp1.us-west-2.glp1.us-west-2.prod' \
+    'susanthab' \
+    'twister75' \
+    'anlyt-glp-uat-cb.glp1.us-west-2.prod' \
+    'temp-xdcr-anlyt-uat' \
+    '12qwaszx@'

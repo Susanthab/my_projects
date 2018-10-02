@@ -7,7 +7,7 @@ def serach:
 
     cb_server_ip=
     user="susanthab"
-    passw="twister75"
+    passw="123"
     course_id=
 
     
