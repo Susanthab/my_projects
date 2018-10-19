@@ -47,9 +47,9 @@ $CBRESTORE $RESTORE_LOC http://$HOST:8091
 
 # copy s3 file to local host
 aws s3 cp "s3://bitesize-dev/eu-west-1/ubathsu/backups/couchbase/kernel-glp-prd/full/node5/2018-08-06T060004Z-3.zip" .
-aws s3 cp "s3://bitesize-stg/eu-west-1/staging/backups/couchbase/cb-tpr-dev-cbtr22/restore/node1/2018-08-06T060004Z.zip" . 
+aws s3 cp "s3://bitesize-stg/eu-west-1/staging/backups/couchbase/cb-tpr-dev-cbstg/restore/node1/2018-10-07T020012Z-full-24-49.zip" . 
 
-aws s3 cp "bitesize-prod/us-west-2/glp1/backups/couchbase/cb-glp-uat-kernel/cb-glp-uat-kernel-i-00890cc80a89dc598.glp1.us-west-2.prod/2018-09-10/2018-09-10T201001Z-full-03-22.zip" .
+
 
 https://s3-eu-west-1.amazonaws.com/bitesize-pre/us-east-2/glp1/backups/couchbase/glp-nft/dba/analytics-glp-nft/couchbase-i-02ff81349c0f941e4.pre.us-east-2.glp1/2018-07-23/2018-07-23T000005Z-diff-00-28.zip
 
@@ -73,6 +73,8 @@ do
 done
 #################################################
 
+bash cb_restore.sh susanthab twister75 \
+"s3://bitesize-stg/eu-west-1/staging/backups/couchbase/cb-tpr-dev-cbstg/restore/node3/2018-10-07T020011Z-full-23-12.zip"
 
 # restore diff backup
 cbrestore 2018-08-14T164821Z/2018-08-14T165843Z-accu -u Administrator \

@@ -65,7 +65,7 @@ couchbase-tpr-dev-couchbtest-empty
 
 st2 execution list --action couchbase.couchbase_workflow
 
-st2 execution list --action couchbase.couchbase_workflow -n 500 --status running
+st2 execution list --action bitesize.cb_chain -n 500 --status running
 
 st2 execution get <exec id>
 

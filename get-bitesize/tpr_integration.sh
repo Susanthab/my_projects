@@ -143,13 +143,31 @@ metadata:
   labels:
     creator: pipeline
     name: susanthab
-  name: cbtr01
+  name: cb01
   namespace: tpr-dev
 spec:
   options:
-    instance_type: t2.xlarge
-    node_count: 2
     use_mds: 1
+    instance_type: t2.2xlarge
+    node_count: 2
+    query_instance_type: t2.xlarge
+    query_node_count: 2
+    index_instance_type: t2.large
+    index_node_count: 2
+    version: sb-test
 
 
 
+
+
+# for testing - tpr-dev ns. 
+{
+  "kind": "Namespace",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "tpr-dev",
+    "labels": {
+      "name": "tpr-dev"
+    }
+  }
+}
