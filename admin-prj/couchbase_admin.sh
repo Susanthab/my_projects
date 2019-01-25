@@ -103,7 +103,7 @@ select *
 
 # queries takes longer than 10 sec. 
 select elapsedTime,serviceTime,str_to_duration(serviceTime) ttime,
-phaseCounts.primaryScan,requestTime,state,statement,users 
+phaseCounts.primaryScan,requestTime,state,statement,users,preparedText
 from system:completed_requests 
 where users='glp-kernel'
 and str_to_duration(serviceTime) > 5000000000
@@ -118,7 +118,7 @@ select phaseCounts.`fetch` / resultCount efficiency, *
   order by efficiency desc;
 
 # costly queries.
-select statement, array_sum(object_values(phaseCounts)) cost
+select statement, preparedText, array_sum(object_values(phaseCounts)) cost
   from system:completed_requests
   order by cost desc;
 
@@ -180,14 +180,17 @@ aws s3 cp indexer_node5.zip "s3://bitesize-pre/us-east-2/glp1/backups/couchbase/
 ../../../../tools/add-to-sg.py --region us-west-2 --envtype prod --env glp1 --add --sg kernel-glp-prd-cb-glp1-prod-ui
 
 #dev
-python ../../../tools/couchbaseconnect.py -e ubathsu -r eu-west-1 -t dev -l
+python ../../../tools/couchbaseconnect.py -e ubathsu2 -r eu-west-1 -t dev -l
+add-to-sg.py --region eu-west-1 --envtype dev --env ubathsu2 --list
 
 #stg
 python ../../../tools/couchbaseconnect.py -e staging -r eu-west-1 -t stg -l
+add-to-sg.py --region eu-west-1 --envtype stg --env staging --list
 
 # pre
 python ../../../tools/couchbaseconnect.py -e glp1 -r us-east-2 -t pre -l
 python ../../../tools/couchbaseconnect.py -e glp1 -r us-east-2 -t pre -u susanthab -a <server name>
+add-to-sg.py --region us-east-2 --envtype pre --env glp1 --list
 
 # prod
 python ../../../tools/couchbaseconnect.py -e glp1 -r us-west-2 -t prod -l
@@ -206,3 +209,22 @@ adminui.cbclustername.namespace.glp1.us-west-2.prod.prsn.io
 mkdir -p /backup/cb_collect/09192018/ 
 cd /backup/cb_collect/09192018/
 cbcollect_info --tmp-dir=/backup/cb_collect/09192018/ -v 10_1_53_65.zip
+
+# create user
+couchbase-cli user-manage -c `echo $(hostname -i)`:8091 -u Administrator \
+ -p 5bgifkUaVKEXAxLS --set --rbac-username susanthab --rbac-password 123 \
+ --rbac-name "Susantha Bathige" --roles admin \
+ --auth-domain local
+
+couchbase-cli user-manage -c `echo $(hostname -i)`:8091 -u Administrator \
+ -p 5bgifkUaVKEXAxLS --set --rbac-username david.chait --rbac-password 123@ \
+ --rbac-name "David Chait" --roles admin \
+ --auth-domain local
+
+pwd=$(sudo cat /etc/ansible/extra_vars.yaml | grep cluster_password | awk '{print $2}') \
+login_name="ujayani" \
+user_name="Niroshan Jayathunga" \
+couchbase-cli user-manage -c `echo $(hostname -i)`:8091 -u Administrator \
+ -p 123 --set --rbac-username "ujayani" --rbac-password 123@ \
+ --rbac-name "Niroshan Jayathunga" --roles admin \
+ --auth-domain local

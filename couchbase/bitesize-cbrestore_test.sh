@@ -46,7 +46,7 @@ $CBRESTORE $RESTORE_LOC http://$HOST:8091
 
 
 # copy s3 file to local host
-aws s3 cp "s3://bitesize-dev/eu-west-1/ubathsu/backups/couchbase/kernel-glp-prd/full/node5/2018-08-06T060004Z-3.zip" .
+aws s3 cp "s3://bitesize-dev/eu-west-1/ubathsu2/backups/couchbase/cb-tpr-dev-cb01/2018-10-25/cb01-03-15.zip" .
 aws s3 cp "s3://bitesize-stg/eu-west-1/staging/backups/couchbase/cb-tpr-dev-cbstg/restore/node1/2018-10-07T020012Z-full-24-49.zip" . 
 
 
@@ -122,3 +122,30 @@ BUILD INDEX ON `led`
 `instructorcoursesubscriptionIndex`
 )
 USING GSI;
+
+# remove backup cpnfig
+cbbackupmgr remove -a /backup/couchbase_2 -r kernel-uat
+
+# create the backup config first
+# according to the zip file structure
+cbbackupmgr config --archive backup/couchbase_2  --repo cb01
+
+# cbbackupmgr restore
+
+# download the backup from s3.
+#1.
+aws s3 cp "s3://bitesize-pre/us-east-2/glp1/backups/couchbase/cb-glp-nft-kernel2/kernel-glp-nft-40-36.zip" /backup/couchbase/restore
+#2. create the config
+cbbackupmgr config --archive /backup/couchbase/backup/couchbase2  --repo kernel-glp-nft
+#3. Unzip
+unzip *
+#4. restore
+cbbackupmgr restore -a /backup/couchbase/backup/couchbase2 -r kernel-glp-nft \
+ -c couchbase://$(hostname -i) -u susanthab -p twister75
+# specific backup (optional)
+cbbackupmgr restore -a backup/couchbase_2 -r cb01 \
+ -c couchbase://$(hostname -i) -u susanthab -p twister75
+ --start 2016-03-08T14_41_10.757145596-08_00 \
+ --end 2016-03-08T14_41_10.757145596-08_00
+
+

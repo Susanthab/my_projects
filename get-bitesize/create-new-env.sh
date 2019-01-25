@@ -32,7 +32,8 @@ cd bitesize-environments && \
 ./manage-env.py --env ubathsu --region eu-west-1 --envtype dev -p couchbase create
 
 # Create new env for SRE demo. 
-./manage-env.py --env sredemo2 --region eu-west-1 --envtype dev create
+./manage-env.py --env ubathsu0 --region eu-west-1 --envtype dev create
+./manage-env.py --env ubathsu0 --region us-east-1 --envtype dev create
 
 beconnect.py -su susanthab -go
 

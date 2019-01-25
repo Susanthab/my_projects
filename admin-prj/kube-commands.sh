@@ -76,3 +76,22 @@ curl --key /etc/cfssl/ssl/kubernetes/client-prometheus-key.pem --cert /etc/cfssl
 
 
 for i in `kubectl get pod -n=glp-nft -o name | sed -e 's/^pods\///g'`; do echo $i; kubectl exec -it -n=glp-nft $i -- sh -c 'netstat -an | grep 11210'; done
+
+# k8 manifest files on kube-master
+/etc/kubernetes/manifests
+
+# secrets
+# https://kubernetes.io/docs/concepts/configuration/secret/#decoding-a-secret
+kubectl get secrets -n glp-nft
+# decode
+kubectl get secret cb-kernel2-pass -n glp-nft -o yaml
+echo 'dEgxWDNkajJXWlRXbnlVRQ==' | base64 --decode
+
+# restart all microservices except zookeeper and kafka
+kubectl get pods -n glp-nft | grep -v zo | grep -v kaf | awk '{ print $1 }' | xargs kubectl delete pod -n glp-nft
+
+# list volumes
+kubectl get pv
+
+#k8 commands
+#https://gist.github.com/edsiper/fac9a816898e16fc0036f5508320e8b4#volumes

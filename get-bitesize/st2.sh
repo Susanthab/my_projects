@@ -111,3 +111,7 @@ tail -20f /var/log/amazon/ssm/amazon-ssm-agent.log
 
 #registered sensors. 
 st2ctl reload --register-sensors
+
+# docker compose path in st2. 
+/var/st2-docker
+docker-compose down -v && docker-compose up -d

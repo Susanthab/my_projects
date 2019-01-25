@@ -1,0 +1,36 @@
+# Permissions Policy 
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "neptune-db:*",
+            "Resource": [
+                "arn:aws:neptune-db:eu-west-1:602604727914:*/*"
+            ]
+        }
+    ]
+}
+
+
+# Trust Policy
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::602604727914:role/minion-ubathsu2-eu-west-1-dev"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}

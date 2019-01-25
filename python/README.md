@@ -7,7 +7,6 @@ def test_parameterized_without_fixture(n):
     print 'n =', n
     assert is_prime(n)
 
-
 # Testing expected exceptions.
 # Code supposed to raise a run time error. 
 def test_pytest_rasies():
@@ -42,4 +41,8 @@ pytest -m "not windows" -v
 
 # print output in pytest. 
 pytest -s -v test/test_<>.py
+
+## Beyond basics
+#1. Built-in types 
+Int, float, str, list, dict, set
 

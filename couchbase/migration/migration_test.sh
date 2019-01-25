@@ -146,4 +146,9 @@ python CreateReplication.py \
     'twister75' \
     'anlyt-glp-uat-cb.glp1.us-west-2.prod' \
     'temp-xdcr-anlyt-uat' \
-    '12qwaszx@'
+    '@'
+
+# Build index
+python BuildIndex.py '10.1.55.129' 'susanthab' 'twister75'
+
+curl -vgsk -X POST -u susanthab:twister75 'http://10.1.55.129:8093/query/service'
