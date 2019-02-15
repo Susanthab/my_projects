@@ -7,3 +7,6 @@
 ../../../tools/int-test.sh -e ubathsu2 -t dev -r eu-west-1 -f /Users/ubathsu/pearsontechnology/bitesize-integration
 
 ../../../tools/cb-test_new.sh -e ubathsu2 -t dev -r eu-west-1 -n sus-dev -i cb10 -b BITE-3847
+
+
+int-test2.sh -e ubathsu2 -t dev -r eu-west-1 -i cb55-inttest
